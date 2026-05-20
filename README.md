@@ -2,7 +2,20 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets.
+> Status: **v0.1** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets.
+
+![System view](docs/screenshots/system.png)
+![Gamelist view](docs/screenshots/gamelist.png)
+
+## Known v0.1 limitations
+
+The theme loads and renders without crashing, but some elements still need work:
+- System icons aren't appearing in the carousel (only text labels). The `<carousel>` element's icon path resolution needs investigation.
+- Wave background tint stays neutral until a colorset is explicitly selected in UI Settings → Theme Configuration → PSP Color.
+- The custom clock and `md_logo` (current-system icon on gamelist) aren't rendering — likely positioning or element-name mismatches with this batocera-emulationstation fork.
+- The default ES "2 GAMES" counter is visible (we didn't override that view element).
+
+These are v0.2 fixes. The core scaffolding (theme loads, views render, sounds wired, helpsystem styled, twelve colorsets selectable) is in place.
 
 ## Install
 
