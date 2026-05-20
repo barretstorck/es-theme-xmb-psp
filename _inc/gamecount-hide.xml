@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - hide ES systemInfo element in system view.
+  systemInfo is the multi-purpose element that shows the system name briefly
+  then transitions to "X GAMES" after systemInfoDelay. Hiding it produces
+  the PSP-pure icon-only look. Selected via UI Settings → Theme Configuration
+  → Game Count → Hide. This is the v0.4 default.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="system">
+    <text name="systemInfo">
+      <visible>false</visible>
+    </text>
+  </view>
+</theme>

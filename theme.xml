@@ -23,6 +23,11 @@
     <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
   </subset>
 
+  <subset name="gamecount" displayName="Game Count">
+    <include name="Hide">./_inc/gamecount-hide.xml</include>
+    <include name="Show">./_inc/gamecount-show.xml</include>
+  </subset>
+
   <include>./_inc/common.xml</include>
   <include>./_inc/system.xml</include>
   <include>./_inc/gamelist.xml</include>

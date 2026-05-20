@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - show ES systemInfo element in system view, restyled to
+  match PSP theme. systemInfo shows the system name briefly then cycles to
+  "X GAMES" count. Selected via UI Settings → Theme Configuration →
+  Game Count → Show.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="system">
+    <text name="systemInfo">
+      <visible>true</visible>
+      <pos>0 0.85</pos>
+      <size>1 0.04</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <backgroundColor>00000000</backgroundColor>
+      <alignment>center</alignment>
+      <zIndex>5</zIndex>
+    </text>
+  </view>
+</theme>
