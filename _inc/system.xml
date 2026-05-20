@@ -8,9 +8,13 @@
 
   <view name="system">
 
-    <!-- Wave background. Center-anchored, 10% over-scanned so future
-         storyboard motion (x/scale) stays within the visible frame
-         without revealing PNG edges. -->
+    <!-- Wave background. Center-anchored, 10% over-scanned so storyboard
+         motion (x/scale) stays within the visible frame without
+         revealing PNG edges. Marked extra="true" to render; the
+         documented <image name="background"> slot without extra="true"
+         did not render in this ES build. Side effect: extras in system
+         view scroll with the carousel, so wave appears to reset on
+         system change. Accepted v0.3 limitation. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
       <pos>0.5 0.5</pos>

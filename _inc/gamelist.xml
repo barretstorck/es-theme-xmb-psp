@@ -9,7 +9,7 @@
   <view name="detailed">
 
     <!-- Wave background. Same parameters as system view so the visual
-         feel matches across views. -->
+         feel matches across views. extra="true" required to render. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
       <pos>0.5 0.5</pos>
