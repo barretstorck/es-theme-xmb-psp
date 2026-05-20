@@ -2,16 +2,15 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.3** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation. Default colorset is January Blue.
+> Status: **v0.4** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation, vertically centered icon-only carousel, optional game counter, universal system icon coverage. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
 
-## Known v0.3 limitations
+## Known limitations
 
 - **Wave animation resets on every system carousel navigation.** Extra elements in the system view are bound to the carousel scroll in this batocera-emulationstation build; the storyboard restarts at t=0 each time you change systems. Exhaustively verified — no theme-XML workaround exists (screen view, `<image name="background">`, top-level images, fade transition all tried). The motion resumes immediately after.
-- Systems for which we don't ship a controller icon fall back to a text label in the carousel (e.g., `ima…`, `pyg…`). To add an icon, drop a `<system_shortname>.png` into `art/system-icons/`.
-- The default ES "X GAMES" counter still shows below the carousel; we don't override that element. Cosmetic.
+- Systems without a hand-tuned icon fall back to a generic `_default.png` placeholder. To add a specific icon for any system, drop `<system-shortname>.png` into `art/system-icons/` (this overrides the placeholder automatically on the next sync). Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
 
 ## Install
 
@@ -34,7 +33,11 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Customization
 
-The only configurable knob is colorset (PSP-authentic month-tinted palettes). Change it under **UI Settings → Theme Configuration → PSP Color**. The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
+Two configurable knobs, both under **UI Settings → Theme Configuration**:
+- **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
+- **Game Count** — show or hide the "X GAMES" counter below the carousel (default Hide)
+
+The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
 ## How the wave is built
 
