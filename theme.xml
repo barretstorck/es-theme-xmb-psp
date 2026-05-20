@@ -24,7 +24,7 @@
   </subset>
 
   <subset name="motion" displayName="Wave Motion">
-    <include name="Parallax">./motion/parallax.xml</include>
+    <include name="Slide">./motion/slide.xml</include>
     <include name="Static">./motion/static.xml</include>
   </subset>
 
