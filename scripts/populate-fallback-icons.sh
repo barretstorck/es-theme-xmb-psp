@@ -5,6 +5,10 @@
 # Idempotent: re-running skips systems that already have an icon.
 set -euo pipefail
 
+# Resolve repo root regardless of where the script is invoked from
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
 ICON_DIR="art/system-icons"
 DEFAULT_ICON="${ICON_DIR}/_default.png"
 SYSTEM_LIST="scripts/knulli-systems.txt"
@@ -18,10 +22,11 @@ if [[ ! -f "$SYSTEM_LIST" ]]; then
   exit 1
 fi
 
+echo "Scanning ${SYSTEM_LIST} for missing icons in ${ICON_DIR} …"
 existing=0
 created=0
 while IFS= read -r system; do
-  [[ -z "$system" ]] && continue
+  [[ -z "$system" || "$system" == \#* ]] && continue
   target="${ICON_DIR}/${system}.png"
   if [[ -f "$target" ]]; then
     existing=$((existing + 1))
@@ -33,4 +38,8 @@ while IFS= read -r system; do
 done < "$SYSTEM_LIST"
 
 echo
-echo "Summary: ${existing} systems already covered, ${created} new fallback files created."
+if [[ $created -eq 0 ]]; then
+  echo "Summary: all ${existing} systems already covered — nothing to do."
+else
+  echo "Summary: ${existing} systems already covered, ${created} new fallback files created."
+fi
