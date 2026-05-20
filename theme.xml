@@ -25,4 +25,5 @@
 
   <include>./_inc/common.xml</include>
   <include>./_inc/system.xml</include>
+  <include>./_inc/gamelist.xml</include>
 </theme>

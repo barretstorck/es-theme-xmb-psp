@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - detailed view (gamelist).
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+
+  <view name="detailed">
+
+    <!-- Same wave background as system view -->
+    <image name="waveBackground" extra="true">
+      <path>./art/wave/wave.png</path>
+      <pos>0 0</pos>
+      <size>1 1</size>
+      <color>${waveTint}</color>
+      <zIndex>0</zIndex>
+    </image>
+
+    <!-- Top-right clock -->
+    <datetime name="clock" extra="true">
+      <pos>0.88 0.03</pos>
+      <size>0.10 0.04</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.030</fontSize>
+      <color>${textPrimary}</color>
+      <format>%H:%M</format>
+      <horizontalAlignment>right</horizontalAlignment>
+      <zIndex>10</zIndex>
+    </datetime>
+
+    <!-- Current-system icon, top-left (Task 12's Option-B fallback;
+         frozen-system-bar variant deferred per spec section 9). -->
+    <image name="md_logo">
+      <pos>0.04 0.05</pos>
+      <maxSize>0.12 0.10</maxSize>
+      <color>${textPrimary}</color>
+      <zIndex>5</zIndex>
+    </image>
+    <text name="md_name">
+      <pos>0.18 0.07</pos>
+      <size>0.40 0.06</size>
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>0.035</fontSize>
+      <color>${textPrimary}</color>
+      <zIndex>5</zIndex>
+    </text>
+
+    <!-- Game list (left half) -->
+    <textlist name="gamelist">
+      <pos>0.04 0.22</pos>
+      <size>0.45 0.65</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.035</fontSize>
+      <horizontalMargin>0.02</horizontalMargin>
+      <alignment>left</alignment>
+      <primaryColor>${textSecondary}</primaryColor>
+      <secondaryColor>${textSecondary}</secondaryColor>
+      <selectorColor>${selectorGlow}</selectorColor>
+      <selectedColor>${textPrimary}</selectedColor>
+      <lineSpacing>1.3</lineSpacing>
+      <zIndex>5</zIndex>
+    </textlist>
+
+    <!-- Right panel: boxart (with fallback to thumbnail/image) -->
+    <image name="md_image">
+      <pos>0.55 0.22</pos>
+      <maxSize>0.40 0.40</maxSize>
+      <color>FFFFFFFF</color>
+      <zIndex>5</zIndex>
+    </image>
+
+    <!-- Right panel: metadata labels and values -->
+    <text name="md_lbl_releasedate">
+      <pos>0.55 0.66</pos>
+      <size>0.20 0.04</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <text>Released</text>
+      <zIndex>5</zIndex>
+    </text>
+    <datetime name="md_releasedate">
+      <pos>0.75 0.66</pos>
+      <size>0.20 0.04</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textPrimary}</color>
+      <format>%Y</format>
+      <zIndex>5</zIndex>
+    </datetime>
+
+    <text name="md_lbl_players">
+      <pos>0.55 0.71</pos>
+      <size>0.20 0.04</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <text>Players</text>
+      <zIndex>5</zIndex>
+    </text>
+    <text name="md_players">
+      <pos>0.75 0.71</pos>
+      <size>0.20 0.04</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textPrimary}</color>
+      <zIndex>5</zIndex>
+    </text>
+
+    <text name="md_lbl_rating">
+      <pos>0.55 0.76</pos>
+      <size>0.20 0.04</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <text>Rating</text>
+      <zIndex>5</zIndex>
+    </text>
+    <rating name="md_rating">
+      <pos>0.75 0.76</pos>
+      <size>0.15 0.04</size>
+      <color>${accent}</color>
+      <zIndex>5</zIndex>
+    </rating>
+
+  </view>
+</theme>
