@@ -9,4 +9,5 @@
   <formatVersion>7</formatVersion>
 
   <include>./_inc/common.xml</include>
+  <include>./_inc/system.xml</include>
 </theme>
