@@ -8,13 +8,20 @@
 
   <view name="system">
 
-    <!-- Animated wave background (storyboard added in Task 14). -->
+    <!-- Animated wave background. Subtle drift, autoreversing, forever.
+         Tune duration/keyframes here if FPS suffers on the Brick. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
       <pos>0 0</pos>
       <size>1 1</size>
       <color>${waveTint}</color>
       <zIndex>0</zIndex>
+      <storyboard event="activate">
+        <animation property="pos" duration="4000" repeat="forever" autoReverse="true">
+          <keyframe time="0">0 0</keyframe>
+          <keyframe time="4000">-0.02 0.01</keyframe>
+        </animation>
+      </storyboard>
     </image>
 
     <!-- Top-right clock, PSP-style (24h, time only). -->
