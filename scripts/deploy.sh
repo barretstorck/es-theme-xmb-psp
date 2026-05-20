@@ -42,6 +42,9 @@ Subcommands:
   sync       rsync theme files to device
   restart    restart EmulationStation on device
   push       sync + restart  (deploy a change end-to-end)
+  activate   atomically set BOTH theme.set (knulli.conf) and
+             ThemeSet (es_settings.cfg) to this theme, then restart ES.
+             A mismatch between the two causes an ES restart loop.
   logs       tail ES log on device
   shot       capture a screenshot, pull to .dev/last-shot.png
   shell      interactive SSH session
@@ -74,14 +77,30 @@ case "$cmd" in
       ./ "${DEVICE}:${THEME_PATH}"
     ;;
   restart)
-    $SSH "${DEVICE}" 'batocera-es-swissknife --restart'
+    $SSH "${DEVICE}" '(command -v knulli-es-swissknife >/dev/null && knulli-es-swissknife --restart) || batocera-es-swissknife --restart'
     ;;
   push)
     "$0" sync
     "$0" restart
     ;;
+  activate)
+    # On Knulli, the theme name lives in TWO places: knulli.conf's theme.set
+    # (used by the system) and es_settings.cfg's ThemeSet (used by ES). If
+    # they diverge, the emulationstation-standalone wrapper restarts ES in a
+    # tight loop trying to reconcile them. Set both, then restart.
+    $SSH "${DEVICE}" "
+      if command -v knulli-settings-set >/dev/null 2>&1; then
+        knulli-settings-set theme.set ${THEME_NAME}
+      else
+        batocera-settings-set theme.set ${THEME_NAME}
+      fi
+      sed -i 's|<string name=\"ThemeSet\" value=\"[^\"]*\"|<string name=\"ThemeSet\" value=\"${THEME_NAME}\"|' /userdata/system/configs/emulationstation/es_settings.cfg
+      (command -v knulli-es-swissknife >/dev/null && knulli-es-swissknife --restart) || batocera-es-swissknife --restart
+    "
+    ;;
   logs)
-    $SSH "${DEVICE}" 'tail -f /userdata/system/logs/es_log.txt'
+    # Knulli stores ES log under configs/, not system/logs/.
+    $SSH "${DEVICE}" 'tail -f /userdata/system/configs/emulationstation/es_log.txt 2>/dev/null || tail -f /userdata/system/logs/es_log.txt'
     ;;
   shot)
     mkdir -p .dev
@@ -109,7 +128,16 @@ case "$cmd" in
     $SSH "${DEVICE}"
     ;;
   fallback)
-    $SSH "${DEVICE}" 'batocera-settings-set theme.set carbon && batocera-es-swissknife --restart'
+    # Atomic sync of theme.set and ThemeSet to the default 'carbon' theme.
+    $SSH "${DEVICE}" "
+      if command -v knulli-settings-set >/dev/null 2>&1; then
+        knulli-settings-set theme.set carbon
+      else
+        batocera-settings-set theme.set carbon
+      fi
+      sed -i 's|<string name=\"ThemeSet\" value=\"[^\"]*\"|<string name=\"ThemeSet\" value=\"carbon\"|' /userdata/system/configs/emulationstation/es_settings.cfg
+      (command -v knulli-es-swissknife >/dev/null && knulli-es-swissknife --restart) || batocera-es-swissknife --restart
+    "
     ;;
   -h|--help|"")
     usage

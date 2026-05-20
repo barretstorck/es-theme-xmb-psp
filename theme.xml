@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - PSP XMB theme for batocera-emulationstation
+  Derivative of "XMB Menu ES-DE" by Ant (anthonycaccese), itself derived
+  from "XMB-Easy-Theme" by InitialDin. CC-BY-NC-SA 2.0.
+  Full attribution: see CREDITS.md
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+</theme>
