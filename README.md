@@ -2,20 +2,16 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.1** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets.
+> Status: **v0.2** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
 
-## Known v0.1 limitations
+## Known v0.2 limitations
 
-The theme loads and renders without crashing, but some elements still need work:
-- System icons aren't appearing in the carousel (only text labels). The `<carousel>` element's icon path resolution needs investigation.
-- Wave background tint stays neutral until a colorset is explicitly selected in UI Settings → Theme Configuration → PSP Color.
-- The custom clock and `md_logo` (current-system icon on gamelist) aren't rendering — likely positioning or element-name mismatches with this batocera-emulationstation fork.
-- The default ES "2 GAMES" counter is visible (we didn't override that view element).
-
-These are v0.2 fixes. The core scaffolding (theme loads, views render, sounds wired, helpsystem styled, twelve colorsets selectable) is in place.
+- **No animated wave background.** Tested `<video>` and animated `<image>` (GIF, APNG) — all play once and stop on the last frame in this batocera-emulationstation build, often a black frame. Static PNG is the reliable choice for now.
+- Systems for which we don't ship a controller icon fall back to a text label in the carousel (e.g., `ima…`, `pyg…`). To add an icon, drop a `<system_shortname>.png` into `art/system-icons/`.
+- The default ES "X GAMES" counter still shows below the carousel; we don't override that element. Cosmetic.
 
 ## Install
 
@@ -42,11 +38,19 @@ The only configurable knob is colorset (PSP-authentic month-tinted palettes). Ch
 
 ## Troubleshooting
 
-If the theme breaks EmulationStation on startup, SSH still works. To force Batocera back to the built-in `carbon` theme:
+If the theme breaks EmulationStation on startup, SSH still works. To force the device back to the built-in `carbon` theme:
 
+**Knulli:**
+```
+ssh root@<your-device-ip> "knulli-settings-set theme.set carbon && sed -i 's|<string name=\"ThemeSet\" value=\"[^\"]*\"|<string name=\"ThemeSet\" value=\"carbon\"|' /userdata/system/configs/emulationstation/es_settings.cfg && knulli-es-swissknife --restart"
+```
+
+**Batocera:**
 ```
 ssh root@<your-device-ip> 'batocera-settings-set theme.set carbon && batocera-es-swissknife --restart'
 ```
+
+Knulli stores the theme name in two places (`theme.set` in `knulli.conf` and `ThemeSet` in `es_settings.cfg`) — if they diverge, ES enters a restart loop. The Knulli command above updates both atomically.
 
 ## Credits and license
 
