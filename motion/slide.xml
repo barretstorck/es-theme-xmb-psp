@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Slide" wave motion (continuous right-to-left scroll).
+
+  Architecture:
+    Base layer (waveBackground): full-screen dark ${waveTint}, static.
+    Three wave-shaped overlay PNGs (wave-layer-1/2/3.png) stacked at
+    different vertical positions. Each PNG is 2x screen width with a
+    horizontally-seamless pattern (integer cycles per screen width),
+    anchored at its left edge. Animating x from 0 to -1 slides the
+    image left by one screen-width per cycle; because the pattern
+    wraps seamlessly, the storyboard repeat is visually invisible.
+    Different durations per layer create a parallax depth effect.
+
+  Wave-layer-1: top crest    (y ~ 0.44), slowest scroll (30s/cycle)
+  Wave-layer-2: middle crest (y ~ 0.50), medium scroll  (20s/cycle)
+  Wave-layer-3: bottom crest (y ~ 0.56), fastest scroll (12s/cycle),
+                full gradient fade to bottom of screen.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="system,detailed">
+
+    <!-- Base layer: dark colorset tint, no motion -->
+    <image name="waveBackground" extra="true">
+      <size>1.10 1.10</size>
+      <opacity>1.00</opacity>
+    </image>
+
+    <!-- Wave layer 1: top crest, slowest scroll -->
+    <image name="waveLayer1" extra="true">
+      <path>./art/wave/wave-layer-1.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>1</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="30000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 2: middle crest, medium scroll -->
+    <image name="waveLayer2" extra="true">
+      <path>./art/wave/wave-layer-2.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>2</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="20000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 3: bottom crest, fastest scroll -->
+    <image name="waveLayer3" extra="true">
+      <path>./art/wave/wave-layer-3.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>3</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="12000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+  </view>
+</theme>
