@@ -4,9 +4,9 @@
 
 **Goal:** Add a continuously-animating PSP XMB-style wave background to the theme with four user-selectable motion styles (Parallax / Slide / Pulse / Static), surviving system navigation without resets and without stopping on a black frame.
 
-**Architecture:** Replace v0.2's frame-based animation attempt (GIF/MP4) with ES property animation via `<storyboard repeat="forever">` on the existing static `wave.png`. Move the wave element from per-system views into `<view name="screen">` so its state persists across view transitions. Expose motion style as a new `motion` subset alongside the existing `colorset` subset — the user picks one from UI Settings → Theme Configuration → Wave Motion.
+**Architecture:** Replace v0.2's frame-based animation attempt (GIF/MP4) with ES property animation via `<storyboard repeat="forever">` on the existing static `wave.png`. Keep the wave element in per-view blocks (`<view name="system">` in `system.xml`, `<view name="detailed">` in `gamelist.xml`) — see the spec's "Revision 2026-05-20" note for why screen view was tried and reverted. Motion files target `<view name="system,detailed">` to apply storyboards to both. Expose motion style as a new `motion` subset alongside the existing `colorset` subset — the user picks one from UI Settings → Theme Configuration → Wave Motion.
 
-**Tech Stack:** XML theme files (`formatVersion 7`), batocera-emulationstation on Knulli Scarab, deploy via `scripts/deploy.sh sync`. No automated test framework — verification is the user manually reloading ES on the TrimUI Brick (192.168.1.5) and reporting visual behavior.
+**Tech Stack:** XML theme files (`formatVersion 7`), batocera-emulationstation on Knulli Scarab, deploy via `scripts/deploy.sh sync`. No automated test framework — verification is the user manually reloading ES on the TrimUI Brick (current IP in `.env.local`) and reporting visual behavior.
 
 ---
 
@@ -22,31 +22,22 @@ Each task below has a **Sync** step (agent runs), a **User verification** step (
 
 ---
 
-## Task 1: Move wave element from per-view to screen view
+## Task 1: Re-anchor wave element with motion-ready pos/size/origin
+
+**Note (revision 2026-05-20):** Original Task 1 attempted to move the wave element into `<view name="screen">`. That view is the OVERLAY layer; the wave covered everything including the carousel and main menu, requiring a recovery cycle. Task 1's actual outcome: keep the wave element in `<view name="system">` and `<view name="detailed">`, but switch its `pos/size/origin` to center-anchored / 10%-over-scanned so future storyboard motion stays within frame. This task is effectively complete; commit captures the prepared state.
 
 **Files:**
-- Modify: `_inc/common.xml` — add `waveBackground` image inside the existing `<view name="screen">` block
-- Modify: `_inc/system.xml` — remove the `waveBackground` image element (lines 16–22)
-- Modify: `_inc/gamelist.xml` — remove the `waveBackground` image element (lines 12–18)
+- Modify: `_inc/common.xml` — comment block reordered around the existing `<view name="screen">` (no functional change; still just OSD hides)
+- Modify: `_inc/system.xml` — `waveBackground` image gets `pos=0.5 0.5`, `size=1.10 1.10`, `origin=0.5 0.5` (was `pos=0 0`, `size=1 1`)
+- Modify: `_inc/gamelist.xml` — same pos/size/origin update on its `waveBackground` image
 
-- [ ] **Step 1: Edit `_inc/common.xml` — replace the existing `<view name="screen">` block**
+**Target end state (after Task 1):**
 
-Replace this existing block:
+`_inc/system.xml` — the wave element appears at the top of the `<view name="system">` block:
 ```xml
-  <view name="screen">
-    <controllerActivity name="controllerActivity">
-      <visible>false</visible>
-    </controllerActivity>
-    <text name="clock">
-      <visible>false</visible>
-    </text>
-  </view>
-```
-with:
-```xml
-  <view name="screen">
-    <!-- Global wave background. Lives in screen view so its animation
-         state persists across system / gamelist transitions. -->
+    <!-- Wave background. Center-anchored, 10% over-scanned so future
+         storyboard motion (x/scale) stays within the visible frame
+         without revealing PNG edges. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
       <pos>0.5 0.5</pos>
@@ -55,74 +46,62 @@ with:
       <color>${waveTint}</color>
       <zIndex>0</zIndex>
     </image>
-
-    <!-- Hide ES's built-in OSD overlays so they don't double up with our
-         theme. controllerActivity is the white-pink square top-left;
-         the built-in clock is the duplicate bottom-right one. -->
-    <controllerActivity name="controllerActivity">
-      <visible>false</visible>
-    </controllerActivity>
-    <text name="clock">
-      <visible>false</visible>
-    </text>
-  </view>
 ```
 
-- [ ] **Step 2: Edit `_inc/system.xml` — delete the wave image block**
-
-Delete this entire block (currently lines 11–22):
+`_inc/gamelist.xml` — same wave element at the top of the `<view name="detailed">` block:
 ```xml
-    <!-- Static wave background. Attempted animation via <video> and
-         animated <image> (GIF/APNG); both play once and stop on the
-         last frame in this batocera-ES build (often a black frame).
-         No image-element format we've tested natively repeats.
-         Static is the reliable choice; v0.3 may revisit. -->
+    <!-- Wave background. Same parameters as system view so the visual
+         feel matches across views. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
-      <pos>0 0</pos>
-      <size>1 1</size>
+      <pos>0.5 0.5</pos>
+      <size>1.10 1.10</size>
+      <origin>0.5 0.5</origin>
       <color>${waveTint}</color>
       <zIndex>0</zIndex>
     </image>
 ```
 
-The clock and carousel elements below it stay.
+`_inc/common.xml` `<view name="screen">` block — wave NOT present here; just the existing OSD-hide elements (`controllerActivity` and `clock` set to `visible:false`). The leading comment block describes those hides.
 
-- [ ] **Step 3: Edit `_inc/gamelist.xml` — delete the wave image block**
+- [ ] **Step 1: Verify local state matches target**
 
-Delete this entire block (currently lines 11–18):
-```xml
-    <!-- Same static wave background as system view -->
-    <image name="waveBackground" extra="true">
-      <path>./art/wave/wave.png</path>
-      <pos>0 0</pos>
-      <size>1 1</size>
-      <color>${waveTint}</color>
-      <zIndex>0</zIndex>
-    </image>
-```
+Run: `git diff ab00acd -- _inc/common.xml _inc/system.xml _inc/gamelist.xml`
+Expected: shows the pos/size/origin updates in `system.xml` and `gamelist.xml`, plus the OSD comment reordering in `common.xml`. No wave element in `common.xml`.
 
-- [ ] **Step 4: Sync to device**
+If diff already matches target, skip Steps 2–4. (Task was completed in-flight during recovery from the screen-view experiment.)
+
+- [ ] **Step 2: If diff diverges — sync local files to match target**
+
+Use the Edit tool to bring each file in line with the "Target end state" XML above.
+
+- [ ] **Step 3: Sync to device**
 
 Run: `./scripts/deploy.sh sync`
 Expected: rsync completes without errors. Do NOT restart ES from the dev machine.
 
-- [ ] **Step 5: Prompt user to verify**
+- [ ] **Step 4: Prompt user to verify**
 
-Send to user: *"Synced. Please reload ES (Main Menu → Quit → Restart Emulation Station). When it comes back up, navigate to a system view, then into a gamelist, then back out. Report what you see — specifically: (a) is the wave still visible? (b) does it still have the colorset tint? (c) does anything look broken in the layout?"*
+Send to user: *"Synced. Please reload ES (or power-cycle the device, since ES menu may not be reachable from the prior broken state). When it comes back up, navigate to a system view, then into a gamelist, then back out. Report what you see — specifically: (a) is the wave visible behind the carousel? (b) does it still have the colorset tint? (c) does anything look broken in the layout?"*
 
-Wait for user confirmation that the wave renders correctly in both views with no regressions. If anything is broken, debug before proceeding (do not commit broken state).
+Wait for user confirmation. The user already validated this state during recovery; this step is a final sign-off before committing.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add _inc/common.xml _inc/system.xml _inc/gamelist.xml
 git commit -m "$(cat <<'EOF'
-Move wave element from per-view to screen view
+Prepare wave element for storyboard motion: center-anchored, over-scanned
 
-Lives in <view name="screen"> so its state persists across system /
-gamelist transitions. Foundation for v0.3 storyboard motion that won't
-reset on navigation.
+Re-anchor waveBackground in <view name="system"> and <view name="detailed">
+with pos=0.5,0.5, size=1.10,1.10, origin=0.5,0.5 so future storyboard
+x/scale motion stays within the visible frame without revealing PNG edges.
+
+Original Task 1 attempted to move the wave into <view name="screen"> for
+cross-view animation persistence, but screen view is the OVERLAY layer
+in this ES build -- the wave covered everything. Reverted; the wave
+stays per-view. Animation state will reset on system->gamelist
+transitions; that is the accepted v0.3 limitation.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -204,7 +183,7 @@ Write the file with this exact content:
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="screen">
+  <view name="system,detailed">
   </view>
 </theme>
 ```
@@ -269,9 +248,9 @@ Write the file with this exact content:
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="screen">
+  <view name="system,detailed">
 
-    <!-- Back layer: override of the common waveBackground -->
+    <!-- Back layer: override of the per-view waveBackground -->
     <image name="waveBackground" extra="true">
       <opacity>0.55</opacity>
       <storyboard>
@@ -373,7 +352,7 @@ Write the file with this exact content:
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="screen">
+  <view name="system,detailed">
     <image name="waveBackground" extra="true">
       <storyboard>
         <animation property="x" from="0.48" to="0.52"
@@ -448,7 +427,7 @@ Write the file with this exact content:
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="screen">
+  <view name="system,detailed">
     <image name="waveBackground" extra="true">
       <storyboard>
         <animation property="scale" from="1.00" to="1.04"
@@ -584,8 +563,9 @@ git tag -a v0.3 -m "$(cat <<'EOF'
 v0.3 - User-selectable animated wave motion
 
 Replace v0.2's static wave with ES storyboard-driven property animation
-on the same wave.png. Wave element lives in <view name="screen"> so its
-animation state persists across system and gamelist navigation.
+on the same wave.png. Storyboards live in <view name="system,detailed">
+so animation continues smoothly when scrolling within the system
+carousel; animation resets only on system <-> gamelist transitions.
 
 Four motion styles ship as a Wave Motion subset under UI Settings ->
 Theme Configuration:

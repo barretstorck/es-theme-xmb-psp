@@ -5,6 +5,16 @@
 **Builds on:** `2026-05-20-xmb-knulli-port-design.md` (v0.1) + the v0.2 polish pass
 **Goal:** Add a continuously-animating PSP-XMB-style wave background that doesn't stop, doesn't reset on system navigation, and lets the user pick a motion style from UI Settings.
 
+## Revision 2026-05-20 (during implementation)
+
+The original spec proposed moving the wave element into `<view name="screen">` so its animation state would persist across system → gamelist transitions. **This was wrong** — `<view name="screen">` is the OVERLAY layer (intended for OSD elements like controllerActivity hides and persistent clocks). Putting a full-screen image there covers everything, including the carousel and the main menu. Verified by device test during Task 1.
+
+**Corrected approach:** Define the wave element in each per-view block (`<view name="system">` in `_inc/system.xml`, `<view name="detailed">` in `_inc/gamelist.xml`) with matching `pos/size/origin/color/zIndex` so the visual feel matches across views. Motion files target a combined `<view name="system,detailed">` block to apply the same storyboard to both. The element name remains `waveBackground` everywhere; storyboard overrides via element-name match.
+
+**Consequence:** Animation state resets when transitioning between the system view and a gamelist (a separate `waveBackground` instance is created per view). Scrolling *within* the system carousel does NOT reset the animation, because the system view itself isn't reinstantiated. This is the v0.3 limitation; the cross-view reset is acceptable given that scrolling between systems was the primary motion-disruption case reported in v0.2.
+
+Sections 2, 5, and 6 below describe the original (wrong) architecture; treat them as historical context. The plan at `docs/superpowers/plans/2026-05-20-xmb-animated-wave.md` has been updated to reflect the corrected architecture.
+
 ---
 
 ## 1. Problem statement
