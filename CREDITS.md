@@ -27,3 +27,21 @@
 
 - **Physical media icons** — RetroArch XMB monochrome theme contributors. (Not currently in any view.)
 - **Controller icons** — RobZombie9043. (Not currently in any view.)
+
+## Icon attribution (v0.4)
+
+Most system icons in `art/system-icons/` are inherited from the parent
+theme chain documented above (same CC-BY-NC-SA 2.0 license).
+
+The following icons were additionally harvested in v0.4 from
+[xmb-menu-es-de](https://github.com/anthonycaccese/xmb-menu-es-de) by
+**anthonycaccese**, CC-BY-NC-SA 2.0, for systems that were previously
+falling back to a generic placeholder:
+
+amiga, astrocade, atarijaguar, atarijaguarcd, atarilynx, bbcmicro,
+msx, odyssey2, pc, sg-1000, wonderswan, wonderswancolor
+
+Systems without a hand-tuned or harvested icon use a generic `_default.png`
+placeholder (which itself comes from the upstream parent-theme chain).
+To override: drop a hand-tuned `<system-shortname>.png` into
+`art/system-icons/`.
