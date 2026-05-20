@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "February Violet".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>4C1D95</waveTint>
+    <accent>8B5CF6</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>C4B5FD</textSecondary>
+    <selectorGlow>A78BFA</selectorGlow>
+    <helpAccent>C4B5FD</helpAccent>
+  </variables>
+</theme>

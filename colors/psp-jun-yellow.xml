@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "June Yellow".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>78350F</waveTint>
+    <accent>EAB308</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>FEF08A</textSecondary>
+    <selectorGlow>FACC15</selectorGlow>
+    <helpAccent>FEF08A</helpAccent>
+  </variables>
+</theme>

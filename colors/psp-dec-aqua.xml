@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "December Aqua".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>134E4A</waveTint>
+    <accent>14B8A6</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>99F6E4</textSecondary>
+    <selectorGlow>2DD4BF</selectorGlow>
+    <helpAccent>99F6E4</helpAccent>
+  </variables>
+</theme>

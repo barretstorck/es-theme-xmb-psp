@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "September Red".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>7F1D1D</waveTint>
+    <accent>EF4444</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>FCA5A5</textSecondary>
+    <selectorGlow>F87171</selectorGlow>
+    <helpAccent>FCA5A5</helpAccent>
+  </variables>
+</theme>

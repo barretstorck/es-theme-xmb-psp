@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "August Orange".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>9A3412</waveTint>
+    <accent>F97316</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>FED7AA</textSecondary>
+    <selectorGlow>FB923C</selectorGlow>
+    <helpAccent>FED7AA</helpAccent>
+  </variables>
+</theme>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "May Yellow-Green".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>3F6212</waveTint>
+    <accent>84CC16</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>D9F99D</textSecondary>
+    <selectorGlow>A3E635</selectorGlow>
+    <helpAccent>D9F99D</helpAccent>
+  </variables>
+</theme>

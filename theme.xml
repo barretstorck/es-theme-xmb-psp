@@ -8,6 +8,21 @@
 <theme>
   <formatVersion>7</formatVersion>
 
+  <subset name="colorset" displayName="PSP Color">
+    <include name="January Blue">./colors/psp-jan-blue.xml</include>
+    <include name="February Violet">./colors/psp-feb-violet.xml</include>
+    <include name="March Pink">./colors/psp-mar-pink.xml</include>
+    <include name="April Green">./colors/psp-apr-green.xml</include>
+    <include name="May Yellow-Green">./colors/psp-may-yellowgreen.xml</include>
+    <include name="June Yellow">./colors/psp-jun-yellow.xml</include>
+    <include name="July Amber">./colors/psp-jul-amber.xml</include>
+    <include name="August Orange">./colors/psp-aug-orange.xml</include>
+    <include name="September Red">./colors/psp-sep-red.xml</include>
+    <include name="October Crimson">./colors/psp-oct-crimson.xml</include>
+    <include name="November Slate">./colors/psp-nov-slate.xml</include>
+    <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
+  </subset>
+
   <include>./_inc/common.xml</include>
   <include>./_inc/system.xml</include>
 </theme>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "November Slate".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>334155</waveTint>
+    <accent>64748B</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>CBD5E1</textSecondary>
+    <selectorGlow>94A3B8</selectorGlow>
+    <helpAccent>CBD5E1</helpAccent>
+  </variables>
+</theme>

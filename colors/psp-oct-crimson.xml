@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "October Crimson".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>881337</waveTint>
+    <accent>E11D48</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>FECDD3</textSecondary>
+    <selectorGlow>FB7185</selectorGlow>
+    <helpAccent>FECDD3</helpAccent>
+  </variables>
+</theme>

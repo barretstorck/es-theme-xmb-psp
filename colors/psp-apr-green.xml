@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "April Green".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>14532D</waveTint>
+    <accent>22C55E</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>BBF7D0</textSecondary>
+    <selectorGlow>4ADE80</selectorGlow>
+    <helpAccent>BBF7D0</helpAccent>
+  </variables>
+</theme>

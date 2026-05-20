@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - colorset "July Amber".
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <waveTint>7C2D12</waveTint>
+    <accent>F59E0B</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>FED7AA</textSecondary>
+    <selectorGlow>FBBF24</selectorGlow>
+    <helpAccent>FED7AA</helpAccent>
+  </variables>
+</theme>
