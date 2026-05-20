@@ -19,7 +19,9 @@
 | System icons | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | UI chrome (selector, separators) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Sound effects | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
-| Fonts | XMB Menu ES-DE | _(per-font license verified in Task 5; see notes below)_ |
+| Font: Saira Semi Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Saira+Semi+Condensed) | Omnibus Type — SIL OFL 1.1 (see `fonts/OFL.txt`) |
+
+**Font substitution:** the source theme uses *FOT-NewRodin Pro* (Fontworks), which is proprietary and not redistributable. This port substitutes [Saira Semi Condensed](https://fonts.google.com/specimen/Saira+Semi+Condensed) by Omnibus Type, a free, OFL-licensed condensed sans-serif with a similar visual feel.
 
 ## Not yet used (would re-add credit if included later)
 
