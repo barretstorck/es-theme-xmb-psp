@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - shared variables, fonts, sounds, helpsystem base.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+
+  <!-- Default colorset values; overridden by any selected colorset file. -->
+  <variables>
+    <waveTint>FFFFFF</waveTint>
+    <accent>3B82F6</accent>
+    <textPrimary>FFFFFF</textPrimary>
+    <textSecondary>B0C4DE</textSecondary>
+    <selectorGlow>60A5FA</selectorGlow>
+    <helpAccent>93C5FD</helpAccent>
+
+    <fontLight>./fonts/SairaSemiCondensed-Light.ttf</fontLight>
+    <fontRegular>./fonts/SairaSemiCondensed-Regular.ttf</fontRegular>
+    <fontBold>./fonts/SairaSemiCondensed-Bold.ttf</fontBold>
+
+    <soundNavigate>./sounds/navigate.wav</soundNavigate>
+    <soundSelect>./sounds/select.wav</soundSelect>
+    <soundBack>./sounds/back.wav</soundBack>
+  </variables>
+
+  <view name="system,detailed,menu">
+    <!-- Sounds (replace ES default click sounds) -->
+    <sound name="systemscroll">
+      <path>${soundNavigate}</path>
+    </sound>
+    <sound name="scroll">
+      <path>${soundNavigate}</path>
+    </sound>
+    <sound name="select">
+      <path>${soundSelect}</path>
+    </sound>
+    <sound name="back">
+      <path>${soundBack}</path>
+    </sound>
+
+    <!-- Helpsystem styling shared across all views -->
+    <helpsystem name="help">
+      <pos>0.02 0.94</pos>
+      <textColor>${textPrimary}</textColor>
+      <iconColor>${helpAccent}</iconColor>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.025</fontSize>
+    </helpsystem>
+  </view>
+</theme>

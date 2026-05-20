@@ -7,4 +7,6 @@
 -->
 <theme>
   <formatVersion>7</formatVersion>
+
+  <include>./_inc/common.xml</include>
 </theme>
