@@ -2,14 +2,14 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.2** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets. Default colorset is January Blue.
+> Status: **v0.3** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
 
-## Known v0.2 limitations
+## Known v0.3 limitations
 
-- **No animated wave background.** Tested `<video>` and animated `<image>` (GIF, APNG) — all play once and stop on the last frame in this batocera-emulationstation build, often a black frame. Static PNG is the reliable choice for now.
+- **Wave animation resets on every system carousel navigation.** Extra elements in the system view are bound to the carousel scroll in this batocera-emulationstation build; the storyboard restarts at t=0 each time you change systems. Exhaustively verified — no theme-XML workaround exists (screen view, `<image name="background">`, top-level images, fade transition all tried). The motion resumes immediately after.
 - Systems for which we don't ship a controller icon fall back to a text label in the carousel (e.g., `ima…`, `pyg…`). To add an icon, drop a `<system_shortname>.png` into `art/system-icons/`.
 - The default ES "X GAMES" counter still shows below the carousel; we don't override that element. Cosmetic.
 
@@ -24,7 +24,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
    cd /userdata/themes && git clone <repo-url> es-theme-xmb-psp
    ```
 3. In EmulationStation: **Main Menu → UI Settings → Theme Set → `es-theme-xmb-psp`**.
-4. Pick a colorset: **UI Settings → Theme Configuration → PSP Color → choose one**.
+4. (Optional) pick a colorset: **UI Settings → Theme Configuration → PSP Color → choose one**.
 5. Restart EmulationStation: **Main Menu → Quit → Restart Emulation Station**.
 
 ## Compatibility
@@ -34,7 +34,18 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Customization
 
-The only configurable knob is colorset (PSP-authentic month-tinted palettes). Change it under **UI Settings → Theme Configuration → PSP Color**. No per-system or per-device overrides — the theme intentionally ships minimal.
+The only configurable knob is colorset (PSP-authentic month-tinted palettes). Change it under **UI Settings → Theme Configuration → PSP Color**. The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
+
+## How the wave is built
+
+The PSP XMB wave is rendered entirely via ES storyboard property animation on static PNGs — no video, no animated GIF (animated images aren't supported in this ES build):
+
+- A flat dark colorset-tinted `wave.png` provides the canvas.
+- Three transparency-channel PNGs (`wave-layer-{1,2,3}.png`) are stacked on top, each with a sine-shaped opaque-to-transparent boundary at a different vertical position. Tinted with `${accent}` so each appears as a bright wave band.
+- Each layer is 2× screen width with a horizontally-seamless pattern (integer cycles per screen width) and scrolls left at a different rate (30s / 20s / 12s per full cycle). The seamless wrap makes the storyboard repeat visually invisible.
+- A pure-white 4-pixel rim highlight at each wave's upper edge makes the crest pop against the body.
+
+The PNGs are generated procedurally by a small Python script (see commit history for `wave-layer-*.png` for parameters). They're sized at 2048×1080 so the design scales cleanly to higher-resolution devices than the 1024×768 Brick this was developed on.
 
 ## Troubleshooting
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - "Slide" wave motion (continuous right-to-left scroll).
+  es-theme-xmb-psp - PSP XMB wave background (continuous right-to-left scroll).
+  Always on; no opt-out subset in v0.3.
 
   Architecture:
     Base layer (waveBackground): full-screen dark ${waveTint}, static.

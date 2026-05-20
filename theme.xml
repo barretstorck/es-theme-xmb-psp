@@ -23,13 +23,9 @@
     <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
   </subset>
 
-  <subset name="motion" displayName="Wave Motion">
-    <include name="Slide">./motion/slide.xml</include>
-    <include name="Static">./motion/static.xml</include>
-  </subset>
-
   <include>./_inc/common.xml</include>
   <include>./_inc/system.xml</include>
   <include>./_inc/gamelist.xml</include>
   <include>./_inc/menu.xml</include>
+  <include>./_inc/wave-motion.xml</include>
 </theme>
