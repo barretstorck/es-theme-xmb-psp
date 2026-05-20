@@ -6,9 +6,12 @@
 <theme>
   <formatVersion>7</formatVersion>
 
-  <!-- Default colorset values; overridden by any selected colorset file. -->
+  <!-- Default colorset = January Blue. Picked so the wave background is
+       dark enough to make white text readable when no colorset is chosen
+       in UI Settings. Selecting any colorset in the "PSP Color" subset
+       overrides these values. -->
   <variables>
-    <waveTint>FFFFFF</waveTint>
+    <waveTint>1E3A8A</waveTint>
     <accent>3B82F6</accent>
     <textPrimary>FFFFFF</textPrimary>
     <textSecondary>B0C4DE</textSecondary>
