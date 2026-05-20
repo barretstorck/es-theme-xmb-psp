@@ -40,7 +40,7 @@
     <carousel name="systemcarousel">
       <defaultTransition>fade</defaultTransition>
       <type>horizontal</type>
-      <pos>0 0.20</pos>
+      <pos>0 0.35</pos>
       <size>1 0.30</size>
       <color>00000000</color>
       <logoSize>0.10 0.14</logoSize>
@@ -62,16 +62,6 @@
       <zIndex>6</zIndex>
     </image>
 
-    <!-- Selected system name caption, just below carousel. -->
-    <text name="systemInfo">
-      <pos>0 0.50</pos>
-      <size>1 0.06</size>
-      <fontPath>${fontBold}</fontPath>
-      <fontSize>0.045</fontSize>
-      <color>${textPrimary}</color>
-      <alignment>center</alignment>
-      <zIndex>5</zIndex>
-    </text>
 
   </view>
 </theme>
