@@ -29,9 +29,10 @@
       <zIndex>10</zIndex>
     </datetime>
 
-    <!-- Current-system icon, top-left (Task 12's Option-B fallback).
-         Uses the same ${system.theme} path resolution as the system view. -->
-    <image name="md_logo">
+    <!-- Current-system icon, top-left. In detailed view the element name
+         is 'logo' (not 'md_logo'); md_* prefix is reserved for game
+         metadata images like md_image (boxart). -->
+    <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>0.04 0.05</pos>
       <maxSize>0.12 0.10</maxSize>
