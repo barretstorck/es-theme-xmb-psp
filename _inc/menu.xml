@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - menu view (Batocera settings dialogs themed lightly).
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+
+  <view name="menu">
+
+    <!-- Dimmed wave background to avoid clashing with menu text.
+         '80' suffix on the tint = 50% alpha. -->
+    <image name="menuBackground" extra="true">
+      <path>./art/wave/wave.png</path>
+      <pos>0 0</pos>
+      <size>1 1</size>
+      <color>${waveTint}80</color>
+      <zIndex>0</zIndex>
+    </image>
+
+    <menuText name="menuTitle">
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>0.045</fontSize>
+      <color>${textPrimary}</color>
+    </menuText>
+
+    <menuText name="menuTextSmall">
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.028</fontSize>
+      <color>${textPrimary}</color>
+      <selectedColor>${selectorGlow}</selectedColor>
+      <selectorColor>${accent}</selectorColor>
+    </menuText>
+
+  </view>
+</theme>
