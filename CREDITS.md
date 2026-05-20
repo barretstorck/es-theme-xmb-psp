@@ -38,8 +38,12 @@ The following icons were additionally harvested in v0.4 from
 **anthonycaccese**, CC-BY-NC-SA 2.0, for systems that were previously
 falling back to a generic placeholder:
 
-amiga, astrocade, atarijaguar, atarijaguarcd, atarilynx, bbcmicro,
-msx, odyssey2, pc, sg-1000, wonderswan, wonderswancolor
+all, amiga, astrocade, atarijaguar, atarijaguarcd, atarilynx,
+bbcmicro, favorites, msx, odyssey2, pc, sg-1000, wonderswan,
+wonderswancolor
+
+Note: `all.png` was sourced from upstream's `auto-allgames.png` and saved
+under Knulli's shortname for the all-games auto-collection.
 
 Systems without a hand-tuned or harvested icon use a generic `_default.png`
 placeholder (which itself comes from the upstream parent-theme chain).

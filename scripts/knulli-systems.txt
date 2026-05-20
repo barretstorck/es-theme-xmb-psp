@@ -1,6 +1,9 @@
+# ES built-in collections (not in es_systems.cfg, but rendered in the
+# carousel and themed by the same ${system.theme}.png template).
 abuse
 adam
 advision
+all
 amiga
 amiga1200
 amiga500
@@ -50,6 +53,7 @@ electron
 emulators
 fallout1-ce
 fallout2-ce
+favorites
 fbneo
 fds
 flash
@@ -130,6 +134,7 @@ pygame
 quake
 quake2
 raze
+recent
 recordings
 reminiscence
 rott
