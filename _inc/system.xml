@@ -8,13 +8,11 @@
 
   <view name="system">
 
-    <!-- Static wave background (PNG tinted by colorset). Video element
-         worked but cost too much CPU on the Brick and reset on each
-         system change. Storyboard animations in this batocera-ES build
-         don't support auto-reverse, so any looping drift would "pop"
-         visibly at cycle end. Keeping static; v0.3 may revisit. -->
+    <!-- Animated wave background (GIF: 512x384 @ 10fps, ~21s loop).
+         Image-element animated formats loop natively without the video
+         element's CPU cost and per-navigation reset. -->
     <image name="waveBackground" extra="true">
-      <path>./art/wave/wave.png</path>
+      <path>./art/wave/wave.gif</path>
       <pos>0 0</pos>
       <size>1 1</size>
       <color>${waveTint}</color>

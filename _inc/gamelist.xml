@@ -8,9 +8,9 @@
 
   <view name="detailed">
 
-    <!-- Same static wave background as system view -->
+    <!-- Same animated wave GIF as system view -->
     <image name="waveBackground" extra="true">
-      <path>./art/wave/wave.png</path>
+      <path>./art/wave/wave.gif</path>
       <pos>0 0</pos>
       <size>1 1</size>
       <color>${waveTint}</color>
