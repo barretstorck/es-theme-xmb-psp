@@ -1,0 +1,12 @@
+# dev workflow scratch
+.dev/
+
+# local config overrides
+.env.local
+
+# macOS
+.DS_Store
+
+# editor swap files
+*.swp
+*~
