@@ -34,6 +34,7 @@
 
     <!-- Horizontal carousel of system icons (PSP "category row"), upper third. -->
     <carousel name="systemcarousel">
+      <defaultTransition>fade</defaultTransition>
       <type>horizontal</type>
       <pos>0 0.20</pos>
       <size>1 0.30</size>
