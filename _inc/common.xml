@@ -51,4 +51,16 @@
       <fontSize>0.025</fontSize>
     </helpsystem>
   </view>
+
+  <!-- Hide ES's built-in OSD overlays so they don't double up with our
+       theme. controllerActivity is the white-pink square top-left;
+       the built-in clock is the duplicate bottom-right one. -->
+  <view name="screen">
+    <controllerActivity name="controllerActivity">
+      <visible>false</visible>
+    </controllerActivity>
+    <text name="clock">
+      <visible>false</visible>
+    </text>
+  </view>
 </theme>

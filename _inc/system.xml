@@ -8,11 +8,13 @@
 
   <view name="system">
 
-    <!-- Animated wave background (GIF: 512x384 @ 10fps, ~21s loop).
-         Image-element animated formats loop natively without the video
-         element's CPU cost and per-navigation reset. -->
+    <!-- Static wave background. Attempted animation via <video> and
+         animated <image> (GIF/APNG); both play once and stop on the
+         last frame in this batocera-ES build (often a black frame).
+         No image-element format we've tested natively repeats.
+         Static is the reliable choice; v0.3 may revisit. -->
     <image name="waveBackground" extra="true">
-      <path>./art/wave/wave.gif</path>
+      <path>./art/wave/wave.png</path>
       <pos>0 0</pos>
       <size>1 1</size>
       <color>${waveTint}</color>

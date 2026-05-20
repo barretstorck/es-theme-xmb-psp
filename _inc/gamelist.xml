@@ -8,9 +8,9 @@
 
   <view name="detailed">
 
-    <!-- Same animated wave GIF as system view -->
+    <!-- Same static wave background as system view -->
     <image name="waveBackground" extra="true">
-      <path>./art/wave/wave.gif</path>
+      <path>./art/wave/wave.png</path>
       <pos>0 0</pos>
       <size>1 1</size>
       <color>${waveTint}</color>
@@ -29,8 +29,10 @@
       <zIndex>10</zIndex>
     </datetime>
 
-    <!-- Current-system icon, top-left (Task 12's Option-B fallback). -->
+    <!-- Current-system icon, top-left (Task 12's Option-B fallback).
+         Uses the same ${system.theme} path resolution as the system view. -->
     <image name="md_logo">
+      <path>./art/system-icons/${system.theme}.png</path>
       <pos>0.04 0.05</pos>
       <maxSize>0.12 0.10</maxSize>
       <color>${textPrimary}</color>
