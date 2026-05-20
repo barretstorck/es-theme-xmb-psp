@@ -38,13 +38,18 @@ The following icons were additionally harvested in v0.4 from
 **anthonycaccese**, CC-BY-NC-SA 2.0, for systems that were previously
 falling back to a generic placeholder:
 
-amiga, astrocade, atarijaguar, atarijaguarcd, atarilynx, bbcmicro,
-favorites, msx, odyssey2, pc, sg-1000, wonderswan, wonderswancolor
+amiga, astrocade, atarijaguar, atarijaguarcd, atarilynx, auto-favorites,
+auto-lastplayed, bbcmicro, msx, odyssey2, pc, sg-1000, wonderswan,
+wonderswancolor
+
+Note: ES auto-collections (all, favorites, recent) actually use theme
+folder names `auto-allgames`, `auto-favorites`, `auto-lastplayed` per
+batocera-emulationstation's `CollectionSystemManager.cpp`. Our icons
+are saved under those longer names so the carousel renders them as
+icons rather than text. `auto-allgames.png` falls back to `_default.png`
+(upstream's `auto-allgames.png` is byte-identical to `_default.png`).
 
 Systems without a hand-tuned or harvested icon use a generic `_default.png`
 placeholder (which itself comes from the upstream parent-theme chain).
-This includes the `all` and `recent` auto-collections — upstream's
-`auto-allgames.png` turned out to be byte-identical to `_default.png`,
-and `recent.png` has no upstream equivalent.
 To override: drop a hand-tuned `<system-shortname>.png` into
 `art/system-icons/`.

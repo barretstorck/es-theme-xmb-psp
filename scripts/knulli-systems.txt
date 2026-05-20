@@ -1,9 +1,11 @@
-# ES built-in collections (not in es_systems.cfg, but rendered in the
-# carousel and themed by the same ${system.theme}.png template).
+# ES built-in auto-collections (not in es_systems.cfg). Their theme
+# folder names use the "auto-" prefix per CollectionSystemManager.cpp:
+#   all       -> auto-allgames
+#   favorites -> auto-favorites
+#   recent    -> auto-lastplayed
 abuse
 adam
 advision
-all
 amiga
 amiga1200
 amiga500
@@ -27,6 +29,9 @@ atarilynx
 atarist
 atom
 atomiswave
+auto-allgames
+auto-favorites
+auto-lastplayed
 bbcmicro
 bennugd
 c128
@@ -53,7 +58,6 @@ electron
 emulators
 fallout1-ce
 fallout2-ce
-favorites
 fbneo
 fds
 flash
@@ -134,7 +138,6 @@ pygame
 quake
 quake2
 raze
-recent
 recordings
 reminiscence
 rott
