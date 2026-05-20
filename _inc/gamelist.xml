@@ -8,7 +8,7 @@
 
   <view name="detailed">
 
-    <!-- Same wave background as system view -->
+    <!-- Same static wave background as system view -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
       <pos>0 0</pos>
