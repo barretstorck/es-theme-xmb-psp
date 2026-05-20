@@ -16,6 +16,24 @@ fi
 DEVICE="${DEVICE_USER}@${DEVICE_IP}"
 THEME_PATH="/userdata/themes/${THEME_NAME}/"
 
+# Knulli runs dropbear over an exFAT /userdata partition. Permissions can't be
+# tightened on fuseblk mounts, so dropbear rejects public-key auth. If SSHPASS
+# is set, route ssh/scp/rsync through sshpass for password auth.
+if [[ -n "${SSHPASS:-}" ]]; then
+  if ! command -v sshpass >/dev/null 2>&1; then
+    echo "SSHPASS is set but 'sshpass' is not installed." >&2
+    echo "Install with: brew install hudochenkov/sshpass/sshpass" >&2
+    exit 1
+  fi
+  export SSHPASS
+  SSH="sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no"
+  SCP="sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no"
+  export RSYNC_RSH="sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new"
+else
+  SSH="ssh"
+  SCP="scp"
+fi
+
 usage() {
   cat <<EOF
 Usage: $(basename "$0") <subcommand>
@@ -27,21 +45,23 @@ Subcommands:
   logs       tail ES log on device
   shot       capture a screenshot, pull to .dev/last-shot.png
   shell      interactive SSH session
-  setup      one-time: ssh-copy-id for passwordless access
   fallback   force device back to built-in 'carbon' theme
 
 Config (env or .env.local at repo root):
   DEVICE_IP    (current: $DEVICE_IP)
   DEVICE_USER  (current: $DEVICE_USER)
   THEME_NAME   (current: $THEME_NAME)
+  SSHPASS      (set in .env.local to use password auth via sshpass)
 EOF
 }
 
 cmd="${1:-}"
 case "$cmd" in
   sync)
-    rsync -avz --delete \
+    # fuseblk doesn't support chown/chmod; --no-perms/owner/group avoids errors.
+    rsync -rltvz --delete --no-perms --no-owner --no-group \
       --exclude='.git' \
+      --exclude='.claude' \
       --exclude='docs' \
       --exclude='scripts' \
       --exclude='.dev' \
@@ -54,35 +74,42 @@ case "$cmd" in
       ./ "${DEVICE}:${THEME_PATH}"
     ;;
   restart)
-    ssh "${DEVICE}" 'batocera-es-swissknife --restart'
+    $SSH "${DEVICE}" 'batocera-es-swissknife --restart'
     ;;
   push)
     "$0" sync
     "$0" restart
     ;;
   logs)
-    ssh "${DEVICE}" 'tail -f /userdata/system/logs/es_log.txt'
+    $SSH "${DEVICE}" 'tail -f /userdata/system/logs/es_log.txt'
     ;;
   shot)
     mkdir -p .dev
-    ssh "${DEVICE}" 'batocera-screenshot'
+    # Knulli ships knulli-screenshot; Batocera ships batocera-screenshot;
+    # fbgrab is the universal fallback. Prefer whichever exists.
+    $SSH "${DEVICE}" '
+      if command -v knulli-screenshot >/dev/null 2>&1; then
+        knulli-screenshot
+      elif command -v batocera-screenshot >/dev/null 2>&1; then
+        batocera-screenshot
+      else
+        fbgrab "/userdata/screenshots/manual-$(date +%s).png"
+      fi
+    '
     sleep 1
-    latest=$(ssh "${DEVICE}" 'ls -t /userdata/screenshots/ 2>/dev/null | head -1')
+    latest=$($SSH "${DEVICE}" 'ls -t /userdata/screenshots/ 2>/dev/null | grep -iE "\.(png|jpg)$" | head -1')
     if [[ -z "$latest" ]]; then
       echo "No screenshots found on device" >&2
       exit 1
     fi
-    scp "${DEVICE}:/userdata/screenshots/${latest}" .dev/last-shot.png
+    $SCP "${DEVICE}:/userdata/screenshots/${latest}" .dev/last-shot.png
     echo "Saved .dev/last-shot.png (was ${latest} on device)"
     ;;
   shell)
-    ssh "${DEVICE}"
-    ;;
-  setup)
-    ssh-copy-id "${DEVICE}"
+    $SSH "${DEVICE}"
     ;;
   fallback)
-    ssh "${DEVICE}" 'batocera-settings-set theme.set carbon && batocera-es-swissknife --restart'
+    $SSH "${DEVICE}" 'batocera-settings-set theme.set carbon && batocera-es-swissknife --restart'
     ;;
   -h|--help|"")
     usage

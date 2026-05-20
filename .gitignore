@@ -1,8 +1,11 @@
 # dev workflow scratch
 .dev/
 
-# local config overrides
+# local config overrides (may contain SSHPASS)
 .env.local
+
+# Claude Code harness session state
+.claude/
 
 # macOS
 .DS_Store
