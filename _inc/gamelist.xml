@@ -137,6 +137,15 @@
       <maxLogoCount>3</maxLogoCount>
       <zIndex>5</zIndex>
     </gamecarousel>
+    <!-- Per-game text label (the text fallback when no thumbnail is scraped,
+         and the name overlay for all items). Styles the built-in
+         'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
+    <text name="gamecarouselLogoText">
+      <color>${textPrimary}</color>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.030</fontSize>
+      <zIndex>5</zIndex>
+    </text>
   </view>
 
 </theme>
