@@ -35,7 +35,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 Two configurable knobs, both under **UI Settings → Theme Configuration**:
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
-- **Game Count** — show or hide the "X GAMES" counter below the carousel (default Hide)
+- **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
