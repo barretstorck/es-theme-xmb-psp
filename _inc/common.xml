@@ -26,12 +26,13 @@
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>
 
-    <!-- v0.5 XMB cross anchor. crossX/crossY = where the selected system
-         icon is centered in BOTH the system and detailed views. captionY =
-         the top of the system-name caption, just under the icon. -->
+    <!-- XMB cross anchor. crossX/crossY = where the selected system icon is
+         centered in the system and both gamelist views. captionY = the top
+         of the system-name caption, just under the icon — it tracks crossY
+         (v0.6 moved both up together when the cross anchor was squared). -->
     <crossX>0.24</crossX>
     <crossY>0.291</crossY>
-    <captionY>0.44</captionY>
+    <captionY>0.401</captionY>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
