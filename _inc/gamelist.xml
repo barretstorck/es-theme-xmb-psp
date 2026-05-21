@@ -126,15 +126,15 @@
          logoScale, maxLogoCount, pos and size are tuned on-device. -->
     <gamecarousel name="gamecarousel">
       <type>vertical</type>
-      <imageSource>image</imageSource>
-      <pos>0.08 0.50</pos>
-      <size>0.32 0.42</size>
+      <imageSource>thumbnail</imageSource>
+      <pos>0.08 0.48</pos>
+      <size>0.32 0.50</size>
       <origin>0 0</origin>
       <color>00000000</color>
-      <logoSize>0.20 0.13</logoSize>
-      <logoScale>1.4</logoScale>
+      <logoSize>0.20 0.28</logoSize>
+      <logoScale>1.35</logoScale>
       <logoAlignment>center</logoAlignment>
-      <maxLogoCount>7</maxLogoCount>
+      <maxLogoCount>3</maxLogoCount>
       <zIndex>5</zIndex>
     </gamecarousel>
   </view>
