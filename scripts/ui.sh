@@ -17,7 +17,10 @@ set -euo pipefail
 #   sleep:NNN                        pause NNN milliseconds between inputs
 #
 # Macros (expanded to a token sequence):
-#   (none yet — added as menu navigation paths are verified empirically)
+#   reload-theme   Main Menu → UI Settings → Theme Configuration → Reset
+#                  Customizations. Resetting forces ES to rebuild the theme,
+#                  which is the cheapest way to pick up edited theme files
+#                  without restarting emulationstation.
 #
 # Implementation notes:
 #   We open /dev/input/<controller> on the device and write input_event structs.
@@ -64,6 +67,9 @@ case "${1:-}" in -h|--help) usage ;; esac
 # (case rather than associative array — macOS ships bash 3.2.)
 macro_expand() {
   case "$1" in
+    reload-theme)
+      echo "start sleep:600 down down sleep:300 a sleep:800 down sleep:300 a sleep:800 down down sleep:300 a sleep:1500 b sleep:300 b"
+      ;;
     *) return 1 ;;
   esac
 }
