@@ -40,15 +40,12 @@ Usage: $(basename "$0") <subcommand>
 
 Subcommands:
   sync       rsync theme files to device
-  restart    restart EmulationStation on device
-  push       sync + restart  (deploy a change end-to-end)
-  activate   atomically set BOTH theme.set (knulli.conf) and
-             ThemeSet (es_settings.cfg) to this theme, then restart ES.
-             A mismatch between the two causes an ES restart loop.
+  push       sync + drive ES through Reset Customizations to reload the theme
   logs       tail ES log on device
   shot       capture a screenshot, pull to .dev/last-shot.png
   shell      interactive SSH session
-  fallback   force device back to built-in 'carbon' theme
+  fallback   force device back to built-in 'carbon' theme (use when ES is
+             stuck in a restart loop and input injection wouldn't reach it)
 
 Config (env or .env.local at repo root):
   DEVICE_IP    (current: $DEVICE_IP)
@@ -76,27 +73,9 @@ case "$cmd" in
       --exclude='LICENSE' \
       ./ "${DEVICE}:${THEME_PATH}"
     ;;
-  restart)
-    $SSH "${DEVICE}" '(command -v knulli-es-swissknife >/dev/null && knulli-es-swissknife --restart) || batocera-es-swissknife --restart'
-    ;;
   push)
     "$0" sync
-    "$0" restart
-    ;;
-  activate)
-    # On Knulli, the theme name lives in TWO places: knulli.conf's theme.set
-    # (used by the system) and es_settings.cfg's ThemeSet (used by ES). If
-    # they diverge, the emulationstation-standalone wrapper restarts ES in a
-    # tight loop trying to reconcile them. Set both, then restart.
-    $SSH "${DEVICE}" "
-      if command -v knulli-settings-set >/dev/null 2>&1; then
-        knulli-settings-set theme.set ${THEME_NAME}
-      else
-        batocera-settings-set theme.set ${THEME_NAME}
-      fi
-      sed -i 's|<string name=\"ThemeSet\" value=\"[^\"]*\"|<string name=\"ThemeSet\" value=\"${THEME_NAME}\"|' /userdata/system/configs/emulationstation/es_settings.cfg
-      (command -v knulli-es-swissknife >/dev/null && knulli-es-swissknife --restart) || batocera-es-swissknife --restart
-    "
+    "$(dirname "$0")/ui.sh" reload-theme
     ;;
   logs)
     # Knulli stores ES log under configs/, not system/logs/.
