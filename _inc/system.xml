@@ -41,17 +41,20 @@
       <defaultTransition>fade</defaultTransition>
       <type>horizontal</type>
       <!-- Box top y=0.18, height 0.30 -> bar centerline y=0.33 (= crossY).
-           Fallback: container shifted so its center (the selection point)
-           lands at x=0.33, i.e. -17% left of screen-center. logoPos was
-           tried first but made the carousel fail to render on this build. -->
-      <pos>-0.17 0.18</pos>
-      <size>1 0.30</size>
+           Container shifted + widened so its center (the selection point)
+           lands at x=0.24 (= crossX) and the icon row spans the full screen
+           width: pos.x = crossX - size.x/2 = 0.24 - 0.80 = -0.56.
+           maxLogoCount sets how many icons share that width - fewer icons =
+           wider spacing. logoPos is avoided - it made the carousel fail to
+           render on this build; the container shift is the working mechanism. -->
+      <pos>-0.56 0.18</pos>
+      <size>1.6 0.30</size>
       <color>00000000</color>
       <logoSize>0.10 0.14</logoSize>
       <logoScale>1.5</logoScale>
       <logoRotation>0</logoRotation>
       <logoAlignment>center</logoAlignment>
-      <maxLogoCount>7</maxLogoCount>
+      <maxLogoCount>11</maxLogoCount>
       <textColor>${textSecondary}</textColor>
       <selectedTextColor>${textPrimary}</selectedTextColor>
       <zIndex>5</zIndex>
@@ -64,20 +67,21 @@
     <text name="systemInfo">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.045</size>
+      <size>0.5 0.055</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.025</fontSize>
+      <fontSize>0.034</fontSize>
       <color>${textSecondary}</color>
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>
       <zIndex>6</zIndex>
     </text>
 
-    <!-- System-name caption: extra text element bound to the selected
-         system's display name via ${system.fullName}. Pinned to the same
-         crossX/captionY as the carousel (so both overlay). The gamecount
-         Hide subset keeps this visible; Show subset hides it so the
-         carousel's own count cycling (systemInfo) can show through.
+    <!-- System-name caption: extra text element showing the selected
+         system's SHORT name via ${system.theme}, forced uppercase (e.g.
+         NES, SNES, PSX). Pinned to the same crossX/captionY as the carousel
+         (so both overlay). The gamecount Hide subset keeps this visible;
+         Show subset hides it so the carousel's own count cycling
+         (systemInfo) can show through.
          Note: extra="true" is required to render in system view on this
          build; this inherits the documented carousel-scroll quirk (caption
          slides during system-change transition), but content updates
@@ -85,14 +89,15 @@
     <text name="systemName" extra="true">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.045</size>
+      <size>0.5 0.055</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.025</fontSize>
+      <fontSize>0.034</fontSize>
       <color>${textSecondary}</color>
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>
+      <forceUppercase>true</forceUppercase>
       <zIndex>7</zIndex>
-      <text>${system.fullName}</text>
+      <text>${system.theme}</text>
     </text>
 
     <!-- Per-system icon. Knulli's ES uses 'logo' as the element name

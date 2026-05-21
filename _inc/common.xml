@@ -29,7 +29,7 @@
     <!-- v0.5 XMB cross anchor. crossX/crossY = where the selected system
          icon is centered in BOTH the system and detailed views. captionY =
          the top of the system-name caption, just under the icon. -->
-    <crossX>0.33</crossX>
+    <crossX>0.24</crossX>
     <crossY>0.33</crossY>
     <captionY>0.44</captionY>
   </variables>

@@ -45,32 +45,33 @@
     </image>
 
     <!-- System-name caption, pinned under the icon - matches the system
-         view's caption so the A-press reads as continuous.
-         ${system.fullName} is the confirmed-working variable for the system
-         name in this batocera-ES build; extra="true" is required to render
-         non-standard text elements. -->
+         view's caption so the A-press reads as continuous. Shows the
+         system SHORT name via ${system.theme}, forced uppercase (NES,
+         SNES, ...); extra="true" is required to render non-standard text
+         elements on this build. -->
     <text name="systemName" extra="true">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.045</size>
+      <size>0.5 0.055</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.025</fontSize>
+      <fontSize>0.034</fontSize>
       <color>${textSecondary}</color>
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>
-      <text>${system.fullName}</text>
+      <forceUppercase>true</forceUppercase>
+      <text>${system.theme}</text>
       <zIndex>6</zIndex>
     </text>
 
-    <!-- Game list - the vertical arm of the cross, unfurling down the
-         crossX column below the system icon + caption. -->
+    <!-- Game list - the vertical arm of the cross, centered under the
+         system icon (box centered on crossX, center-aligned text). -->
     <textlist name="gamelist">
-      <pos>0.25 0.50</pos>
+      <pos>0.08 0.50</pos>
       <size>0.32 0.42</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.032</fontSize>
       <horizontalMargin>0.01</horizontalMargin>
-      <alignment>left</alignment>
+      <alignment>center</alignment>
       <primaryColor>${textSecondary}</primaryColor>
       <secondaryColor>${textSecondary}</secondaryColor>
       <selectorColor>${selectorGlow}</selectorColor>
@@ -82,17 +83,18 @@
     <!-- Preview panel (right ~40%): highlighted game's name as header,
          then boxart, then metadata. -->
     <text name="md_name">
-      <pos>0.58 0.12</pos>
+      <pos>0.55 0.12</pos>
       <size>0.38 0.06</size>
       <fontPath>${fontBold}</fontPath>
       <fontSize>0.035</fontSize>
       <color>${textPrimary}</color>
+      <alignment>center</alignment>
       <zIndex>5</zIndex>
     </text>
 
     <image name="md_image">
       <origin>0.5 0.5</origin>
-      <pos>0.58 0.37</pos>
+      <pos>0.74 0.37</pos>
       <maxSize>0.38 0.38</maxSize>
       <color>FFFFFFFF</color>
       <zIndex>5</zIndex>
