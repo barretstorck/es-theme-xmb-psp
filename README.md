@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.5** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation, XMB cross layout (upper-third system bar with off-center selection and a system-name caption, continuous gamelist cross), optional game counter, universal system icon coverage. Default colorset is January Blue.
+> Status: **v0.6** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation, XMB cross layout (system bar anchored to a square top-left corner, off-center selection, system-name caption), two gamelist styles — text list or boxart carousel — sharing a title / rating / video / description panel, optional game counter, universal system icon coverage. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
@@ -11,6 +11,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 - **Wave animation resets on every system carousel navigation.** Extra elements in the system view are bound to the carousel scroll in this batocera-emulationstation build; the storyboard restarts at t=0 each time you change systems. Exhaustively verified — no theme-XML workaround exists (screen view, `<image name="background">`, top-level images, fade transition all tried). The motion resumes immediately after.
 - Systems without a hand-tuned icon fall back to a generic `_default.png` placeholder. To add a specific icon for any system, drop `<system-shortname>.png` into `art/system-icons/` (this overrides the placeholder automatically on the next sync). Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
+- The `gamecarousel` gamelist style shows each game's scraped `thumbnail` (box art). A game with no thumbnail scraped falls back to showing its name as a text label. Scrape your library with box/thumbnail media for a full boxart column, or use the `detailed` text-list style.
 
 ## Install
 
@@ -33,9 +34,10 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Customization
 
-Two configurable knobs, both under **UI Settings → Theme Configuration**:
+Three configurable knobs, all under **UI Settings → Theme Configuration**:
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
+- **Gamelist View Style** — show each system's games as a text list (`detailed`) or as a vertical boxart carousel (`gamecarousel`); `automatic` uses the theme default. Both styles share the same title / rating / video / description info panel.
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
