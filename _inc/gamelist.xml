@@ -70,14 +70,15 @@
       <zIndex>5</zIndex>
     </rating>
 
-    <!-- Shows the game's still image, then plays the preview video after
-         a 5s delay. The still-frame source (screenshot vs boxart) and the
-         exact snapshot properties are confirmed/tuned on-device. -->
+    <!-- Shows the game's snapshot still during the 5s delay and whenever
+         the game has no preview video, then plays the video. -->
     <video name="md_video">
       <pos>0.75 0.40</pos>
       <size>0.40 0.30</size>
       <origin>0.5 0.5</origin>
       <delay>5</delay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
+      <showSnapshotDelay>true</showSnapshotDelay>
       <zIndex>5</zIndex>
     </video>
 
