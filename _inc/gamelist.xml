@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - gamelist views (v0.6).
+  es-theme-xmb-psp - gamelist views (v0.7).
   A shared <view name="detailed,gamecarousel"> block holds the wave, pinned
   system icon + caption, and the right info panel (title / rating / video /
   description). Each gamelist style then adds only its game column: the
@@ -57,8 +57,8 @@
 
     <!-- Right info panel: title, rating, screenshot-then-video, description. -->
     <text name="md_name">
-      <pos>0.55 0.10</pos>
-      <size>0.40 0.06</size>
+      <pos>0.43 0.10</pos>
+      <size>0.55 0.06</size>
       <fontPath>${fontBold}</fontPath>
       <fontSize>0.035</fontSize>
       <color>${textPrimary}</color>
@@ -67,7 +67,7 @@
     </text>
 
     <rating name="md_rating">
-      <pos>0.66 0.17</pos>
+      <pos>0.615 0.17</pos>
       <size>0.18 0.04</size>
       <color>${accent}</color>
       <zIndex>5</zIndex>
@@ -76,8 +76,8 @@
     <!-- Shows the game's snapshot still during the 5s delay and whenever
          the game has no preview video, then plays the video. -->
     <video name="md_video">
-      <pos>0.75 0.40</pos>
-      <size>0.40 0.30</size>
+      <pos>0.705 0.39</pos>
+      <size>0.50 0.34</size>
       <origin>0.5 0.5</origin>
       <delay>5</delay>
       <showSnapshotNoVideo>true</showSnapshotNoVideo>
@@ -87,10 +87,10 @@
 
     <!-- Scrolling description text. -->
     <text name="md_description">
-      <pos>0.55 0.58</pos>
-      <size>0.40 0.34</size>
+      <pos>0.43 0.60</pos>
+      <size>0.55 0.32</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.022</fontSize>
+      <fontSize>0.028</fontSize>
       <color>${textSecondary}</color>
       <container>true</container>
       <zIndex>5</zIndex>
