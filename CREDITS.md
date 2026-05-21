@@ -19,9 +19,9 @@
 | System icons | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | UI chrome (selector, separators) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Sound effects | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
-| Font: Saira Semi Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Saira+Semi+Condensed) | Omnibus Type — SIL OFL 1.1 (see `fonts/OFL.txt`) |
+| Font: Roboto Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed) | The Roboto Project Authors — SIL OFL 1.1 (see `fonts/OFL.txt`) |
 
-**Font substitution:** the source theme uses *FOT-NewRodin Pro* (Fontworks), which is proprietary and not redistributable. This port substitutes [Saira Semi Condensed](https://fonts.google.com/specimen/Saira+Semi+Condensed) by Omnibus Type, a free, OFL-licensed condensed sans-serif with a similar visual feel.
+**Font substitution:** the PSP/PS3 XMB and the source theme use proprietary Sony / Fontworks fonts (the *New Rodin* family), which are not redistributable. This port uses [Roboto Condensed](https://fonts.google.com/specimen/Roboto+Condensed) — the same free, OFL-licensed font the PPSSPP PSP emulator ships as its substitute for the original PSP system font, so it carries a close PSP-XMB feel. The Light/Regular/Bold weights bundled in `fonts/` are static instances generated from the official OFL variable font (`RobotoCondensed[wght].ttf` from Google Fonts) at weights 300 / 400 / 700.
 
 ## Not yet used (would re-add credit if included later)
 
