@@ -5,7 +5,11 @@
   from "XMB-Easy-Theme" by InitialDin. CC-BY-NC-SA 2.0.
   Full attribution: see CREDITS.md
 -->
-<theme>
+<!-- defaultTransition: ES consults this when the global Transition Style
+     setting is "auto". Without it, "auto" view transitions fall back to
+     "slide"; "instant" is this theme's intended feel. An explicit user
+     Transition Style setting still overrides this. -->
+<theme defaultTransition="instant">
   <formatVersion>7</formatVersion>
 
   <subset name="colorset" displayName="PSP Color">
