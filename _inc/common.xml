@@ -18,9 +18,9 @@
     <selectorGlow>60A5FA</selectorGlow>
     <helpAccent>93C5FD</helpAccent>
 
-    <fontLight>./fonts/SairaSemiCondensed-Light.ttf</fontLight>
-    <fontRegular>./fonts/SairaSemiCondensed-Regular.ttf</fontRegular>
-    <fontBold>./fonts/SairaSemiCondensed-Bold.ttf</fontBold>
+    <fontLight>./fonts/RobotoCondensed-Light.ttf</fontLight>
+    <fontRegular>./fonts/RobotoCondensed-Regular.ttf</fontRegular>
+    <fontBold>./fonts/RobotoCondensed-Bold.ttf</fontBold>
 
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>
