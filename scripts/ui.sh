@@ -69,12 +69,13 @@ macro_expand() {
   case "$1" in
     reload-theme)
       # Main Menu -> User Interface Settings -> Theme Configuration ->
-      # Reset Customizations (3rd item below GAMELIST VIEW STYLE), then
-      # back out. Reset is what forces ES to re-read theme files from
-      # disk; toggling a subset (colorset/view-style) only re-applies
-      # from a cached parse and will NOT pick up edited files. Reset also
-      # returns the theme subsets to their defaults.
-      echo "start sleep:700 down sleep:250 down sleep:250 a sleep:800 down sleep:250 a sleep:800 down sleep:250 down sleep:250 down sleep:250 a sleep:2500 b sleep:400 b"
+      # Reset Customizations, then back out. ES menus wrap, so from the
+      # top of Theme Configuration two `up` presses roll around to Reset
+      # Customizations (the last item before BACK). Reset is what forces
+      # ES to re-read theme files from disk; toggling a subset only
+      # re-applies from a cached parse and will NOT pick up edited files.
+      # Reset also returns the theme subsets to their defaults.
+      echo "start sleep:700 down sleep:250 down sleep:250 a sleep:800 down sleep:250 a sleep:800 up sleep:250 up sleep:250 a sleep:2500 b sleep:400 b"
       ;;
     *) return 1 ;;
   esac
