@@ -27,13 +27,16 @@
     </image>
 
     <!-- Selected system icon, pinned to the cross anchor so it lines up
-         with the system view's selected carousel logo. -->
+         with the system view's selected carousel logo. zIndex 8 keeps the
+         icon above the gamecarousel (zIndex 5): on this Knulli build
+         carousel items can escape their container bounds, so the raised
+         zIndex is the no-peek guard. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${crossY}</pos>
       <origin>0.5 0.5</origin>
       <maxSize>0.15 0.21</maxSize>
-      <zIndex>5</zIndex>
+      <zIndex>8</zIndex>
     </image>
 
     <!-- System-name caption: short name (${system.theme}), uppercase,
@@ -122,16 +125,26 @@
        ============================================================ -->
   <view name="gamecarousel">
     <!-- Boxart game column: a vertical carousel centered under the system
-         icon at crossX, the vertical arm of the XMB cross. logoSize,
-         logoScale, maxLogoCount, pos and size are tuned on-device. -->
+         icon at crossX, the vertical arm of the XMB cross.
+         KNULLI BUILD QUIRKS:
+           - logoSize is CONTAINER-relative, not screen-relative.
+             0.35x0.37 of this 0.32x0.42 container -> ~0.112x0.155 screen
+             fraction; xlogoScale 1.35 -> ~0.15x0.21, matching the system
+             icon's maxSize.
+           - Carousel items do NOT clip to the container bounds, so the
+             carousel is positioned entirely below the icon+caption
+             (mechanism 2): top y=0.486 clears the caption bottom (~0.456),
+             which is what keeps any game image from peeking behind the
+             system icon.
+         pos, size, logoSize, logoScale, maxLogoCount all tuned on-device. -->
     <gamecarousel name="gamecarousel">
       <type>vertical</type>
       <imageSource>thumbnail</imageSource>
-      <pos>0.08 0.48</pos>
-      <size>0.32 0.50</size>
+      <pos>0.08 0.486</pos>
+      <size>0.32 0.42</size>
       <origin>0 0</origin>
       <color>00000000</color>
-      <logoSize>0.20 0.28</logoSize>
+      <logoSize>0.35 0.37</logoSize>
       <logoScale>1.35</logoScale>
       <logoAlignment>center</logoAlignment>
       <maxLogoCount>3</maxLogoCount>
