@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.4** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation, vertically centered icon-only carousel, optional game counter, universal system icon coverage. Default colorset is January Blue.
+> Status: **v0.5** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation, XMB cross layout (upper-third system bar with off-center selection and a system-name caption, continuous gamelist cross), optional game counter, universal system icon coverage. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
@@ -35,7 +35,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 Two configurable knobs, both under **UI Settings → Theme Configuration**:
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
-- **Game Count** — show or hide the "X GAMES" counter below the carousel (default Hide)
+- **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 

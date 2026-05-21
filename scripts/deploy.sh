@@ -40,7 +40,9 @@ Usage: $(basename "$0") <subcommand>
 
 Subcommands:
   sync       rsync theme files to device
-  push       sync + drive ES through Reset Customizations to reload the theme
+  push       sync, pause, then screenshot - review .dev/last-shot.png and
+             reload manually with 'ui.sh reload-theme' once ES is confirmed
+             on the system carousel
   logs       tail ES log on device
   shot       capture a screenshot, pull to .dev/last-shot.png
   shell      interactive SSH session
@@ -75,7 +77,18 @@ case "$cmd" in
     ;;
   push)
     "$0" sync
-    "$(dirname "$0")/ui.sh" reload-theme
+    # A reload fired too soon after sync, or while ES is on an unexpected
+    # screen, has been linked to ES crash loops. Pause for the sync to
+    # settle, then screenshot so the operator can confirm ES is on the
+    # system carousel BEFORE running the reload-theme input macro.
+    echo "Sync done; pausing 5s before screenshot..."
+    sleep 5
+    "$0" shot
+    echo
+    echo "Review .dev/last-shot.png before reloading:"
+    echo "  ES should be on the SYSTEM CAROUSEL (not a menu or gamelist)."
+    echo "  If it is:   ./scripts/ui.sh reload-theme"
+    echo "  If not:     navigate ES back to the carousel, then reload."
     ;;
   logs)
     # Knulli stores ES log under configs/, not system/logs/.
