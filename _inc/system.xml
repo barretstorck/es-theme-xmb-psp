@@ -36,11 +36,15 @@
       <zIndex>10</zIndex>
     </datetime>
 
-    <!-- Horizontal carousel of system icons (PSP "category row"), vertically centered. -->
+    <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.33 XMB cross bar. -->
     <carousel name="systemcarousel">
       <defaultTransition>fade</defaultTransition>
       <type>horizontal</type>
-      <pos>0 0.35</pos>
+      <!-- Box top y=0.18, height 0.30 -> bar centerline y=0.33 (= crossY).
+           Fallback: container shifted so its center (the selection point)
+           lands at x=0.33, i.e. -17% left of screen-center. logoPos was
+           tried first but made the carousel fail to render on this build. -->
+      <pos>-0.17 0.18</pos>
       <size>1 0.30</size>
       <color>00000000</color>
       <logoSize>0.10 0.14</logoSize>
@@ -52,6 +56,22 @@
       <selectedTextColor>${textPrimary}</selectedTextColor>
       <zIndex>5</zIndex>
     </carousel>
+
+    <!-- Selected system's display name - the cross "label", directly under
+         the selected icon. systemInfo is batocera-ES's name/count element;
+         the gamecount subset (Task 3) controls whether it holds on the name
+         or cycles to "X GAMES". Centered on crossX via origin 0.5. -->
+    <text name="systemInfo">
+      <pos>${crossX} ${captionY}</pos>
+      <origin>0.5 0</origin>
+      <size>0.5 0.045</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <backgroundColor>00000000</backgroundColor>
+      <alignment>center</alignment>
+      <zIndex>6</zIndex>
+    </text>
 
     <!-- Per-system icon. Knulli's ES uses 'logo' as the element name
          (not 'system-logo') and feeds it into the carousel slots.
