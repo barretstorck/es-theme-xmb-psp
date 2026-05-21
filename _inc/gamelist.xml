@@ -119,16 +119,21 @@
 
   <!-- ============================================================
        'gamecarousel' style: boxart carousel game column
-       (built out in Task 5; minimal form from the Task 3 spike)
        ============================================================ -->
   <view name="gamecarousel">
+    <!-- Boxart game column: a vertical carousel centered under the system
+         icon at crossX, the vertical arm of the XMB cross. logoSize,
+         logoScale, maxLogoCount, pos and size are tuned on-device. -->
     <gamecarousel name="gamecarousel">
       <type>vertical</type>
       <imageSource>image</imageSource>
-      <pos>0.08 0.20</pos>
-      <size>0.32 0.70</size>
-      <logoSize>0.16 0.11</logoSize>
-      <logoScale>1.3</logoScale>
+      <pos>0.08 0.50</pos>
+      <size>0.32 0.42</size>
+      <origin>0 0</origin>
+      <color>00000000</color>
+      <logoSize>0.20 0.13</logoSize>
+      <logoScale>1.4</logoScale>
+      <logoAlignment>center</logoAlignment>
       <maxLogoCount>7</maxLogoCount>
       <zIndex>5</zIndex>
     </gamecarousel>

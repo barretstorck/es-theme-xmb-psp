@@ -34,7 +34,7 @@
     <captionY>0.44</captionY>
   </variables>
 
-  <view name="system,detailed,menu">
+  <view name="system,detailed,gamecarousel,menu">
     <!-- Sounds (replace ES default click sounds) -->
     <sound name="systemscroll">
       <path>${soundNavigate}</path>
