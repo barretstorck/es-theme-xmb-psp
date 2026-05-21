@@ -26,15 +26,16 @@
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>
 
-    <!-- v0.5 XMB cross anchor. crossX/crossY = where the selected system
-         icon is centered in BOTH the system and detailed views. captionY =
-         the top of the system-name caption, just under the icon. -->
+    <!-- XMB cross anchor. crossX/crossY = where the selected system icon is
+         centered in the system and both gamelist views. captionY = the top
+         of the system-name caption, just under the icon — it tracks crossY
+         (v0.6 moved both up together when the cross anchor was squared). -->
     <crossX>0.24</crossX>
-    <crossY>0.33</crossY>
-    <captionY>0.44</captionY>
+    <crossY>0.291</crossY>
+    <captionY>0.401</captionY>
   </variables>
 
-  <view name="system,detailed,menu">
+  <view name="system,detailed,gamecarousel,menu">
     <!-- Sounds (replace ES default click sounds) -->
     <sound name="systemscroll">
       <path>${soundNavigate}</path>
@@ -60,14 +61,21 @@
   </view>
 
   <!-- Hide ES's built-in OSD overlays so they don't double up with our
-       theme. controllerActivity is the white-pink square top-left;
-       the built-in clock is the duplicate bottom-right one. -->
+       theme. controllerActivity is the white-pink square top-left. -->
   <view name="screen">
     <controllerActivity name="controllerActivity">
       <visible>false</visible>
     </controllerActivity>
+    <!-- ES's real wall-clock, top-right, enlarged (v0.6). The screen view
+         renders as an overlay across all views. -->
     <text name="clock">
-      <visible>false</visible>
+      <visible>true</visible>
+      <pos>0.84 0.03</pos>
+      <size>0.14 0.06</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.042</fontSize>
+      <color>${textPrimary}</color>
+      <horizontalAlignment>right</horizontalAlignment>
     </text>
   </view>
 </theme>

@@ -68,7 +68,14 @@ case "${1:-}" in -h|--help) usage ;; esac
 macro_expand() {
   case "$1" in
     reload-theme)
-      echo "start sleep:600 down down sleep:300 a sleep:800 down sleep:300 a sleep:800 down down sleep:300 a sleep:1500 b sleep:300 b"
+      # Main Menu -> User Interface Settings -> Theme Configuration ->
+      # Reset Customizations, then back out. ES menus wrap, so from the
+      # top of Theme Configuration two `up` presses roll around to Reset
+      # Customizations (the last item before BACK). Reset is what forces
+      # ES to re-read theme files from disk; toggling a subset only
+      # re-applies from a cached parse and will NOT pick up edited files.
+      # Reset also returns the theme subsets to their defaults.
+      echo "start sleep:700 down sleep:250 down sleep:250 a sleep:800 down sleep:250 a sleep:800 up sleep:250 up sleep:250 a sleep:2500 b sleep:400 b"
       ;;
     *) return 1 ;;
   esac
@@ -98,17 +105,17 @@ import struct, os, sys, time
 # es_input.cfg mapping; buttons use evdev codes, dpad uses the HAT axes.
 BTN, HAT = 'btn', 'hat'
 ACTIONS = {
-    'a':      (BTN, 305, 1),  # BTN_EAST   (right face - Nintendo A)
-    'b':      (BTN, 304, 1),  # BTN_SOUTH  (bottom face - Nintendo B)
-    'x':      (BTN, 307, 1),  # BTN_NORTH  (top face)
-    'y':      (BTN, 308, 1),  # BTN_WEST   (left face)
-    'l':      (BTN, 312, 1),  # BTN_TL2    (L1 shoulder - "pageup" in ES)
-    'r':      (BTN, 313, 1),  # BTN_TR2    (R1 shoulder - "pagedown" in ES)
-    'l2':     (BTN, 310, 1),
-    'r2':     (BTN, 311, 1),
+    'a':      (BTN, 305, 1),  # right face  (ES "a")
+    'b':      (BTN, 304, 1),  # bottom face (ES "b")
+    'x':      (BTN, 307, 1),  # top face
+    'y':      (BTN, 308, 1),  # left face
+    'l':      (BTN, 310, 1),  # L1 shoulder ("pageup" in ES)
+    'r':      (BTN, 311, 1),  # R1 shoulder ("pagedown" in ES)
+    'l2':     (BTN, 312, 1),  # L2 trigger
+    'r2':     (BTN, 313, 1),  # R2 trigger
     'hotkey': (BTN, 316, 1),
-    'select': (BTN, 317, 1),
-    'start':  (BTN, 318, 1),
+    'select': (BTN, 314, 1),
+    'start':  (BTN, 315, 1),
     'up':     (HAT, 0x11, -1),  # ABS_HAT0Y
     'down':   (HAT, 0x11,  1),
     'left':   (HAT, 0x10, -1),  # ABS_HAT0X
