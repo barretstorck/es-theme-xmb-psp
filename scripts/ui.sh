@@ -98,17 +98,17 @@ import struct, os, sys, time
 # es_input.cfg mapping; buttons use evdev codes, dpad uses the HAT axes.
 BTN, HAT = 'btn', 'hat'
 ACTIONS = {
-    'a':      (BTN, 305, 1),  # BTN_EAST   (right face - Nintendo A)
-    'b':      (BTN, 304, 1),  # BTN_SOUTH  (bottom face - Nintendo B)
-    'x':      (BTN, 307, 1),  # BTN_NORTH  (top face)
-    'y':      (BTN, 308, 1),  # BTN_WEST   (left face)
-    'l':      (BTN, 312, 1),  # BTN_TL2    (L1 shoulder - "pageup" in ES)
-    'r':      (BTN, 313, 1),  # BTN_TR2    (R1 shoulder - "pagedown" in ES)
-    'l2':     (BTN, 310, 1),
-    'r2':     (BTN, 311, 1),
+    'a':      (BTN, 305, 1),  # right face  (ES "a")
+    'b':      (BTN, 304, 1),  # bottom face (ES "b")
+    'x':      (BTN, 307, 1),  # top face
+    'y':      (BTN, 308, 1),  # left face
+    'l':      (BTN, 310, 1),  # L1 shoulder ("pageup" in ES)
+    'r':      (BTN, 311, 1),  # R1 shoulder ("pagedown" in ES)
+    'l2':     (BTN, 312, 1),  # L2 trigger
+    'r2':     (BTN, 313, 1),  # R2 trigger
     'hotkey': (BTN, 316, 1),
-    'select': (BTN, 317, 1),
-    'start':  (BTN, 318, 1),
+    'select': (BTN, 314, 1),
+    'start':  (BTN, 315, 1),
     'up':     (HAT, 0x11, -1),  # ABS_HAT0Y
     'down':   (HAT, 0x11,  1),
     'left':   (HAT, 0x10, -1),  # ABS_HAT0X
