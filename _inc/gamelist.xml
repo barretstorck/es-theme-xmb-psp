@@ -26,6 +26,63 @@
       <zIndex>0</zIndex>
     </image>
 
+    <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
+         declared only inside a separate include file do not animate on the
+         detailed/gamecarousel views on this Knulli ES build. The three
+         waveLayer declarations below are therefore duplicated verbatim from
+         _inc/wave-motion.xml so they sit directly in this view block and
+         animate. If you tune any wave property (storyboard duration,
+         opacity, color, size, path), update BOTH files to keep them in
+         sync. Do not delete these as "redundant" - that re-breaks the
+         gamelist wave animation. -->
+    <!-- Wave layer 1: top crest, slowest scroll -->
+    <image name="waveLayer1" extra="true">
+      <path>./art/wave/wave-layer-1.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>1</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="30000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 2: middle crest, medium scroll -->
+    <image name="waveLayer2" extra="true">
+      <path>./art/wave/wave-layer-2.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>2</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="20000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 3: bottom crest, fastest scroll -->
+    <image name="waveLayer3" extra="true">
+      <path>./art/wave/wave-layer-3.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>3</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="12000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
     <!-- Selected system icon, pinned to the cross anchor so it lines up
          with the system view's selected carousel logo. zIndex 8 keeps the
          icon above the gamecarousel (zIndex 5): on this Knulli build
