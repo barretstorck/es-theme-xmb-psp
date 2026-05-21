@@ -24,18 +24,6 @@
       <zIndex>0</zIndex>
     </image>
 
-    <!-- Top-right clock, PSP-style (24h, time only). -->
-    <datetime name="clock" extra="true">
-      <pos>0.88 0.03</pos>
-      <size>0.10 0.04</size>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.030</fontSize>
-      <color>${textPrimary}</color>
-      <format>%H:%M</format>
-      <horizontalAlignment>right</horizontalAlignment>
-      <zIndex>10</zIndex>
-    </datetime>
-
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
     <carousel name="systemcarousel">
       <defaultTransition>fade</defaultTransition>
