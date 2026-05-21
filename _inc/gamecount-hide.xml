@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - hide ES systemInfo element in system view.
+  es-theme-xmb-psp - "Game Count: Hide" (default).
+  The system-name caption is rendered by the extra "systemName" text element
+  defined in _inc/system.xml, which is always visible and bound to
+  ${system.fullName}. The carousel's own systemInfo slot (which cycles to
+  "X GAMES") is hidden here via <visible>false</visible> so only the name
+  caption shows. The systemInfoDelay is set as a defensive secondary guard
+  to prevent any future ES build from rendering the element.
+  Selected via UI Settings > Theme Configuration > Game Count > Hide.
   CC-BY-NC-SA 2.0. See CREDITS.md.
-  systemInfo is the multi-purpose element that shows the system name briefly
-  then transitions to "X GAMES" after systemInfoDelay. Hiding it produces
-  the PSP-pure icon-only look. Selected via UI Settings > Theme Configuration
-  > Game Count > Hide. This is the v0.4 default.
 -->
 <theme>
   <formatVersion>7</formatVersion>
-
   <view name="system">
+    <carousel name="systemcarousel">
+      <systemInfoDelay>99999999</systemInfoDelay>
+    </carousel>
+    <!-- Primary: <visible>false</visible> hides the carousel's count cycling
+         element. Secondary guard: systemInfoDelay defensive measure above. -->
     <text name="systemInfo">
       <visible>false</visible>
     </text>

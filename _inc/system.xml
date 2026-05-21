@@ -57,10 +57,10 @@
       <zIndex>5</zIndex>
     </carousel>
 
-    <!-- Selected system's display name - the cross "label", directly under
-         the selected icon. systemInfo is batocera-ES's name/count element;
-         the gamecount subset (Task 3) controls whether it holds on the name
-         or cycles to "X GAMES". Centered on crossX via origin 0.5. -->
+    <!-- systemInfo: the carousel-managed name/count element. Positioned here
+         so the gamecount subset can control its visibility/delay.
+         The carousel engine populates its text; our <text> override is
+         ignored by the carousel slot binding. -->
     <text name="systemInfo">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
@@ -71,6 +71,28 @@
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>
       <zIndex>6</zIndex>
+    </text>
+
+    <!-- System-name caption: extra text element bound to the selected
+         system's display name via ${system.fullName}. Pinned to the same
+         crossX/captionY as the carousel (so both overlay). The gamecount
+         Hide subset keeps this visible; Show subset hides it so the
+         carousel's own count cycling (systemInfo) can show through.
+         Note: extra="true" is required to render in system view on this
+         build; this inherits the documented carousel-scroll quirk (caption
+         slides during system-change transition), but content updates
+         correctly per selected system. -->
+    <text name="systemName" extra="true">
+      <pos>${crossX} ${captionY}</pos>
+      <origin>0.5 0</origin>
+      <size>0.5 0.045</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.025</fontSize>
+      <color>${textSecondary}</color>
+      <backgroundColor>00000000</backgroundColor>
+      <alignment>center</alignment>
+      <zIndex>7</zIndex>
+      <text>${system.fullName}</text>
     </text>
 
     <!-- Per-system icon. Knulli's ES uses 'logo' as the element name
