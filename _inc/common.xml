@@ -60,14 +60,21 @@
   </view>
 
   <!-- Hide ES's built-in OSD overlays so they don't double up with our
-       theme. controllerActivity is the white-pink square top-left;
-       the built-in clock is the duplicate bottom-right one. -->
+       theme. controllerActivity is the white-pink square top-left. -->
   <view name="screen">
     <controllerActivity name="controllerActivity">
       <visible>false</visible>
     </controllerActivity>
+    <!-- ES's real wall-clock, top-right, enlarged (v0.6). The screen view
+         renders as an overlay across all views. -->
     <text name="clock">
-      <visible>false</visible>
+      <visible>true</visible>
+      <pos>0.84 0.03</pos>
+      <size>0.14 0.06</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.042</fontSize>
+      <color>${textPrimary}</color>
+      <horizontalAlignment>right</horizontalAlignment>
     </text>
   </view>
 </theme>

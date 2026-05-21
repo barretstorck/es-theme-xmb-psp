@@ -21,18 +21,6 @@
       <zIndex>0</zIndex>
     </image>
 
-    <!-- Top-right clock -->
-    <datetime name="clock" extra="true">
-      <pos>0.88 0.03</pos>
-      <size>0.10 0.04</size>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.030</fontSize>
-      <color>${textPrimary}</color>
-      <format>%H:%M</format>
-      <horizontalAlignment>right</horizontalAlignment>
-      <zIndex>10</zIndex>
-    </datetime>
-
     <!-- Selected system icon, pinned to the cross anchor so it lines up
          with the system view's selected carousel logo. Full-colour (no
          tint) to match the carousel icon. -->
