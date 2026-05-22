@@ -12,6 +12,18 @@
 <theme defaultTransition="instant">
   <formatVersion>7</formatVersion>
 
+  <!-- ES (formatVersion 7) processes theme.xml children in document order,
+       and resolves ${variable} placeholders at element-parse time (not lazily).
+       The correct order is:
+         1. common.xml  - sets default variable values
+         2. colorset    - overrides colorset variables (waveTint, accent, etc.)
+         3. view files  - consume the now-resolved variable values
+       The colorset subset MUST come after common.xml and before the view
+       includes. Gamecount can go anywhere since it only affects element
+       visibility, not color variables. -->
+
+  <include>./_inc/common.xml</include>
+
   <subset name="colorset" displayName="PSP Color">
     <include name="January Blue">./colors/psp-jan-blue.xml</include>
     <include name="February Violet">./colors/psp-feb-violet.xml</include>
@@ -27,14 +39,13 @@
     <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
   </subset>
 
-  <subset name="gamecount" displayName="Game Count">
-    <include name="Hide">./_inc/gamecount-hide.xml</include>
-    <include name="Show">./_inc/gamecount-show.xml</include>
-  </subset>
-
-  <include>./_inc/common.xml</include>
   <include>./_inc/system.xml</include>
   <include>./_inc/gamelist.xml</include>
   <include>./_inc/menu.xml</include>
   <include>./_inc/wave-motion.xml</include>
+
+  <subset name="gamecount" displayName="Game Count">
+    <include name="Hide">./_inc/gamecount-hide.xml</include>
+    <include name="Show">./_inc/gamecount-show.xml</include>
+  </subset>
 </theme>
