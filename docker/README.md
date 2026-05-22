@@ -4,14 +4,18 @@ Renders `es-theme-xmb-psp` by running batocera-emulationstation headless in
 Docker, so the theme can be screenshotted without the physical device, at any
 resolution.
 
-## ⚠️ Not a release gate
+## The project's testing method
 
-This harness renders via **desktop GL21** (Mesa software rendering). The device
-renders via **GLES2** (programmable shaders). The harness reliably catches XML
-errors, layout/sizing mistakes, colorset resolution, and storyboard logic — and
-is ideal for fast iteration and multi-resolution layout work. It does **not**
-guarantee pixel-level colour fidelity, and build-specific device quirks may not
-reproduce. **Validate on the device before any release.**
+This harness is the project's primary way to verify the theme — physical-device
+testing has been retired in its favour.
+
+⚠️ One caveat to keep in mind: the harness renders via **desktop GL21** (Mesa
+software rendering), while a real device renders via **GLES2** (programmable
+shaders). The harness reliably catches XML errors, layout/sizing mistakes,
+colorset resolution, `<include>` resolution, and storyboard logic, and is ideal
+for fast iteration and multi-resolution layout work. It does **not** guarantee
+pixel-level colour fidelity, and a few build-specific device quirks may not
+reproduce — judge colour-critical changes with that in mind.
 
 ## Usage
 
