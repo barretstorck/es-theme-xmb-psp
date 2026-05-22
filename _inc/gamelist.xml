@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - gamelist views (v0.6).
+  es-theme-xmb-psp - gamelist views (v0.7).
   A shared <view name="detailed,gamecarousel"> block holds the wave, pinned
   system icon + caption, and the right info panel (title / rating / video /
   description). Each gamelist style then adds only its game column: the
@@ -26,14 +26,74 @@
       <zIndex>0</zIndex>
     </image>
 
+    <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
+         declared only inside a separate include file do not animate on the
+         detailed/gamecarousel views on this Knulli ES build. The three
+         waveLayer declarations below are therefore duplicated verbatim from
+         _inc/wave-motion.xml so they sit directly in this view block and
+         animate. If you tune any wave property (storyboard duration,
+         opacity, color, size, path), update BOTH files to keep them in
+         sync. Do not delete these as "redundant" - that re-breaks the
+         gamelist wave animation. -->
+    <!-- Wave layer 1: top crest, slowest scroll -->
+    <image name="waveLayer1" extra="true">
+      <path>./art/wave/wave-layer-1.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>1</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="30000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 2: middle crest, medium scroll -->
+    <image name="waveLayer2" extra="true">
+      <path>./art/wave/wave-layer-2.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>2</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="20000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <!-- Wave layer 3: bottom crest, fastest scroll -->
+    <image name="waveLayer3" extra="true">
+      <path>./art/wave/wave-layer-3.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>3</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="12000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
     <!-- Selected system icon, pinned to the cross anchor so it lines up
-         with the system view's selected carousel logo. -->
+         with the system view's selected carousel logo. zIndex 8 keeps the
+         icon above the gamecarousel (zIndex 5): on this Knulli build
+         carousel items can escape their container bounds, so the raised
+         zIndex is the no-peek guard. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${crossY}</pos>
       <origin>0.5 0.5</origin>
       <maxSize>0.15 0.21</maxSize>
-      <zIndex>5</zIndex>
+      <zIndex>8</zIndex>
     </image>
 
     <!-- System-name caption: short name (${system.theme}), uppercase,
@@ -54,8 +114,8 @@
 
     <!-- Right info panel: title, rating, screenshot-then-video, description. -->
     <text name="md_name">
-      <pos>0.55 0.10</pos>
-      <size>0.40 0.06</size>
+      <pos>0.43 0.10</pos>
+      <size>0.55 0.06</size>
       <fontPath>${fontBold}</fontPath>
       <fontSize>0.035</fontSize>
       <color>${textPrimary}</color>
@@ -64,7 +124,7 @@
     </text>
 
     <rating name="md_rating">
-      <pos>0.66 0.17</pos>
+      <pos>0.615 0.17</pos>
       <size>0.18 0.04</size>
       <color>${accent}</color>
       <zIndex>5</zIndex>
@@ -73,8 +133,8 @@
     <!-- Shows the game's snapshot still during the 5s delay and whenever
          the game has no preview video, then plays the video. -->
     <video name="md_video">
-      <pos>0.75 0.40</pos>
-      <size>0.40 0.30</size>
+      <pos>0.705 0.39</pos>
+      <size>0.50 0.34</size>
       <origin>0.5 0.5</origin>
       <delay>5</delay>
       <showSnapshotNoVideo>true</showSnapshotNoVideo>
@@ -84,10 +144,10 @@
 
     <!-- Scrolling description text. -->
     <text name="md_description">
-      <pos>0.55 0.58</pos>
-      <size>0.40 0.34</size>
+      <pos>0.43 0.60</pos>
+      <size>0.55 0.32</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.022</fontSize>
+      <fontSize>0.028</fontSize>
       <color>${textSecondary}</color>
       <container>true</container>
       <zIndex>5</zIndex>
@@ -122,21 +182,40 @@
        ============================================================ -->
   <view name="gamecarousel">
     <!-- Boxart game column: a vertical carousel centered under the system
-         icon at crossX, the vertical arm of the XMB cross. logoSize,
-         logoScale, maxLogoCount, pos and size are tuned on-device. -->
+         icon at crossX, the vertical arm of the XMB cross.
+         KNULLI BUILD QUIRKS:
+           - logoSize is CONTAINER-relative, not screen-relative.
+             0.35x0.37 of this 0.32x0.42 container -> ~0.112x0.155 screen
+             fraction; xlogoScale 1.35 -> ~0.15x0.21, matching the system
+             icon's maxSize.
+           - Carousel items do NOT clip to the container bounds, so the
+             carousel is positioned entirely below the icon+caption
+             (mechanism 2): top y=0.486 clears the caption bottom (~0.456),
+             which is what keeps any game image from peeking behind the
+             system icon.
+         pos, size, logoSize, logoScale, maxLogoCount all tuned on-device. -->
     <gamecarousel name="gamecarousel">
       <type>vertical</type>
       <imageSource>thumbnail</imageSource>
-      <pos>0.08 0.48</pos>
-      <size>0.32 0.50</size>
+      <pos>0.08 0.486</pos>
+      <size>0.32 0.42</size>
       <origin>0 0</origin>
       <color>00000000</color>
-      <logoSize>0.20 0.28</logoSize>
+      <logoSize>0.35 0.37</logoSize>
       <logoScale>1.35</logoScale>
       <logoAlignment>center</logoAlignment>
       <maxLogoCount>3</maxLogoCount>
       <zIndex>5</zIndex>
     </gamecarousel>
+    <!-- Per-game text label (the text fallback when no thumbnail is scraped,
+         and the name overlay for all items). Styles the built-in
+         'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
+    <text name="gamecarouselLogoText">
+      <color>${textPrimary}</color>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.030</fontSize>
+      <zIndex>5</zIndex>
+    </text>
   </view>
 
 </theme>

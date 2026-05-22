@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - menu view (Batocera settings dialogs themed lightly).
+  es-theme-xmb-psp - menu view (panel + list text follow the active colorset).
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
@@ -8,29 +8,30 @@
 
   <view name="menu">
 
-    <!-- Dimmed wave background to avoid clashing with menu text.
-         '80' suffix on the tint = 50% alpha. -->
-    <image name="menuBackground" extra="true">
-      <path>./art/wave/wave.png</path>
-      <pos>0 0</pos>
-      <size>1 1</size>
-      <color>${waveTint}80</color>
-      <zIndex>0</zIndex>
-    </image>
+    <!-- Panel background: a near-opaque colorset tint (F0 alpha) so the menu
+         reads as part of the PSP theme instead of ES's stock white chrome. -->
+    <menuBackground name="menubg">
+      <color>${waveTint}F0</color>
+    </menuBackground>
 
-    <menuText name="menuTitle">
-      <fontPath>${fontBold}</fontPath>
-      <fontSize>0.045</fontSize>
+    <!-- Menu rows (main menu list + sub-screen list items): light text,
+         colorset accent on the selection bar. -->
+    <menuText name="menutext">
       <color>${textPrimary}</color>
-    </menuText>
-
-    <menuText name="menuTextSmall">
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.028</fontSize>
-      <color>${textPrimary}</color>
-      <selectedColor>${selectorGlow}</selectedColor>
+      <selectedColor>${textPrimary}</selectedColor>
       <selectorColor>${accent}</selectorColor>
     </menuText>
+
+    <!-- Sub-screen section-header labels (e.g. "VOLUME", "MUSIC"). -->
+    <menuTextSmall name="menutextsmall">
+      <color>${textPrimary}</color>
+    </menuTextSmall>
+
+    <!-- NOTE: menuTitle and menuFooter are intentionally NOT themed here.
+         The Task 5 spike found they do not respond to <color> on this Knulli
+         build, so the menu title and footer keep ES's default colour.
+         menuSwitch/menuSlider/menuButton are likewise not themeable without
+         image assets. See the spec's "Change 7 - spike findings". -->
 
   </view>
 </theme>
