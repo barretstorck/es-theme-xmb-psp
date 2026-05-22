@@ -68,6 +68,17 @@ ssh root@<your-device-ip> 'batocera-settings-set theme.set carbon && batocera-es
 
 Knulli stores the theme name in two places (`theme.set` in `knulli.conf` and `ThemeSet` in `es_settings.cfg`) — if they diverge, ES enters a restart loop. The Knulli command above updates both atomically.
 
+## Development
+
+Theme development and verification use the **Docker render harness** — it runs batocera-emulationstation headless in Docker and screenshots the theme at any resolution, with no physical device required. See [`docker/README.md`](docker/README.md):
+
+```
+./scripts/render.sh --view system
+./scripts/render.sh --view gamecarousel --library <path> --resolution 1280x720
+```
+
+The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
+
 ## Credits and license
 
 This is a derivative work. See [CREDITS.md](CREDITS.md) for the full attribution chain.
