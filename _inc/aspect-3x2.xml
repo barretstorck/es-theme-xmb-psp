@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - 3:2 aspect-ratio overrides.
+  Loaded conditionally by theme.xml when ${screen.ratio} == '3/2'.
+  Design surface: 720x480. See P1-P3 in
+  docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <!-- Icon squareness (P1) -->
+    <sysIconMaxW>0.11</sysIconMaxW>
+    <sysIconMaxH>0.17</sysIconMaxH>
+    <glIconMaxW>0.13</glIconMaxW>
+    <sysCarouselLogoW>0.09</sysCarouselLogoW>
+    <gameCarLogoW>0.33</gameCarLogoW>
+    <gameCarLogoH>0.38</gameCarLogoH>
+
+    <!-- Right info panel fits (P3): wider screen, slightly wider panel -->
+    <panelX>0.42</panelX>
+    <panelW>0.56</panelW>
+  </variables>
+</theme>
