@@ -11,7 +11,8 @@
   <variables>
     <!-- Cross balance (P2): wider screen, pull icon column left -->
     <crossX>0.20</crossX>
-    <sysCarouselPosX>-0.60</sysCarouselPosX>   <!-- crossX - sysCarouselSizeW/2 -->
+    <sysCarouselSizeW>1.42</sysCarouselSizeW>     <!-- 165 px slot * 11 / 1280 -->
+    <sysCarouselPosX>-0.51</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.20 - 0.71 -->
     <gameColX>0.06</gameColX>
 
     <!-- Icon squareness (P1) -->
