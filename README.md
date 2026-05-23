@@ -2,10 +2,16 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.7** — PSP-style variant only. 4:3 only. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (now identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Default colorset is January Blue.
+> Status: **v0.8** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7). Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (now identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Default colorset is January Blue.
 
 ![System view](docs/screenshots/system.png)
 ![Gamelist view](docs/screenshots/gamelist.png)
+
+### Aspect ratios
+
+| 4:3 (1024×768) | 16:9 (1280×720) | 3:2 (720×480) | 1:1 (720×720) | 8:7 (1024×896) |
+|:---:|:---:|:---:|:---:|:---:|
+| ![](docs/screenshots/system.png) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/system-8x7.png) |
 
 ## Known limitations
 
@@ -29,8 +35,10 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Compatibility
 
-- **Tested:** Knulli Scarab on TrimUI Brick (4:3, 1024×768).
-- **Likely works:** any Batocera/Knulli device at 4:3 running batocera-emulationstation with `formatVersion 7` support. Other aspect ratios will letterbox or stretch.
+- **Verified on-device:** Knulli Scarab on TrimUI Brick (4:3, 1024×768).
+- **Verified via Docker harness:** aspect ratios 4:3, 16:9, 3:2, 1:1, and 8:7 (render samples in the table above).
+- **Likely works:** any Batocera/Knulli device whose screen falls into one of the verified ratios at any resolution, running batocera-emulationstation with `formatVersion 7` support.
+- **Other ratios** (21:9, 5:4, vertical, etc.) silently fall back to the 4:3 layout — may letterbox or stretch.
 
 ## Customization
 
