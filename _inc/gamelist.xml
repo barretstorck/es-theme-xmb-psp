@@ -92,7 +92,7 @@
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${crossY}</pos>
       <origin>0.5 0.5</origin>
-      <maxSize>0.15 0.21</maxSize>
+      <maxSize>${glIconMaxW} ${glIconMaxH}</maxSize>
       <zIndex>8</zIndex>
     </image>
 
@@ -114,8 +114,8 @@
 
     <!-- Right info panel: title, rating, screenshot-then-video, description. -->
     <text name="md_name">
-      <pos>0.43 0.10</pos>
-      <size>0.55 0.06</size>
+      <pos>${panelX} 0.10</pos>
+      <size>${panelW} 0.06</size>
       <fontPath>${fontBold}</fontPath>
       <fontSize>0.035</fontSize>
       <color>${textPrimary}</color>
@@ -124,7 +124,7 @@
     </text>
 
     <rating name="md_rating">
-      <pos>0.615 0.17</pos>
+      <pos>${mdRatingX} 0.17</pos>
       <size>0.18 0.04</size>
       <color>${accent}</color>
       <zIndex>5</zIndex>
@@ -133,8 +133,8 @@
     <!-- Shows the game's snapshot still during the 5s delay and whenever
          the game has no preview video, then plays the video. -->
     <video name="md_video">
-      <pos>0.705 0.39</pos>
-      <size>0.50 0.34</size>
+      <pos>${mdVideoX} ${mdVideoY}</pos>
+      <size>${mdVideoW} ${mdVideoH}</size>
       <origin>0.5 0.5</origin>
       <delay>5</delay>
       <showSnapshotNoVideo>true</showSnapshotNoVideo>
@@ -144,8 +144,8 @@
 
     <!-- Scrolling description text. -->
     <text name="md_description">
-      <pos>0.43 0.60</pos>
-      <size>0.55 0.32</size>
+      <pos>${panelX} ${panelDescY}</pos>
+      <size>${panelW} ${panelDescH}</size>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.028</fontSize>
       <color>${textSecondary}</color>
@@ -162,8 +162,8 @@
     <!-- Game list - the vertical arm of the cross, centered under the
          system icon (box centered on crossX, center-aligned text). -->
     <textlist name="gamelist">
-      <pos>0.08 0.50</pos>
-      <size>0.32 0.42</size>
+      <pos>${gameColX} ${gameColTextY}</pos>
+      <size>${gameColW} ${gameColH}</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.032</fontSize>
       <horizontalMargin>0.01</horizontalMargin>
@@ -197,12 +197,12 @@
     <gamecarousel name="gamecarousel">
       <type>vertical</type>
       <imageSource>thumbnail</imageSource>
-      <pos>0.08 0.486</pos>
-      <size>0.32 0.42</size>
+      <pos>${gameColX} ${gameColCarY}</pos>
+      <size>${gameColW} ${gameColH}</size>
       <origin>0 0</origin>
       <color>00000000</color>
-      <logoSize>0.35 0.37</logoSize>
-      <logoScale>1.35</logoScale>
+      <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
+      <logoScale>${gameCarLogoScale}</logoScale>
       <logoAlignment>center</logoAlignment>
       <maxLogoCount>3</maxLogoCount>
       <zIndex>5</zIndex>
