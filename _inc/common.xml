@@ -33,6 +33,46 @@
     <crossX>0.24</crossX>
     <crossY>0.291</crossY>
     <captionY>0.401</captionY>
+
+    <!-- v0.8: geometry variables that may differ per aspect ratio.
+         Defaults are the 4:3 (1024x768) values used through v0.7.
+         Per-ratio overrides live in _inc/aspect-{8x7,3x2,16x9,1x1}.xml,
+         loaded conditionally by theme.xml. See
+         docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md
+         for the tuning principles. -->
+
+    <!-- System view: icon + system carousel sizing -->
+    <sysIconMaxW>0.12</sysIconMaxW>
+    <sysIconMaxH>0.16</sysIconMaxH>
+    <sysCarouselLogoW>0.10</sysCarouselLogoW>
+    <sysCarouselLogoH>0.14</sysCarouselLogoH>
+    <sysCarouselSizeW>1.6</sysCarouselSizeW>
+    <sysCarouselPosX>-0.56</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 -->
+
+    <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
+    <glIconMaxW>0.15</glIconMaxW>
+    <glIconMaxH>0.21</glIconMaxH>
+    <gameColX>0.08</gameColX>
+    <gameColW>0.32</gameColW>
+    <gameColTextY>0.50</gameColTextY>
+    <gameColCarY>0.486</gameColCarY>
+    <gameColH>0.42</gameColH>
+
+    <!-- Gamecarousel container-relative boxart sizing -->
+    <gameCarLogoW>0.35</gameCarLogoW>
+    <gameCarLogoH>0.37</gameCarLogoH>
+    <gameCarLogoScale>1.35</gameCarLogoScale>
+
+    <!-- Right info panel -->
+    <panelX>0.43</panelX>
+    <panelW>0.55</panelW>
+    <panelDescY>0.60</panelDescY>
+    <panelDescH>0.32</panelDescH>
+    <mdRatingX>0.615</mdRatingX>
+    <mdVideoX>0.705</mdVideoX>
+    <mdVideoY>0.39</mdVideoY>
+    <mdVideoW>0.50</mdVideoW>
+    <mdVideoH>0.34</mdVideoH>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
