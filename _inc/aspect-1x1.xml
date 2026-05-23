@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - 1:1 (square) aspect-ratio overrides.
+  Loaded conditionally by theme.xml when ${screen.ratio} == '1/1'.
+  Design surface: 720x720 (RG Cube X). Square is the hardest case —
+  the XMB cross + right info panel must share narrow horizontal space.
+  See P1-P4 in
+  docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <!-- Cross anchor + balance (P2): raise center, pull left -->
+    <crossX>0.22</crossX>
+    <crossY>0.27</crossY>
+    <captionY>0.38</captionY>
+    <sysCarouselPosX>-0.58</sysCarouselPosX>
+
+    <!-- Icon squareness (P1): square screen -> equal W and H -->
+    <sysIconMaxW>0.16</sysIconMaxW>
+    <sysIconMaxH>0.16</sysIconMaxH>
+    <glIconMaxW>0.20</glIconMaxW>
+    <glIconMaxH>0.20</glIconMaxH>
+    <sysCarouselLogoW>0.13</sysCarouselLogoW>
+    <sysCarouselLogoH>0.13</sysCarouselLogoH>
+
+    <!-- Vertical arm (P2): more room below the raised cross -->
+    <gameColX>0.06</gameColX>
+    <gameColTextY>0.47</gameColTextY>
+    <gameColCarY>0.46</gameColCarY>
+    <gameColH>0.46</gameColH>
+    <gameCarLogoW>0.36</gameCarLogoW>
+    <gameCarLogoH>0.34</gameCarLogoH>
+
+    <!-- Right info panel (P3): compress to fit alongside vertical arm -->
+    <panelX>0.40</panelX>
+    <panelW>0.56</panelW>
+    <panelDescY>0.58</panelDescY>
+    <panelDescH>0.36</panelDescH>
+    <mdRatingX>0.59</mdRatingX>
+
+    <!-- Video aspect (P4): 4:3 box at 1:1 -> W/H = (4/3)·(1/1) = 4/3 -->
+    <mdVideoX>0.68</mdVideoX>
+    <mdVideoY>0.37</mdVideoY>
+    <mdVideoW>0.44</mdVideoW>
+    <mdVideoH>0.33</mdVideoH>
+  </variables>
+</theme>
