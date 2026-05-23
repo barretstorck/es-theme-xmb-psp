@@ -35,10 +35,10 @@
            maxLogoCount sets how many icons share that width - fewer icons =
            wider spacing. logoPos is avoided - it made the carousel fail to
            render on this build; the container shift is the working mechanism. -->
-      <pos>-0.56 0.141</pos>
-      <size>1.6 0.30</size>
+      <pos>${sysCarouselPosX} 0.141</pos>
+      <size>${sysCarouselSizeW} 0.30</size>
       <color>00000000</color>
-      <logoSize>0.10 0.14</logoSize>
+      <logoSize>${sysCarouselLogoW} ${sysCarouselLogoH}</logoSize>
       <logoScale>1.5</logoScale>
       <logoRotation>0</logoRotation>
       <logoAlignment>center</logoAlignment>
@@ -93,7 +93,7 @@
          ES substitutes ${system.theme} with the current system shortname. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
-      <maxSize>0.12 0.16</maxSize>
+      <maxSize>${sysIconMaxW} ${sysIconMaxH}</maxSize>
       <zIndex>6</zIndex>
     </image>
 
