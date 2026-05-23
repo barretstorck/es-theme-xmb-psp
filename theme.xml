@@ -26,6 +26,7 @@
   <include if="${screen.ratio} == '8/7'">./_inc/aspect-8x7.xml</include>
   <include if="${screen.ratio} == '3/2'">./_inc/aspect-3x2.xml</include>
   <include if="${screen.ratio} == '16/9'">./_inc/aspect-16x9.xml</include>
+  <include if="${screen.ratio} == '1/1'">./_inc/aspect-1x1.xml</include>
 
   <subset name="colorset" displayName="PSP Color">
     <include name="January Blue">./colors/psp-jan-blue.xml</include>
