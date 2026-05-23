@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - 16:9 aspect-ratio overrides.
+  Loaded conditionally by theme.xml when ${screen.ratio} == '16/9'.
+  Design surface: 1280x720. See P1-P3 in
+  docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <!-- Cross balance (P2): wider screen, pull icon column left -->
+    <crossX>0.20</crossX>
+    <sysCarouselPosX>-0.60</sysCarouselPosX>   <!-- crossX - sysCarouselSizeW/2 -->
+    <gameColX>0.06</gameColX>
+
+    <!-- Icon squareness (P1) -->
+    <sysIconMaxW>0.10</sysIconMaxW>
+    <sysIconMaxH>0.17</sysIconMaxH>
+    <glIconMaxW>0.12</glIconMaxW>
+    <sysCarouselLogoW>0.08</sysCarouselLogoW>
+    <gameCarLogoW>0.33</gameCarLogoW>
+    <gameCarLogoH>0.39</gameCarLogoH>
+
+    <!-- Right info panel fits (P3): use the extra horizontal room -->
+    <panelX>0.40</panelX>
+    <panelW>0.58</panelW>
+  </variables>
+</theme>

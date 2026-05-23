@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - 8:7 aspect-ratio overrides.
+  Loaded conditionally by theme.xml when ${screen.ratio} == '8/7'.
+  Overrides only the geometry variables that visually drift from
+  4:3 defaults at 8:7. Design surface: 1024x896. See P1 in
+  docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md
+  for the squareness-in-pixels reasoning behind these values.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <!-- Icon squareness (P1): screen is 1024w x 896h, so H fractions
+         shrink relative to 4:3 to keep icons square in screen pixels. -->
+    <sysIconMaxH>0.14</sysIconMaxH>
+    <glIconMaxH>0.18</glIconMaxH>
+    <sysCarouselLogoH>0.12</sysCarouselLogoH>
+    <gameCarLogoH>0.32</gameCarLogoH>
+  </variables>
+</theme>
