@@ -110,12 +110,31 @@
          renders as an overlay across all views. -->
     <text name="clock">
       <visible>true</visible>
-      <pos>0.84 0.03</pos>
+      <pos>0.78 0.03</pos>
       <size>0.14 0.06</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.042</fontSize>
       <color>${textPrimary}</color>
       <horizontalAlignment>right</horizontalAlignment>
     </text>
+
+    <!-- v0.9 battery glyph. ES auto-cycles the image based on charge
+         level via the 6 state slots (incharge/full/at75/at50/at25/empty).
+         Auto-hides on devices that don't report a battery, and respects
+         the user's ES "Show Battery Status" setting. The Docker harness
+         reports no battery, so this element silently won't render there;
+         on-device verification is required for acceptance. -->
+    <image name="batteryIcon">
+      <pos>0.94 0.03</pos>
+      <origin>0 0</origin>
+      <maxSize>0.05 0.04</maxSize>
+      <color>${textPrimary}</color>
+      <empty>./art/battery/battery-empty.png</empty>
+      <at25>./art/battery/battery-25.png</at25>
+      <at50>./art/battery/battery-50.png</at50>
+      <at75>./art/battery/battery-75.png</at75>
+      <full>./art/battery/battery-full.png</full>
+      <incharge>./art/battery/battery-incharge.png</incharge>
+    </image>
   </view>
 </theme>
