@@ -58,7 +58,10 @@ def make_battery(filled: int, charging: bool = False) -> Image.Image:
             (cx - s * 0.05, cy + s * 0.15),
             (cx - s * 0.4, cy + s * 0.15),
         ]
-        d.polygon(bolt, fill=white)
+        # Paint with transparent RGBA to KNOCK OUT (not add to) the white
+        # segment fill — gives the charging icon a bolt-shaped void that's
+        # visually distinct from the fully-filled `full` state.
+        d.polygon(bolt, fill=(0, 0, 0, 0))
     return img
 
 
@@ -87,6 +90,12 @@ def main() -> None:
         path = OUT_DIR / name
         img.save(path)
         print(f"wrote {path} ({W}x{H}, {filled} segments, charging={charging})")
+
+    # Sanity: incharge must be visually distinct from full (else the bolt is invisible)
+    incharge_bytes = (OUT_DIR / "battery-incharge.png").read_bytes()
+    full_bytes = (OUT_DIR / "battery-full.png").read_bytes()
+    assert incharge_bytes != full_bytes, \
+        "battery-incharge.png is byte-identical to battery-full.png — bolt invisible?"
 
 
 if __name__ == "__main__":
