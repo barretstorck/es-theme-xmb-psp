@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Generate the soft radial halo that sits behind the selected system
-carousel icon. Pure white-to-transparent radial; runtime tint via
-<color>${accent}</color> in _inc/system.xml.
+"""Generate the soft radial halo (ring shape) that sits behind the
+selected system carousel icon. Pure white-to-transparent, runtime
+tint via <color>${accent}</color> in _inc/system.xml.
 
-Profile: white core covers ~30% of the radius, gaussian falloff to 0
-at the edge. 256x256 source (slightly larger than the largest selected
-icon at any aspect ratio, leaving falloff room).
+Profile: transparent center (inside INNER_RADIUS) where the icon
+sits, peak alpha just outside the icon edge, half-cosine fade to
+0 at MAX_RADIUS. The annular shape concentrates the visible alpha
+where it's actually visible (around the icon), not hidden under
+it — fixes the v0.9 spec-review finding that a center-bright halo
+was perceptually invisible because its brightest pixels were
+obscured by the icon at higher zIndex.
+
+256x256 source.
 """
 import math
 from pathlib import Path
@@ -13,39 +19,38 @@ from PIL import Image
 
 W, H = 256, 256
 CX, CY = W / 2, H / 2
-CORE_RADIUS = 38   # ~30% of half-width: solid-white core
-SIGMA = 55         # gaussian std-dev for the falloff tail
-MAX_RADIUS = min(CX, CY)  # falloff reaches 0 by image edge
+INNER_RADIUS = 80   # transparent center matching where icon sits (~63% of MAX_RADIUS)
+MAX_RADIUS = min(CX, CY)  # = 128
 OUT_PATH = Path(__file__).resolve().parent.parent / "art" / "halo.png"
 
 
 def alpha_at(x: float, y: float) -> int:
     dx, dy = x - CX, y - CY
     dist = math.sqrt(dx * dx + dy * dy)
-    if dist <= CORE_RADIUS:
-        return 255
+    if dist <= INNER_RADIUS:
+        return 0           # transparent center where icon sits
     if dist >= MAX_RADIUS:
         return 0
-    tail = dist - CORE_RADIUS
-    falloff = math.exp(-(tail * tail) / (2 * SIGMA * SIGMA))
-    # Force smooth fade-to-zero at the image edge: multiply by a linear
-    # taper that hits 1.0 just outside the core and 0.0 at MAX_RADIUS.
-    # Without this, border pixels (dist ~ 127.5) keep alpha ~ 67 from the
-    # Gaussian tail alone, producing a visible hard circular clip at the
-    # NSEW edges of the image.
-    taper = (MAX_RADIUS - dist) / (MAX_RADIUS - CORE_RADIUS)
-    falloff *= taper
+    # Smooth ring profile: peak alpha just outside INNER_RADIUS, fade to 0 at MAX_RADIUS
+    t = (dist - INNER_RADIUS) / (MAX_RADIUS - INNER_RADIUS)  # 0..1
+    # Half-cosine: 1.0 at t=0 (peak just outside icon edge) → 0.0 at t=1 (image edge)
+    falloff = 0.5 + 0.5 * math.cos(math.pi * t)
     return int(255 * falloff)
 
 
 def assert_valid(img: Image.Image) -> None:
     assert img.size == (W, H), f"unexpected size {img.size}"
     assert img.mode == "RGBA", f"unexpected mode {img.mode}"
-    assert img.getpixel((W // 2, H // 2)) == (255, 255, 255, 255), \
-        "center should be fully opaque white"
+    assert img.getpixel((W // 2, H // 2))[3] == 0, \
+        "center should be transparent (ring design — center is hidden under icon)"
     assert img.getpixel((0, 0))[3] == 0, "corner should be transparent"
+    # Ring must have a bright peak somewhere in the annular region
+    peak_check_radius = INNER_RADIUS + 5  # just outside the inner edge
+    peak_pixel = img.getpixel((int(W // 2 + peak_check_radius), H // 2))
+    assert peak_pixel[3] >= 200, \
+        f"ring peak should be bright (alpha >= 200), got {peak_pixel[3]}"
     # I1 regression guard: image edge must be fully transparent everywhere
-    # (linear taper must drive alpha to 0 at dist == MAX_RADIUS).
+    # (half-cosine profile must drive alpha to 0 at dist == MAX_RADIUS).
     for x in range(W):
         assert img.getpixel((x, 0))[3] == 0, f"top edge x={x} not transparent"
         assert img.getpixel((x, H - 1))[3] == 0, f"bottom edge x={x} not transparent"
@@ -65,7 +70,7 @@ def main() -> None:
     assert_valid(img)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT_PATH)
-    print(f"wrote {OUT_PATH} ({W}x{H}, core radius {CORE_RADIUS}, sigma {SIGMA})")
+    print(f"wrote {OUT_PATH} ({W}x{H}, inner radius {INNER_RADIUS}, max radius {MAX_RADIUS})")
 
 
 if __name__ == "__main__":
