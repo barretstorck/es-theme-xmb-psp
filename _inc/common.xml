@@ -49,24 +49,19 @@
     <sysCarouselSizeW>1.78</sysCarouselSizeW>
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
-    <!-- v0.9.2 selected-icon halo. Center-bright gaussian PNG (icon
-         obscures the bright center; visible portion AROUND the icon
-         is the diffuse feathered glow). The halo.png source is
-         square (256×256), so ES's <maxSize> aspect-preserving scale
-         makes haloW the binding dimension — the rendered halo is
-         haloW × haloW screen units regardless of haloH's value.
+    <!-- Selected-icon halo. Center-bright gaussian PNG, white-tinted at
+         runtime. The halo.png source is square (256×256), so ES's
+         <maxSize> aspect-preserving scale makes haloW the binding
+         dimension — rendered halo is haloW × haloW screen units
+         regardless of haloH (kept proportional for forward-compat
+         with a future portrait PNG).
          haloW=0.40 is ~2.5× the icon's apparent width (sysIconMaxW ×
-         logoScale = 0.18 at 4:3), so the icon obscures only the
-         central ~45% of the halo's diameter and the outer 55% — the
-         bright gaussian shoulder — reads as a soft white glow.
-         haloH matches haloW for clarity (square halo PNG; the value
-         is functionally inert but kept proportional so a future
-         portrait-PNG redesign would slot in cleanly).
-         History: v0.9 first sized this at the icon (visible portion
-         was a dim rim); v0.9.1 redesigned as a ring (read as too
-         literal a halo); v0.9.2 returned to center-bright but
-         significantly larger so the visible feathered shoulder
-         carries the glow. -->
+         logoScale = 0.18 at 4:3). The icon obscures the bright center;
+         the outer ~55% of the halo's diameter — the gaussian
+         shoulder — reads as a diffuse soft glow. Per-aspect overrides
+         go in aspect-*.xml if visual checks ever show issues.
+         (Design history through v0.9 → v0.9.1 → v0.9.2 lives in
+         commits + docs/superpowers/specs/) -->
     <haloW>0.40</haloW>
     <haloH>0.40</haloH>
 
