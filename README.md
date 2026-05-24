@@ -6,6 +6,8 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Screenshots
 
+> _Rendered with **Battery: Hide** (no battery slot). The default **Battery: Show** variant reserves room for the battery glyph on devices that report one — see Customization below._
+
 ### System view (XMB cross + system carousel)
 
 | 4:3 (1024×768) | 16:9 (1280×720) | 3:2 (720×480) | 1:1 (720×720) | 8:7 (1024×896) |
