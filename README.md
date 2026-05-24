@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.9** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. v0.9 adds a soft colored halo behind the selected system carousel icon (tinted to the active colorset) and a PSP-style battery glyph in the top-right status bar on devices that report a battery. Default colorset is January Blue.
+> Status: **v0.9.1** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. v0.9 added a soft white halo behind the selected system carousel icon and a PSP-style battery glyph in the top-right status bar on devices that report a battery; v0.9.1 polished both — halo now reads as a properly visible bright white glow with smoothly feathered edges (was an accent-tinted ring that read as darker on same-hue backgrounds), and a new Battery: Show/Hide toggle lets users on no-battery devices reclaim the status-bar space. Default colorset is January Blue.
 
 ## Screenshots
 
@@ -53,14 +53,15 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Customization
 
-Three configurable knobs, all under **UI Settings → Theme Configuration**:
+Four configurable knobs, all under **UI Settings → Theme Configuration**:
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
 - **Gamelist View Style** — show each system's games as a text list (`detailed`) or as a vertical boxart carousel (`gamecarousel`); `automatic` uses the theme default. Both styles share the same title / rating / video / description info panel.
+- **Battery** — `Show` (default) reserves a slot in the top-right status bar for the PSP-style battery glyph; `Hide` removes the slot and shifts the clock right to fill the space. Pick `Hide` if your device has no battery, or if you've disabled ES's Show Battery Status setting.
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
-The battery glyph in the top-right (next to the clock) appears automatically on devices that report a battery and have **Main Menu → UI Settings → Show Battery Status** enabled. On devices without a battery (e.g., docked / desktop setups), it stays hidden.
+The battery glyph in the top-right (next to the clock) appears automatically on devices that report a battery and have **Main Menu → UI Settings → Show Battery Status** enabled, when the theme's Battery knob is set to `Show`. Set the Battery knob to `Hide` on docked / desktop setups so the clock occupies the otherwise-empty slot.
 
 ## How the wave is built
 
