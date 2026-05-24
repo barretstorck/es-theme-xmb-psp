@@ -6,6 +6,7 @@ set -euo pipefail
 VIEW="${VIEW:-system}"
 RESOLUTION="${RESOLUTION:-1024x768}"
 COLORSET="${COLORSET:-January Blue}"
+BATTERY="${BATTERY:-Show}"
 OUTNAME="${OUTNAME:-render.png}"
 HAS_LIBRARY="${HAS_LIBRARY:-0}"
 
@@ -55,6 +56,9 @@ printf '<?xml version="1.0"?>\n<systemList>\n%s</systemList>\n' "${SYSTEMS_XML}"
 #   if (subset == "colorset") settingName = "ThemeColorSet";
 # and /opt/es/es-core/src/ThemeData.cpp:
 #   mColorset = Settings::getInstance()->getString("ThemeColorSet");
+# All other (non-special) subsets use the generic key "subset.<name>" per
+# GuiMenu.cpp:3276 — that is why battery uses "subset.battery" and not a
+# named constant.
 
 # Gamelist view style: gamecarousel view -> the boxart carousel, else detailed.
 # Setting name confirmed from ViewController.cpp: getString("GamelistViewStyle"),
@@ -70,6 +74,7 @@ cat > "${ES_CFG}/es_settings.cfg" <<XML
 <config>
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
+  <string name="subset.battery" value="${BATTERY}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
   <bool name="ShowHelpPrompts" value="false" />
   <bool name="MusicEnabled" value="false" />
