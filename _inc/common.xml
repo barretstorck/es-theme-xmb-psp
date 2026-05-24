@@ -46,8 +46,8 @@
     <sysIconMaxH>0.16</sysIconMaxH>
     <sysCarouselLogoW>0.10</sysCarouselLogoW>
     <sysCarouselLogoH>0.14</sysCarouselLogoH>
-    <sysCarouselSizeW>1.77</sysCarouselSizeW>
-    <sysCarouselPosX>-0.645</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.885 = -0.645 -->
+    <sysCarouselSizeW>1.78</sysCarouselSizeW>
+    <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
     <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
     <glIconMaxW>0.15</glIconMaxW>

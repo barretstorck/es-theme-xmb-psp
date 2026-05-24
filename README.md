@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.8.1** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant-pixel system-carousel slot spacing across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (now identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Default colorset is January Blue.
+> Status: **v0.8.2** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (now identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Default colorset is January Blue.
 
 ## Screenshots
 
