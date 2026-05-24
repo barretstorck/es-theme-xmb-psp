@@ -49,22 +49,21 @@
     <sysCarouselSizeW>1.78</sysCarouselSizeW>
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
-    <!-- v0.9 selected-icon halo. Ring-shaped PNG (transparent center,
-         bright peak at the icon's edge, soft fade outward). The
-         halo.png source is square (256×256), so ES's <maxSize>
-         aspect-preserving scale makes haloW the binding dimension —
-         the rendered halo is haloW × haloW screen units regardless of
-         haloH's value. We keep haloH proportional to sysIconMaxH for
-         consistency and for if/when the PNG is ever redesigned as
-         portrait. With haloW=0.28 vs the icon's apparent 0.18 width
-         (sysIconMaxW × logoScale=1.5), the ring extends ~28% past the
-         icon on each side horizontally and ~8% vertically (since
-         apparent icon height is 0.24, very close to the square
-         halo's 0.28). Per-aspect overrides go in aspect-*.xml if
-         visual checks reveal a default-size issue at a specific
-         ratio. -->
-    <haloW>0.28</haloW>
-    <haloH>0.36</haloH>
+    <!-- Selected-icon halo. Center-bright gaussian PNG, white-tinted at
+         runtime. The halo.png source is square (256×256), so ES's
+         <maxSize> aspect-preserving scale makes haloW the binding
+         dimension — rendered halo is haloW × haloW screen units
+         regardless of haloH (kept proportional for forward-compat
+         with a future portrait PNG).
+         haloW=0.40 is ~2.5× the icon's apparent width (sysIconMaxW ×
+         logoScale = 0.18 at 4:3). The icon obscures the bright center;
+         the outer ~55% of the halo's diameter — the gaussian
+         shoulder — reads as a diffuse soft glow. Per-aspect overrides
+         go in aspect-*.xml if visual checks ever show issues.
+         (Design history through v0.9 → v0.9.1 → v0.9.2 lives in
+         commits + docs/superpowers/specs/) -->
+    <haloW>0.40</haloW>
+    <haloH>0.40</haloH>
 
     <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
     <glIconMaxW>0.15</glIconMaxW>
