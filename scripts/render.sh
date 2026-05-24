@@ -50,6 +50,10 @@ case "${VIEW}" in
   system|gamelist|gamecarousel|menu) ;;
   *) echo "bad --view: ${VIEW}" >&2; exit 2 ;;
 esac
+case "${BATTERY}" in
+  Show|Hide) ;;
+  *) echo "bad --battery: ${BATTERY} (expected Show or Hide)" >&2; exit 2 ;;
+esac
 if [[ "${VIEW}" == gamelist || "${VIEW}" == gamecarousel ]] && [[ -z "${LIBRARY}" ]]; then
   echo "--library is required for --view ${VIEW}" >&2; exit 2
 fi
