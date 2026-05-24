@@ -23,7 +23,7 @@ def make_battery(filled: int, charging: bool = False) -> Image.Image:
     """Return an RGBA Image: outline + `filled` (0..3) segments + optional bolt."""
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    body_w = W - NUB_W  # right edge of the rectangle body
+    body_w = W - NUB_W  # body width (also = nub's left-edge x)
     white = (255, 255, 255, 255)
     # Body outline (filled with transparent — we want only the stroke visible)
     d.rectangle([0, 0, body_w - 1, H - 1], outline=white, width=STROKE)
@@ -38,7 +38,7 @@ def make_battery(filled: int, charging: bool = False) -> Image.Image:
     inner_y0 = STROKE + SEG_GAP
     inner_x1 = body_w - 1 - STROKE - SEG_GAP
     inner_y1 = H - 1 - STROKE - SEG_GAP
-    seg_total_w = inner_x1 - inner_x0
+    seg_total_w = inner_x1 - inner_x0 + 1   # inclusive pixel span
     # 3 segments + 2 gaps between them
     seg_w = (seg_total_w - 2 * SEG_GAP) // 3
     for i in range(filled):
@@ -70,7 +70,7 @@ def assert_valid(img: Image.Image, name: str) -> None:
     assert img.mode == "RGBA", f"{name}: expected RGBA, got {img.mode}"
     # Sanity: at least some opaque pixels (we drew an outline)
     alpha = img.getchannel("A")
-    opaque_pixels = sum(1 for p in alpha.getdata() if p > 0)
+    opaque_pixels = sum(1 for b in alpha.tobytes() if b > 0)
     assert opaque_pixels > 50, f"{name}: too few opaque pixels ({opaque_pixels})"
 
 
