@@ -49,6 +49,14 @@
     <sysCarouselSizeW>1.78</sysCarouselSizeW>
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
+    <!-- v0.9 selected-icon halo. Sized slightly larger than
+         sysIconMaxW/H × logoScale (1.5) so the halo extends just past
+         the selected icon's edges. Per-aspect overrides go in
+         aspect-*.xml only if visual checks reveal a default-size issue
+         at a specific ratio (Task 5 spike). -->
+    <haloW>0.18</haloW>
+    <haloH>0.24</haloH>
+
     <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
     <glIconMaxW>0.15</glIconMaxW>
     <glIconMaxH>0.21</glIconMaxH>
