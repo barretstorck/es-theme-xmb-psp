@@ -56,6 +56,9 @@ printf '<?xml version="1.0"?>\n<systemList>\n%s</systemList>\n' "${SYSTEMS_XML}"
 #   if (subset == "colorset") settingName = "ThemeColorSet";
 # and /opt/es/es-core/src/ThemeData.cpp:
 #   mColorset = Settings::getInstance()->getString("ThemeColorSet");
+# All other (non-special) subsets use the generic key "subset.<name>" per
+# GuiMenu.cpp:3276 — that is why battery uses "subset.battery" and not a
+# named constant.
 
 # Gamelist view style: gamecarousel view -> the boxart carousel, else detailed.
 # Setting name confirmed from ViewController.cpp: getString("GamelistViewStyle"),
