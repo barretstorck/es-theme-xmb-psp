@@ -52,4 +52,9 @@
     <include name="Hide">./_inc/gamecount-hide.xml</include>
     <include name="Show">./_inc/gamecount-show.xml</include>
   </subset>
+
+  <subset name="battery" displayName="Battery">
+    <include name="Show">./_inc/battery-show.xml</include>
+    <include name="Hide">./_inc/battery-hide.xml</include>
+  </subset>
 </theme>
