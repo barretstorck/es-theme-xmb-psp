@@ -24,6 +24,24 @@
       <zIndex>0</zIndex>
     </image>
 
+    <!-- v0.9 selected-icon halo. Soft white-to-transparent radial PNG
+         tinted with ${accent}, layered behind the carousel logos but
+         above the wave (zIndex 3: wave=0, halo=3, carousel=5/6,
+         caption=7). The selected icon scrolls THROUGH this static halo
+         as the carousel rotates — visually equivalent to a per-icon
+         halo without per-icon artwork.
+         Same extra="true" caveat as waveBackground / systemName: on
+         system-change the halo slides briefly with the transition and
+         snaps back. Accepted since v0.3. -->
+    <image name="selectedHalo" extra="true">
+      <path>./art/halo.png</path>
+      <pos>${crossX} ${crossY}</pos>
+      <origin>0.5 0.5</origin>
+      <maxSize>${haloW} ${haloH}</maxSize>
+      <color>${accent}</color>
+      <zIndex>3</zIndex>
+    </image>
+
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
     <carousel name="systemcarousel">
       <defaultTransition>fade</defaultTransition>
