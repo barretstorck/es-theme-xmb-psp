@@ -28,7 +28,30 @@ def alpha_at(x: float, y: float) -> int:
         return 0
     tail = dist - CORE_RADIUS
     falloff = math.exp(-(tail * tail) / (2 * SIGMA * SIGMA))
+    # Force smooth fade-to-zero at the image edge: multiply by a linear
+    # taper that hits 1.0 just outside the core and 0.0 at MAX_RADIUS.
+    # Without this, border pixels (dist ~ 127.5) keep alpha ~ 67 from the
+    # Gaussian tail alone, producing a visible hard circular clip at the
+    # NSEW edges of the image.
+    taper = (MAX_RADIUS - dist) / (MAX_RADIUS - CORE_RADIUS)
+    falloff *= taper
     return int(255 * falloff)
+
+
+def assert_valid(img: Image.Image) -> None:
+    assert img.size == (W, H), f"unexpected size {img.size}"
+    assert img.mode == "RGBA", f"unexpected mode {img.mode}"
+    assert img.getpixel((W // 2, H // 2)) == (255, 255, 255, 255), \
+        "center should be fully opaque white"
+    assert img.getpixel((0, 0))[3] == 0, "corner should be transparent"
+    # I1 regression guard: image edge must be fully transparent everywhere
+    # (linear taper must drive alpha to 0 at dist == MAX_RADIUS).
+    for x in range(W):
+        assert img.getpixel((x, 0))[3] == 0, f"top edge x={x} not transparent"
+        assert img.getpixel((x, H - 1))[3] == 0, f"bottom edge x={x} not transparent"
+    for y in range(H):
+        assert img.getpixel((0, y))[3] == 0, f"left edge y={y} not transparent"
+        assert img.getpixel((W - 1, y))[3] == 0, f"right edge y={y} not transparent"
 
 
 def main() -> None:
@@ -39,14 +62,7 @@ def main() -> None:
             a = alpha_at(x + 0.5, y + 0.5)  # sample at pixel center
             if a > 0:
                 pixels[x, y] = (255, 255, 255, a)
-    # Assertions
-    assert img.size == (W, H), f"unexpected size {img.size}"
-    assert img.mode == "RGBA", f"unexpected mode {img.mode}"
-    # Center pixel must be fully opaque (we're in the core)
-    assert img.getpixel((W // 2, H // 2)) == (255, 255, 255, 255), \
-        "center should be fully opaque white"
-    # Corner pixel must be fully transparent (well outside MAX_RADIUS)
-    assert img.getpixel((0, 0))[3] == 0, "corner should be transparent"
+    assert_valid(img)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT_PATH)
     print(f"wrote {OUT_PATH} ({W}x{H}, core radius {CORE_RADIUS}, sigma {SIGMA})")
