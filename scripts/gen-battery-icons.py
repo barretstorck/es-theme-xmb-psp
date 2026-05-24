@@ -43,7 +43,7 @@ def make_battery(filled: int, charging: bool = False) -> Image.Image:
     seg_w = (seg_total_w - 2 * SEG_GAP) // 3
     for i in range(filled):
         x0 = inner_x0 + i * (seg_w + SEG_GAP)
-        x1 = x0 + seg_w
+        x1 = x0 + seg_w - 1   # PIL rectangle is inclusive; seg_w-1 keeps width == seg_w
         d.rectangle([x0, inner_y0, x1, inner_y1], fill=white)
     if charging:
         # Lightning-bolt polygon centered on the body
