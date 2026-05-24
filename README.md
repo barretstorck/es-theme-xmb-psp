@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.8.2** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (now identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Default colorset is January Blue.
+> Status: **v0.9** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, always-on PSP XMB wave animation (identical on the system and gamelist views), XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. v0.9 adds a soft colored halo behind the selected system carousel icon (tinted to the active colorset) and a PSP-style battery glyph in the top-right status bar on devices that report a battery. Default colorset is January Blue.
 
 ## Screenshots
 
@@ -59,6 +59,8 @@ Three configurable knobs, all under **UI Settings → Theme Configuration**:
 - **Gamelist View Style** — show each system's games as a text list (`detailed`) or as a vertical boxart carousel (`gamecarousel`); `automatic` uses the theme default. Both styles share the same title / rating / video / description info panel.
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
+
+The battery glyph in the top-right (next to the clock) appears automatically on devices that report a battery and have **Main Menu → UI Settings → Show Battery Status** enabled. On devices without a battery (e.g., docked / desktop setups), it stays hidden.
 
 ## How the wave is built
 
