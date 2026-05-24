@@ -50,11 +50,19 @@
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
     <!-- v0.9 selected-icon halo. Ring-shaped PNG (transparent center,
-         bright peak at the icon's edge, soft fade outward). Sized
-         ~1.5× sysIconMaxW/H × logoScale so the visible ring extends
-         past the icon by ~25% of the icon's apparent size on each
-         side. Per-aspect overrides go in aspect-*.xml if visual
-         checks reveal a default-size issue at a specific ratio. -->
+         bright peak at the icon's edge, soft fade outward). The
+         halo.png source is square (256×256), so ES's <maxSize>
+         aspect-preserving scale makes haloW the binding dimension —
+         the rendered halo is haloW × haloW screen units regardless of
+         haloH's value. We keep haloH proportional to sysIconMaxH for
+         consistency and for if/when the PNG is ever redesigned as
+         portrait. With haloW=0.28 vs the icon's apparent 0.18 width
+         (sysIconMaxW × logoScale=1.5), the ring extends ~28% past the
+         icon on each side horizontally and ~8% vertically (since
+         apparent icon height is 0.24, very close to the square
+         halo's 0.28). Per-aspect overrides go in aspect-*.xml if
+         visual checks reveal a default-size issue at a specific
+         ratio. -->
     <haloW>0.28</haloW>
     <haloH>0.36</haloH>
 
