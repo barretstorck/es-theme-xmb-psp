@@ -18,8 +18,8 @@
     <gameCarLogoH>0.38</gameCarLogoH>
 
     <!-- Carousel slot spacing (constant 165 px across ratios) -->
-    <sysCarouselSizeW>2.52</sysCarouselSizeW>     <!-- 165 px slot * 11 / 720 -->
-    <sysCarouselPosX>-1.02</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.24 - 1.26 -->
+    <sysCarouselSizeW>1.60</sysCarouselSizeW>     <!-- K=1.62 × logoW=0.09 × 11 -->
+    <sysCarouselPosX>-0.56</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.24 - 0.80 -->
 
     <!-- Right info panel fits (P3): wider screen, slightly wider panel -->
     <panelX>0.42</panelX>

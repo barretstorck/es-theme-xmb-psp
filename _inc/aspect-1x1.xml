@@ -15,8 +15,8 @@
     <crossX>0.22</crossX>
     <crossY>0.27</crossY>
     <captionY>0.38</captionY>
-    <sysCarouselSizeW>2.52</sysCarouselSizeW>     <!-- 165 px slot * 11 / 720 -->
-    <sysCarouselPosX>-1.04</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.22 - 1.26 -->
+    <sysCarouselSizeW>2.32</sysCarouselSizeW>     <!-- K=1.62 × logoW=0.13 × 11 -->
+    <sysCarouselPosX>-0.94</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.22 - 1.16 -->
 
     <!-- Icon squareness (P1): square screen -> equal W and H -->
     <sysIconMaxW>0.16</sysIconMaxW>
