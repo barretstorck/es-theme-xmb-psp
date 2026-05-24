@@ -106,8 +106,11 @@
     <controllerActivity name="controllerActivity">
       <visible>false</visible>
     </controllerActivity>
-    <!-- ES's real wall-clock, top-right, enlarged (v0.6). The screen view
-         renders as an overlay across all views. -->
+    <!-- ES's real wall-clock, top-right, enlarged (v0.6); pos.x nudged
+         left in v0.9 from 0.84 → 0.78 to leave room for batteryIcon at
+         x=0.94. Clock right edge = pos.x + size.x = 0.78 + 0.14 = 0.92,
+         leaving a 0.02 gap before the battery. The screen view renders
+         as an overlay across all views. -->
     <text name="clock">
       <visible>true</visible>
       <pos>0.78 0.03</pos>
@@ -118,11 +121,14 @@
       <horizontalAlignment>right</horizontalAlignment>
     </text>
 
-    <!-- v0.9 battery glyph. ES auto-cycles the image based on charge
-         level via the 6 state slots (incharge/full/at75/at50/at25/empty).
-         Auto-hides on devices that don't report a battery, and respects
-         the user's ES "Show Battery Status" setting. The Docker harness
-         reports no battery, so this element silently won't render there;
+    <!-- v0.9 battery glyph. Sits at pos.x=0.94 — clock right edge is at
+         0.78 + 0.14 = 0.92, so the 0.02 gap matches the spacing the PSP
+         XMB uses between its date/time text and battery glyph.
+         ES auto-cycles the image based on charge level via the 6 state
+         slots (incharge/full/at75/at50/at25/empty). Auto-hides on
+         devices that don't report a battery, and respects the user's
+         ES "Show Battery Status" setting. The Docker harness reports
+         no battery, so this element silently won't render there;
          on-device verification is required for acceptance. -->
     <image name="batteryIcon">
       <pos>0.94 0.03</pos>
