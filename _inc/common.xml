@@ -49,6 +49,23 @@
     <sysCarouselSizeW>1.78</sysCarouselSizeW>
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
+    <!-- v0.9 selected-icon halo. Ring-shaped PNG (transparent center,
+         bright peak at the icon's edge, soft fade outward). The
+         halo.png source is square (256×256), so ES's <maxSize>
+         aspect-preserving scale makes haloW the binding dimension —
+         the rendered halo is haloW × haloW screen units regardless of
+         haloH's value. We keep haloH proportional to sysIconMaxH for
+         consistency and for if/when the PNG is ever redesigned as
+         portrait. With haloW=0.28 vs the icon's apparent 0.18 width
+         (sysIconMaxW × logoScale=1.5), the ring extends ~28% past the
+         icon on each side horizontally and ~8% vertically (since
+         apparent icon height is 0.24, very close to the square
+         halo's 0.28). Per-aspect overrides go in aspect-*.xml if
+         visual checks reveal a default-size issue at a specific
+         ratio. -->
+    <haloW>0.28</haloW>
+    <haloH>0.36</haloH>
+
     <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
     <glIconMaxW>0.15</glIconMaxW>
     <glIconMaxH>0.21</glIconMaxH>
@@ -106,16 +123,41 @@
     <controllerActivity name="controllerActivity">
       <visible>false</visible>
     </controllerActivity>
-    <!-- ES's real wall-clock, top-right, enlarged (v0.6). The screen view
-         renders as an overlay across all views. -->
+    <!-- ES's real wall-clock, top-right, enlarged (v0.6); pos.x nudged
+         left in v0.9 from 0.84 → 0.78 to leave room for batteryIcon at
+         x=0.94. Clock right edge = pos.x + size.x = 0.78 + 0.14 = 0.92,
+         leaving a 0.02 gap before the battery. The screen view renders
+         as an overlay across all views. -->
     <text name="clock">
       <visible>true</visible>
-      <pos>0.84 0.03</pos>
+      <pos>0.78 0.03</pos>
       <size>0.14 0.06</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.042</fontSize>
       <color>${textPrimary}</color>
       <horizontalAlignment>right</horizontalAlignment>
     </text>
+
+    <!-- v0.9 battery glyph. Sits at pos.x=0.94 — clock right edge is at
+         0.78 + 0.14 = 0.92, so the 0.02 gap matches the spacing the PSP
+         XMB uses between its date/time text and battery glyph.
+         ES auto-cycles the image based on charge level via the 6 state
+         slots (incharge/full/at75/at50/at25/empty). Auto-hides on
+         devices that don't report a battery, and respects the user's
+         ES "Show Battery Status" setting. The Docker harness reports
+         no battery, so this element silently won't render there;
+         on-device verification is required for acceptance. -->
+    <image name="batteryIcon">
+      <pos>0.94 0.03</pos>
+      <origin>0 0</origin>
+      <maxSize>0.05 0.04</maxSize>
+      <color>${textPrimary}</color>
+      <empty>./art/battery/battery-empty.png</empty>
+      <at25>./art/battery/battery-25.png</at25>
+      <at50>./art/battery/battery-50.png</at50>
+      <at75>./art/battery/battery-75.png</at75>
+      <full>./art/battery/battery-full.png</full>
+      <incharge>./art/battery/battery-incharge.png</incharge>
+    </image>
   </view>
 </theme>
