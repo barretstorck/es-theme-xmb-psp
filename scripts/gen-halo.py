@@ -61,8 +61,23 @@ def assert_valid(img: Image.Image) -> None:
     # alpha is int(255*exp(-0.707^2/(2*45^2))) = 254, which is effectively
     # fully opaque. Accept >=254.
     center_pixel = img.getpixel((W // 2, H // 2))
+    # Pixel-center sampling at (W//2, H//2) puts the sample at dist=0.707
+    # from the true gaussian peak. int(255 * gaussian(0.707, σ=SIGMA))
+    # truncates to 254 for any reasonable SIGMA — not 255 — so the bound
+    # is >=254, not ==255.
     assert center_pixel[3] >= 254, \
-        f"center should be fully opaque (alpha>=254), got {center_pixel[3]}"
+        f"center should be near-fully opaque (alpha >= 254, " \
+        f"truncates from gaussian sample at dist=0.707), got {center_pixel[3]}"
+    # Catch SIGMA blowouts (e.g., accidentally setting SIGMA=450 would
+    # produce a near-flat white disc that passes both other assertions).
+    # At r=2*SIGMA, the pure gaussian is exp(-2)≈0.135 → alpha≈34;
+    # combined with the cosine taper (since 2*SIGMA=90 > SIGMA, taper
+    # applies) the actual value is lower. Threshold <50 catches any
+    # SIGMA ≥ 70-ish (or any change that breaks the falloff shape).
+    falloff_alpha = img.getpixel((int(CX + 2 * SIGMA), int(CY)))[3]
+    assert falloff_alpha < 50, \
+        f"gaussian falloff broken: alpha at r=2*SIGMA={int(2*SIGMA)} " \
+        f"should be <50, got {falloff_alpha}. Check SIGMA isn't too large."
     # Image edge must be fully transparent everywhere — the taper ensures this
     for x in range(W):
         assert img.getpixel((x, 0))[3] == 0, f"top edge x={x} not transparent"
