@@ -215,27 +215,10 @@
       <zIndex>5</zIndex>
     </gamecarousel>
 
-    <!-- v0.9.3 round 4 selected-game halo. Same art as the system
-         carousel halo, positioned at the gamecarousel center (where
-         the selected boxart renders). zIndex 4 keeps it behind the
-         boxart at zIndex 5 but above the wave layers.
-         storyboard event="scroll" fades the halo out when the
-         carousel is scrolling between items, then fades back in
-         when scrolling stops. -->
-    <image name="selectedGameHalo" extra="true">
-      <path>./art/halo.png</path>
-      <pos>${crossX} 0.67</pos>
-      <origin>0.5 0.5</origin>
-      <maxSize>${haloW} ${haloH}</maxSize>
-      <color>FFFFFF</color>
-      <zIndex>4</zIndex>
-      <storyboard event="scroll">
-        <animation property="opacity" from="1" to="0" duration="120" mode="linear"/>
-      </storyboard>
-      <storyboard>
-        <animation property="opacity" from="0" to="1" duration="220" mode="linear"/>
-      </storyboard>
-    </image>
+    <!-- (v0.9.3 round 4 added a selectedGameHalo element here but
+         deferred to v0.10: a white halo behind a text-fallback game
+         title made the title unreadable, and a per-state visibility
+         rule needs a design pass. See docs/v0.10-roadmap.md.) -->
     <!-- Per-game text label (the text fallback when no thumbnail is scraped,
          and the name overlay for all items). Styles the built-in
          'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
