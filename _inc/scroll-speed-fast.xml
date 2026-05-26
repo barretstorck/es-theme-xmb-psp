@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Scroll Speed: Fast".
+  Sets autoScrollSpeed=75ms on the gamelist description text, halving
+  the per-line wait. Use if you prefer to skim descriptions.
+  Selected via UI Settings > Theme Configuration > Scroll Speed > Fast.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <text name="md_description">
+      <autoScrollSpeed>75</autoScrollSpeed>
+    </text>
+  </view>
+</theme>

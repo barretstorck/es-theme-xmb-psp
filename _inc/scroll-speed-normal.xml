@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Scroll Speed: Normal" (default).
+  Sets autoScrollSpeed=150ms on the gamelist description text —
+  ES's built-in default cadence.
+  Selected via UI Settings > Theme Configuration > Scroll Speed > Normal.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <text name="md_description">
+      <autoScrollSpeed>150</autoScrollSpeed>
+    </text>
+  </view>
+</theme>

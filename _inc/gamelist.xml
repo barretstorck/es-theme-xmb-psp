@@ -204,15 +204,38 @@
       <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
       <logoScale>${gameCarLogoScale}</logoScale>
       <logoAlignment>center</logoAlignment>
-      <!-- v0.9.3 round 3: maxLogoCount=1 (was 3) for XMB-style "only the
-           selected item appears below the system icon, no preview
-           above". ES carousels center the selected logo in the
-           container; with 1 max, no neighbor slots render. The
-           container's gameColCarY is positioned so the centered
-           selected lands directly below the caption. -->
-      <maxLogoCount>1</maxLogoCount>
+      <!-- v0.9.3 round 4: maxLogoCount=3 restored (multi-visible XMB
+           layout). ES centers selected; minLogoOpacity=0.3 makes
+           unselected items significantly dimmer so the selected
+           dominates. Combined with logoScale=1.5 and the halo
+           element below, the selected boxart is unmistakably the
+           focal point. -->
+      <maxLogoCount>3</maxLogoCount>
+      <minLogoOpacity>0.3</minLogoOpacity>
       <zIndex>5</zIndex>
     </gamecarousel>
+
+    <!-- v0.9.3 round 4 selected-game halo. Same art as the system
+         carousel halo, positioned at the gamecarousel center (where
+         the selected boxart renders). zIndex 4 keeps it behind the
+         boxart at zIndex 5 but above the wave layers.
+         storyboard event="scroll" fades the halo out when the
+         carousel is scrolling between items, then fades back in
+         when scrolling stops. -->
+    <image name="selectedGameHalo" extra="true">
+      <path>./art/halo.png</path>
+      <pos>${crossX} 0.67</pos>
+      <origin>0.5 0.5</origin>
+      <maxSize>${haloW} ${haloH}</maxSize>
+      <color>FFFFFF</color>
+      <zIndex>4</zIndex>
+      <storyboard event="scroll">
+        <animation property="opacity" from="1" to="0" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard>
+        <animation property="opacity" from="0" to="1" duration="220" mode="linear"/>
+      </storyboard>
+    </image>
     <!-- Per-game text label (the text fallback when no thumbnail is scraped,
          and the name overlay for all items). Styles the built-in
          'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
