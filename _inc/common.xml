@@ -77,9 +77,16 @@
     <gameColCarY>0.486</gameColCarY>
     <gameColH>0.42</gameColH>
 
-    <!-- Gamecarousel container-relative boxart sizing -->
+    <!-- Gamecarousel container-relative boxart sizing.
+         Note: ES's vertical carousel slot height is 1/maxLogoCount of the
+         container (CarouselComponent.cpp:394). With maxLogoCount=3 each
+         slot is 0.333 container-units; gameCarLogoH must stay <= 0.333
+         to avoid logo overlap. 0.28 leaves ~0.053 of vertical gap per
+         slot (visible padding between thumbnails). v0.9.3 reduced from
+         0.37, which was 11% over slot height and produced visible
+         overlap of neighbouring boxart on-device. -->
     <gameCarLogoW>0.35</gameCarLogoW>
-    <gameCarLogoH>0.37</gameCarLogoH>
+    <gameCarLogoH>0.28</gameCarLogoH>
     <gameCarLogoScale>1.35</gameCarLogoScale>
 
     <!-- Right info panel -->
