@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Video Audio: Off" (default).
+  Force-mutes the preview video regardless of ES's global setting.
+  Selected via UI Settings > Theme Configuration > Video Audio > Off.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <video name="md_video">
+      <audio>false</audio>
+    </video>
+  </view>
+</theme>

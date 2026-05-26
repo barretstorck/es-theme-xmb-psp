@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Video Audio: On".
+  Lets the preview video play audio (subject to ES's global
+  "Enable video preview audio" setting under Main Menu > Screensaver
+  Settings — both must be on for sound).
+  Selected via UI Settings > Theme Configuration > Video Audio > On.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <video name="md_video">
+      <audio>true</audio>
+    </video>
+  </view>
+</theme>

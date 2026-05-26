@@ -29,10 +29,13 @@
     <!-- XMB cross anchor. crossX/crossY = where the selected system icon is
          centered in the system and both gamelist views. captionY = the top
          of the system-name caption, just under the icon — it tracks crossY
-         (v0.6 moved both up together when the cross anchor was squared). -->
+         (v0.6 moved both up together when the cross anchor was squared).
+         countY = the top of the optional game-count caption (Game Count:
+         Show variant only), stacked under captionY. -->
     <crossX>0.24</crossX>
     <crossY>0.291</crossY>
     <captionY>0.401</captionY>
+    <countY>0.456</countY>
 
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
@@ -71,13 +74,31 @@
     <gameColX>0.08</gameColX>
     <gameColW>0.32</gameColW>
     <gameColTextY>0.50</gameColTextY>
-    <gameColCarY>0.486</gameColCarY>
+    <!-- gameColCarY positions the gamecarousel container so the
+         CENTERED selected boxart has slot[-1] (the unselected item
+         above the selected) just below the caption — not in the
+         empty space between caption and selected. v0.9.3 round 4
+         restored maxLogoCount=3 (multi-visible XMB-style) with
+         dimmed unselected (minLogoOpacity=0.3) and larger selected
+         (logoScale=1.5) plus halo for visual dominance.
+         Math: slot[-1] top edge = caption_bottom + small_gap. Solving
+         for gameColCarY = caption_bottom + gap - logoH×container_h/2
+         + (container_h - slot_h) / 2 - slot_h; for 4:3 defaults this
+         lands around 0.46. -->
+    <gameColCarY>0.46</gameColCarY>
     <gameColH>0.42</gameColH>
 
-    <!-- Gamecarousel container-relative boxart sizing -->
+    <!-- Gamecarousel container-relative boxart sizing.
+         Note: ES's vertical carousel slot height is 1/maxLogoCount of the
+         container (CarouselComponent.cpp:394). With maxLogoCount=3 each
+         slot is 0.333 container-units; gameCarLogoH must stay <= 0.333
+         to avoid logo overlap. 0.28 leaves ~0.053 of vertical gap per
+         slot (visible padding between thumbnails). v0.9.3 reduced from
+         0.37, which was 11% over slot height and produced visible
+         overlap of neighbouring boxart on-device. -->
     <gameCarLogoW>0.35</gameCarLogoW>
-    <gameCarLogoH>0.37</gameCarLogoH>
-    <gameCarLogoScale>1.35</gameCarLogoScale>
+    <gameCarLogoH>0.28</gameCarLogoH>
+    <gameCarLogoScale>1.5</gameCarLogoScale>
 
     <!-- Right info panel -->
     <panelX>0.43</panelX>
@@ -137,18 +158,35 @@
       <horizontalAlignment>right</horizontalAlignment>
     </text>
 
-    <!-- v0.9 battery glyph. Sits at pos.x=0.94 — clock right edge is at
-         0.78 + 0.14 = 0.92, so the 0.02 gap matches the spacing the PSP
-         XMB uses between its date/time text and battery glyph.
+    <!-- Battery glyph (sits at pos.x=0.94; clock right edge at 0.78+0.14
+         = 0.92 → 0.02 gap to the battery, matching the PSP XMB spacing).
          ES auto-cycles the image based on charge level via the 6 state
          slots (incharge/full/at75/at50/at25/empty). Auto-hides on
          devices that don't report a battery, and respects the user's
          ES "Show Battery Status" setting. The Docker harness reports
          no battery, so this element silently won't render there;
-         on-device verification is required for acceptance. -->
-    <image name="batteryIcon">
-      <pos>0.94 0.03</pos>
-      <origin>0 0</origin>
+         on-device verification is required for acceptance.
+         IMPORTANT — TWO syntax gotchas to keep this element from being
+         silently dropped at theme parse time:
+         (a) The element TAG must be <batteryIcon> (not <image
+             name="batteryIcon">) — ES dispatches element types by tag
+             name (ThemeData.cpp:1795).
+         (b) The element MUST have a name="..." attribute — elements
+             without a name are skipped with a warning log
+             (ThemeData.cpp:1506-1511). The name value itself is free;
+             it just needs to exist.
+         Both gotchas were hit during v0.9.3 — fixed iteratively as
+         on-device testing surfaced each one. -->
+    <batteryIcon name="batteryStatus">
+      <!-- pos.y=0.052 + origin (0, 0.5) aligns the battery's vertical
+           center with the clock's vertical text center. The clock's
+           bounding box top is at y=0.03 with a 0.06-tall box, and the
+           rendered text sits roughly centered in that box (centre ≈
+           0.052 measured from device screenshots). Using origin y=0.5
+           here means pos.y is the centre line, which is easier to
+           reason about and tune than top-left positioning. -->
+      <pos>0.94 0.065</pos>
+      <origin>0 0.5</origin>
       <maxSize>0.05 0.04</maxSize>
       <color>${textPrimary}</color>
       <empty>./art/battery/battery-empty.png</empty>
@@ -157,6 +195,6 @@
       <at75>./art/battery/battery-75.png</at75>
       <full>./art/battery/battery-full.png</full>
       <incharge>./art/battery/battery-incharge.png</incharge>
-    </image>
+    </batteryIcon>
   </view>
 </theme>
