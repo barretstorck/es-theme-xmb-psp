@@ -20,7 +20,7 @@
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="system,detailed,gamecarousel">
+  <view name="detailed,gamecarousel">
 
     <!-- Base layer: dark colorset tint, no motion -->
     <image name="waveBackground" extra="true">
