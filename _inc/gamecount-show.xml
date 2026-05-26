@@ -23,7 +23,10 @@
   <view name="system">
     <carousel name="systemcarousel">
       <systemInfoCountOnly>true</systemInfoCountOnly>
-      <systemInfoDelay>1500</systemInfoDelay>
+      <!-- systemInfoDelay=0 collapses the fade-out delay (SystemView.cpp:706);
+           with goFast=true, the fade-out is 10ms and the wait before
+           fade-in is 0 — count appears effectively immediately. -->
+      <systemInfoDelay>0</systemInfoDelay>
     </carousel>
     <!-- Count caption sits below the system-name caption. captionY=0.401,
          countY=0.456 — vertical stacking with a small gap. -->

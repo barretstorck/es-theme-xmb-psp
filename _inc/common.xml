@@ -155,13 +155,18 @@
          ES "Show Battery Status" setting. The Docker harness reports
          no battery, so this element silently won't render there;
          on-device verification is required for acceptance.
-         IMPORTANT: the element TAG is <batteryIcon>, not <image
-         name="batteryIcon"> — ES dispatches element types by tag name
-         (ThemeData.cpp:1795), so the wrong wrapper would render as an
-         empty <image> with no <path>. (v0.9.3 fixed this — earlier
-         versions had the wrong tag and the slot was always empty on
-         device.) -->
-    <batteryIcon>
+         IMPORTANT — TWO syntax gotchas to keep this element from being
+         silently dropped at theme parse time:
+         (a) The element TAG must be <batteryIcon> (not <image
+             name="batteryIcon">) — ES dispatches element types by tag
+             name (ThemeData.cpp:1795).
+         (b) The element MUST have a name="..." attribute — elements
+             without a name are skipped with a warning log
+             (ThemeData.cpp:1506-1511). The name value itself is free;
+             it just needs to exist.
+         Both gotchas were hit during v0.9.3 — fixed iteratively as
+         on-device testing surfaced each one. -->
+    <batteryIcon name="batteryStatus">
       <pos>0.94 0.03</pos>
       <origin>0 0</origin>
       <maxSize>0.05 0.04</maxSize>
