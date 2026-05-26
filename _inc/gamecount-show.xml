@@ -22,10 +22,17 @@
   <formatVersion>7</formatVersion>
   <view name="system">
     <carousel name="systemcarousel">
-      <systemInfoCountOnly>true</systemInfoCountOnly>
-      <!-- systemInfoDelay=0 collapses the fade-out delay (SystemView.cpp:706);
-           with goFast=true, the fade-out is 10ms and the wait before
-           fade-in is 0 — count appears effectively immediately. -->
+      <!-- systemInfoDelay=0 collapses the fade-out delay
+           (SystemView.cpp:706); with goFast=true, the fade-out is 10ms
+           and the wait before fade-in is 0 — count appears effectively
+           immediately. systemInfoCountOnly is intentionally NOT set:
+           setting it true outputs just the raw integer with no suffix,
+           but the user wants the plural-aware "X GAME / X GAMES" text
+           that ngettext produces (SystemView.cpp:741). With delay=0,
+           there's a ~10ms flash of the system-name phase before the
+           count phase begins, but the systemInfo is positioned at
+           countY (below the persistent systemName extra at captionY),
+           so even that brief flash doesn't overlap visually. -->
       <systemInfoDelay>0</systemInfoDelay>
     </carousel>
     <!-- Count caption sits below the system-name caption. captionY=0.401,
