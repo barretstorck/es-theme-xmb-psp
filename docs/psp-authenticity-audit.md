@@ -5,12 +5,14 @@ theme could plausibly approximate, scored against the current `v0.9.3`
 implementation. Used as a wishlist / decision tool — entries here may or
 may not graduate into a versioned roadmap.
 
-**Inclusion rule:** an entry is listed only if a meaningful partial
-workaround exists within EmulationStation's theme XML or asset surface.
-Items that are pure "not possible in ES" (e.g. the PSP boot animation,
-firmware-driven cross-fade between top-level categories) are omitted by
-design — they're rationalized in the `Deliberately omitted` section at
-the bottom.
+**Inclusion rule:** An entry is listed in the active sections
+(S / G / ST / A / X) only if a meaningful partial workaround exists
+within EmulationStation's theme XML or asset surface. Features that are
+*technically* unsupportable in ES are cataloged separately in the
+`Unsupportable in EmulationStation` section with the technical reason
+given for each. Items considered and dropped for *non-technical* reasons
+— already shipped, settled design decision, not actually a PSP feature —
+are listed in `Deliberately omitted`.
 
 **Scope:** Knulli Scarab on TrimUI Brick, 4:3 (1024×768) primary; other
 aspect ratios should inherit any change unless noted.
@@ -721,33 +723,245 @@ did for the original battery slot.
 
 ---
 
+## Unsupportable in EmulationStation
+
+PSP XMB features that this theme cannot meaningfully approximate, with
+the technical reason recorded. The point of listing them is so future
+iterations don't waste a research spike re-discovering the same dead
+end, and so a reader of the audit knows *what's missing and why*, not
+just what's present.
+
+### U1. PSP boot animation (wave intro + "PSP" text wipe)
+
+**PSP behaviour:** Roughly three seconds of branded boot animation
+between power-on and the main XMB — wave fades in from black, "PSP"
+wordmark performs a left-to-right reveal, then settles into the
+running XMB.
+
+**Why unsupportable:** ES has no startup-phase event a theme can hook
+into. The theme XML is parsed and rendered only *after* ES finishes
+its own initialization; there is no `event="boot"` /
+`event="startup"` / `event="splash"` storyboard trigger. Knulli's
+boot splash is a kernel-level Plymouth-style image, not a theme
+asset.
+
+**Closest we could get:** Nothing in the theme surface. A
+Knulli-level boot-splash image swap is possible but lives outside
+this repo's scope.
+
+**Evidence:** ES `ThemeData.cpp` storyboard-event enumeration
+(no boot / startup variant); Knulli `boot/` partition splash is a
+PNG handled by the bootloader, not ES.
+
+---
+
+### U2. Dynamic per-game layout reflow
+
+**PSP behaviour:** When an item lacks metadata (no caption, no
+preview, no description), the *remaining* elements REFLOW to fill
+the gap — not just hide. Selecting a photo with no caption makes the
+thumbnail expand; an audio track with no album art makes the title
+text take the cover slot.
+
+**Why unsupportable:** ES theme XML resolves `<pos>` and `<size>` at
+parse time as static floats. They are not bindable to expressions or
+metadata predicates. ES has `<visible>` bindings (which support
+`exists({game:*})` predicates), but visibility only HIDES — it
+doesn't shift sibling positions.
+
+**Closest we could get:** Hide-only reflow via `<visible>` bindings —
+this is what audit entry G6 implements. Empty elements disappear;
+the layout has gaps. Better than the current "render empty
+container" but not the PSP reflow.
+
+**Evidence:** `ThemeData.cpp:1083` — pos/size float-parse;
+`THEMES_BINDINGS.md:264-302` — bindable property list, layout
+properties absent; v0.10-roadmap.md §1 evidence trail.
+
+---
+
+### U3. Top-level category cross-fade transitions
+
+**PSP behaviour:** Navigating between top-level XMB categories
+(Settings → Photo → Music → Game) smoothly cross-fades the wave
+*color* from one category's hue to the next over ~400 ms. The PSP
+month-coloured wave is actually category-coloured at runtime, not
+month-coloured — the "month-colour" maps to whichever category is
+currently in focus.
+
+**Why unsupportable:** ES treats theme variables as resolved
+at parse-time. `${waveTint}` is baked into the
+`<color>` attribute of the wave image when the theme is loaded, and
+cannot be animated between values. Storyboards can animate `x`, `y`,
+`scale`, `opacity`, `rotation` properties — not `color`. Switching
+colorsets requires a full theme reload, which clears the screen.
+
+**Closest we could get:** Ship 12 fixed colorsets the user picks once
+(current behaviour). Each system / category is *not* coloured
+independently.
+
+**Evidence:** ES storyboard `<animation property="...">` enum
+(`THEMES.md` storyboard section) — no `color` property; subset
+mechanism in `theme.xml:31-44` requires full reload.
+
+---
+
+### U4. Photos / Music / Video / Network top-level browsers
+
+**PSP behaviour:** XMB has dedicated top-level categories — Photos,
+Music, Video, Network — each with its own browser UI styled
+identically to the Game category but adapted to the media type.
+
+**Why unsupportable in a theme:** ES themes style *systems*. The
+core ES architecture treats a system as a games folder with a
+configuration entry; there is no theme primitive for "create a new
+top-level category that isn't backed by a system folder." Knulli /
+Batocera ship separate features (Image Viewer, Media Player) for
+photos / music / video, but they're invoked from a different code
+path (the main menu) and don't use the theme's view definitions.
+
+**Closest we could get:** Treat each scraped game system as a
+category (the working analogue, currently shipping). For PC photos /
+music browsers, the user uses Knulli's separate viewers — those
+appear briefly outside the theme.
+
+**Evidence:** ES `SystemData` architecture — themes style systems,
+not custom top-level entries; Knulli media-viewer apps are separate
+ELF binaries, not ES extensions.
+
+---
+
+### U5. Wave-color shifts during boot warmup
+
+**PSP behaviour:** During the first ~5-10 seconds after boot, the
+wave colours warm up — desaturated → full saturation — as part of
+the "system starting" cue.
+
+**Why unsupportable:** Combination of U1 (no boot-phase hook) and U3
+(no `<color>` animation primitive). Even if we had a boot hook to
+trigger a storyboard, we couldn't animate the wave tint between two
+shades.
+
+**Closest we could get:** Nothing. Ship a static colorset.
+
+**Evidence:** Same as U1 + U3.
+
+---
+
+### U6. Continuous wave animation across system carousel navigation
+
+**PSP behaviour:** XMB wave animates continuously, completely
+independent of menu navigation. The wave is on its own timeline; the
+icon carousel is on a separate one.
+
+**Why unsupportable on this ES build:** Verified exhaustively in
+v0.3 — extra elements (`extra="true"`) in system view are bound to
+the system carousel's transition timeline; the storyboard restarts
+at t=0 on every system change. Tried as workarounds and rejected:
+screen-view declarations, `<image name="background">` (without
+extra), top-level images, fade transition. None detach the extras
+from the carousel reset.
+
+**Closest we could get:** Accept the reset — wave restarts on system
+change, resumes immediately. This is what ships and is documented in
+README's "Known limitations".
+
+**Evidence:** README.md "Known limitations" §1; v0.3 storyboard
+research (commits prior to v0.4).
+
+---
+
+### U7. Per-row cursor memory across cross-axis navigation
+
+**PSP behaviour:** Navigate from Settings/AVLS to Game/Daxter and
+back to Settings — the cursor returns to AVLS, not to the first
+Settings item. PSP remembers each row's last position.
+
+**Why unsupportable:** Cursor-state is owned by ES's
+`CarouselComponent` / `IGameListView`, not the theme. The theme has
+no XML primitive for "remember cursor across system transitions."
+The behaviour is whatever ES does by default for this build (most
+ES forks reset to position 0 on view re-entry).
+
+**Closest we could get:** None at the theme layer. An ES code change
+in `CarouselComponent::onCursorChanged` could persist state, but
+that's out of scope for a theme.
+
+**Evidence:** `CarouselComponent.cpp` cursor state ownership; ES
+view-construction reset behaviour.
+
+---
+
+### U8. Inline expand-on-select for settings rows
+
+**PSP behaviour:** Pressing ✕ on a settings row in PSP expands an
+inline help panel directly below the row, pushing later rows down.
+The expansion is animated and stays expanded until you select
+another row.
+
+**Why unsupportable:** ES list and carousel components are
+fixed-slot — slot heights are computed once at view construction.
+There's no primitive for "expand slot N from height H to height 2H
+animated" that pushes neighbours. Adjacent rows can't be made aware
+of one row's expanded state.
+
+**Closest we could get:** ES's helpsystem strip already shows
+context-specific button hints at the bottom of the screen. It's
+*conceptually* similar (selecting a row updates the help strip), but
+it's a single global element, not an inline expansion.
+
+**Evidence:** ES `TextListComponent` and `IList` slot height
+model — `mFont->getHeight()` cached at construction.
+
+---
+
+### U9. Idle screensaver with full PSP styling
+
+**PSP behaviour:** After idle timeout (~3 min by default), the
+screen dims to a low-energy clock-only screensaver — slow-scrolling
+wave at reduced opacity, large clock centered.
+
+**Why unsupportable in pure theme:** ES has its own
+`ScreenSaverComponent` rendered on a separate code path from the
+theme. It supports four modes (`black`, `dim`, `slideshow`,
+`random video`) but is not theme-targetable for fonts, colours, or
+layout. Theme XML has a `<view name="screensaver">` in ES2 forks but
+not in the batocera-emulationstation build this theme targets.
+
+**Closest we could get:** Configure ES's built-in screensaver to
+`dim` mode in user settings — keeps the last XMB frame visible at
+~30% brightness. This is a per-user setting, not a theme deliverable.
+
+**Evidence:** batocera-emulationstation `ScreenSaverComponent`
+class — separate render path from `ViewController`; no
+`<view name="screensaver">` parse in this build.
+
+---
+
 ## Deliberately omitted
 
-These were considered and dropped during the audit pass. Listed here
-so future iterations don't re-discover them.
+These items were considered and dropped for **non-technical** reasons
+— already shipped, settled design decisions, or not actually PSP
+features. Listed so future audits don't re-discover them.
 
 - **Selected-icon scale-up.** Already shipped — `logoScale=1.5` in
-  both carousels (`_inc/system.xml:76`, common var `gameCarLogoScale`).
+  both carousels (`_inc/system.xml:76`, common var
+  `gameCarLogoScale`).
 - **Category band behind icon row.** Re-examination of the PSP
-  screenshots shows icons sit directly on the colored
-  background / wave; no horizontal band exists. Not a PSP feature.
+  screenshots shows icons sit directly on the coloured background /
+  wave; no horizontal band exists. Not a PSP feature.
 - **Accent-tinted halo (not white).** v0.9.1 actively chose white
-  over accent-tinted after on-device testing (`fix/v0.9.1-halo-and-statusbar`
-  branch). Settled design decision, not a regression.
-- **PSP boot animation (wave intro / "PSP" text wipe).** ES has no
-  startup-event hook for theme storyboards. Pure infeasible.
+  over accent-tinted after on-device testing
+  (`fix/v0.9.1-halo-and-statusbar` branch). Settled design decision,
+  not a regression.
 - **Per-firmware-version aesthetics** (PSP 1.x vs. 6.x XMB design
   shifts). Out of scope; we target the canonical mid-firmware
-  (~3.x-5.x) PSP XMB design.
-- **Music / Photos / Video category browsers.** PSP has these as
-  top-level XMB categories; ES has them as separate Knulli features
-  (Media Player, Image Viewer). Treating systems-as-categories is
-  the working analogue; no need to fake additional categories.
-- **PSP wave-color shifts during system boot warmup.** PSP fades the
-  wave between two close colorset tones during boot; ES has no
-  conditional storyboard targeting boot state.
-- **Diagonal cross navigation.** PSP's cross is rigidly 4-directional;
-  ES carousels also are. No gap.
+  (~3.x-5.x) PSP XMB design. (This is a scope choice, not a
+  technical limit — pick one era and commit.)
+- **Diagonal cross navigation.** PSP's cross is rigidly
+  4-directional; ES carousels also are. No gap exists.
+- **PSP DRM / Memory Stick / friend list / store UI.** PSP-specific
+  concepts with no ES analog (and no reason to fake one).
 
 ---
 
@@ -762,5 +976,6 @@ so future iterations don't re-discover them.
   - **Spike-first cluster:** G3, G4, ST1, ST2
 - Re-run this audit after any major version ships — the
   "Deliberately omitted" list captures decisions that should stick;
-  the active entries get pruned as they ship or are deemed
-  not-worth-it.
+  the "Unsupportable in EmulationStation" list captures dead ends
+  that future spikes shouldn't re-discover; the active entries get
+  pruned as they ship or are deemed not-worth-it.
