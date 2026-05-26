@@ -28,7 +28,6 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Known limitations
 
-- **Wave animation resets on every system carousel navigation.** Extra elements in the system view are bound to the carousel scroll in this batocera-emulationstation build; the storyboard restarts at t=0 each time you change systems. Exhaustively verified — no theme-XML workaround exists (screen view, `<image name="background">`, top-level images, fade transition all tried). The motion resumes immediately after.
 - Systems without a hand-tuned icon fall back to a generic `_default.png` placeholder. To add a specific icon for any system, drop `<system-shortname>.png` into `art/system-icons/` (this overrides the placeholder automatically on the next sync). Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
 - The `gamecarousel` gamelist style shows each game's scraped `thumbnail` (box art). A game with no thumbnail scraped falls back to its name as a styled white caption. Scrape your library with box/thumbnail media for a full boxart column, or use the `detailed` text-list style.
 
