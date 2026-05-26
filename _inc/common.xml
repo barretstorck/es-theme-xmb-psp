@@ -137,16 +137,21 @@
       <horizontalAlignment>right</horizontalAlignment>
     </text>
 
-    <!-- v0.9 battery glyph. Sits at pos.x=0.94 — clock right edge is at
-         0.78 + 0.14 = 0.92, so the 0.02 gap matches the spacing the PSP
-         XMB uses between its date/time text and battery glyph.
+    <!-- Battery glyph (sits at pos.x=0.94; clock right edge at 0.78+0.14
+         = 0.92 → 0.02 gap to the battery, matching the PSP XMB spacing).
          ES auto-cycles the image based on charge level via the 6 state
          slots (incharge/full/at75/at50/at25/empty). Auto-hides on
          devices that don't report a battery, and respects the user's
          ES "Show Battery Status" setting. The Docker harness reports
          no battery, so this element silently won't render there;
-         on-device verification is required for acceptance. -->
-    <image name="batteryIcon">
+         on-device verification is required for acceptance.
+         IMPORTANT: the element TAG is <batteryIcon>, not <image
+         name="batteryIcon"> — ES dispatches element types by tag name
+         (ThemeData.cpp:1795), so the wrong wrapper would render as an
+         empty <image> with no <path>. (v0.9.3 fixed this — earlier
+         versions had the wrong tag and the slot was always empty on
+         device.) -->
+    <batteryIcon>
       <pos>0.94 0.03</pos>
       <origin>0 0</origin>
       <maxSize>0.05 0.04</maxSize>
@@ -157,6 +162,6 @@
       <at75>./art/battery/battery-75.png</at75>
       <full>./art/battery/battery-full.png</full>
       <incharge>./art/battery/battery-incharge.png</incharge>
-    </image>
+    </batteryIcon>
   </view>
 </theme>
