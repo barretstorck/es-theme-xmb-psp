@@ -23,6 +23,20 @@ aspect ratios should inherit any change unless noted.
   roadmap items 2, 3+5, 1, and 4 respectively.
 - [`superpowers/specs/`](superpowers/specs/) — per-version design specs.
 
+**Primary visual references:**
+- Four user-provided PSP XMB stills (cited as "PSP screenshot 1/2/3/4"
+  in early entries).
+- YouTube video A — `https://www.youtube.com/watch?v=uNBPVgcvGpw` —
+  a PS2 XMB-style launcher (FreeMcBoot + Open PS2 Loader). PSP-style
+  aesthetic on PS2 hardware. Treated as secondary reference.
+- YouTube video B — `https://www.youtube.com/watch?v=8vS2gBVJr7s` —
+  real PSP firmware, Italian locale, ~6.x era (Skype + PSN visible).
+  Primary canonical reference for PSP UI behaviour.
+
+Frame timestamps in `Reference:` fields use the form
+`video {A,B} @ M:SS` (e.g. `video B @ 4:30`). For 30-second-spaced
+extracted frames the mapping is frame N → (N−1)·30s into the video.
+
 **Entry template:**
 
 - **PSP behaviour** — what the real PSP firmware does.
@@ -78,26 +92,33 @@ hand-drawn icons).
 
 ### S2. Date next to clock
 
-**PSP behaviour:** Top-right status reads `M/D HH:MM` — month/day,
-space, time, in a single text run. Always present whenever the clock
-is.
+**PSP behaviour:** Top-right status carries date + time as a single
+text run. Observed format variants:
+- **Real PSP firmware** (video B): `M/D HH:MM` — month/day + 24-hour
+  time, no AM/PM, no leading icon. Example `2/7 0:48`.
+- **PSP-style PS2 clone** (video A): `MM/DD HH:MM AM/PM` followed by
+  a small clock-glyph icon. Example `01/26 03:11 AM ⏱`.
+- **User screenshots 1/2/3/4**: `M/D HH:MM` style, matching real PSP.
 
 **Current theme:** Time only (`HH:MM`) via the screen-view `<text
 name="clock">` element. Date is absent.
 
 **Reference:** PSP screenshots 1 (`4/4 11:04`), 2 (`4/4 10:55`), 3
-(`4/4 11:02`), 4 (`12/3 16:43`).
+(`4/4 11:02`), 4 (`12/3 16:43`); video A @ 0:30, 2:30; video B @
+0:30, 7:30.
 
 **Feasibility:** Ship-it.
 
 **Workaround sketch:** Add a `<format>` child to the `clock` element
-(if Knulli's ES supports `strftime`-style formats — needs a quick
-research spike; falling back to a second `<datetime>` element if not).
-Re-validate the clock-slot width: today the clock is sized
-`0.14×0.06` at `pos=0.78,0.03` with `horizontalAlignment=right`;
-adding `M/D ` will push the left edge of the rendered string left,
-which is fine for `Battery: Show` but needs a width re-tune for
-`Battery: Hide` (X3).
+with the strftime-style `%-m/%-d %H:%M` (matches real PSP). If
+Knulli's ES doesn't support `<format>`, fall back to a second
+`<datetime>` element rendered before the clock. The PS2-clone variant
+(AM/PM + glyph) is *not* canonical PSP — skip it unless we add a
+`Clock Format` subset later. Re-validate the clock-slot width: today
+the clock is sized `0.14×0.06` at `pos=0.78,0.03` with
+`horizontalAlignment=right`; adding `M/D ` will push the left edge of
+the rendered string left, which is fine for `Battery: Show` but needs
+a width re-tune for `Battery: Hide` (X3).
 
 **Effort:** Trivial.
 
@@ -192,6 +213,52 @@ forks rename them.
 
 **Evidence:** `_inc/common.xml:131-137` (current helpsystem block);
 batocera-emulationstation `THEMES.md` helpsystem section.
+
+---
+
+### S5. ◀ pointer next to selected sub-item
+
+**PSP behaviour:** In drilled-in sub-item lists (Settings / Game /
+Network sub-menus), the selected row carries a small left-pointing
+chevron `◀` immediately to the LEFT of the row's icon. Pointer
+nudges into the row from the category column, visually "tying" the
+selected sub-item back to its parent category up the left edge.
+Distinct from item scale or halo — it's a chevron-shaped UI glyph.
+
+**Current theme:** No directional pointer chrome on selected
+sub-items. The system carousel uses `logoScale=1.5` + halo to mark
+selection; the gamecarousel uses `logoScale=1.5` + dimmed
+neighbours. Neither shows a chevron.
+
+**Reference:** video A @ 2:30 (Theme/Color selected with `◀` left of
+the wrench icon); video A @ 3:30 (Display/Video Output Mode); video
+B @ 4:30 (Pannello visore); video B @ 5:30 (Cambia uscita video);
+video B @ 7:00 (Ora legale).
+
+**Feasibility:** Ship-it.
+
+**Workaround sketch:** For the gamecarousel selected slot, add a
+small `<image>` element positioned to the left of the centred
+selected slot, source `art/ui/chevron-left.png`. Pin to the same
+y-coordinate as the slot's vertical center. Optional storyboard:
+fade-in 100ms on selection-settle for parity with the halo's
+fade-in cadence.
+
+For the system carousel, the chevron doesn't fit as cleanly — PSP's
+top-level XMB cross doesn't show the chevron either (it appears
+only on vertical sub-item rows). Skip it for the horizontal
+carousel; apply only to the vertical gamecarousel (and potentially
+the `detailed`-style textlist's selected row, where ES already
+provides a `<selectorImage>` slot — bind that to the chevron art
+instead of the current gradient).
+
+**Effort:** Small (XML + one PNG glyph).
+
+**Dependencies:** S1 (chevron art-style consistency).
+
+**Evidence:** N/A in current code; ES `<textlist>`
+`<selectorImage>` attribute (batocera-emulationstation
+`THEMES.md` textlist section).
 
 ---
 
@@ -463,6 +530,166 @@ discussion for the full tradeoff analysis.
 same `<visible>exists(...)</visible>` guards).
 
 **Evidence:** `docs/v0.10-roadmap.md` §1; `THEMES_BINDINGS.md:264-302`.
+
+---
+
+### G7. Two-line selected-item layout (title + inline description)
+
+**PSP behaviour:** In list / sub-item views, the selected row
+renders as TWO STACKED LINES: the title in normal-weight white text
+on line 1, and an italic-looking lower-contrast description on line
+2 (smaller font, dimmed colour). Unselected rows show only the
+title. A thin horizontal underline visually separates the selected
+row's title from its description.
+
+This is distinct from a side-panel description (which the audit's
+G2 covers) — it's the row itself expanding to two lines when
+selected.
+
+**Current theme:** Right info panel shows the game description in a
+*separate* panel to the right of the list (gamelist `detailed` and
+`gamecarousel` views). The selected row in the textlist is a single
+line — no inline expand.
+
+**Reference:** video A @ 1:30 ("Ajustes de Sistema / Ajusta la
+configuración…"); video B @ 4:30 ("Pannello visore / ma PSP™
+risponde alla chiusura del pannello visore"); video B @ 5:30
+("Cambia uscita video / ta la visualizzazione dell'uscita video
+sullo schermo"); user screenshot 1 (AVLS row).
+
+**Feasibility:** Partial workaround — ES textlists are
+single-line-per-row. Inline two-line expansion requires either an
+itemTemplate spike (same uncertainty as G4) or a separate
+overlaid `<text>` element pinned to the selected slot's coordinates
+that renders `{game:description}` truncated to ~1 line.
+
+**Workaround sketch:** For the `detailed` view's textlist, an
+overlaid `<text>` element pinned at the textlist's selectedSlot Y
+position, sized to one line wide, font smaller and dimmer, bound to
+`{game:description}` with truncation. The textlist would still
+render the title at the same slot. Visually: title on the textlist's
+natural slot row, the overlaid description directly below the same
+slot. Side effect: the description shifts as the user scrolls, so
+the overlay needs to track the selectedSlot — which ES *does*
+support for selector elements, less clearly for free `<text>`.
+
+If overlay tracking is unreliable, fall back to a fixed-position
+inline description below the textlist's selected slot's expected Y
+(works only if scroll is centered, like ES default).
+
+For the gamecarousel, the equivalent is the existing
+`gamecarouselLogoText` — already shows the game title; could be
+extended with a second-line element bound to description. But the
+gamecarousel is image-first, so this is lower-priority there.
+
+**Effort:** Medium (overlay tracking spike + tune); Small if
+fixed-position approximation works.
+
+**Dependencies:** none.
+
+**Evidence:** `_inc/gamelist.xml:164-177` (textlist);
+`CarouselComponent.cpp` (selectedSlot tracking).
+
+---
+
+### G8. Right-aligned current-value display per row
+
+**PSP behaviour:** Settings rows render as `<Title>  |  <Value>`
+with the value right-aligned at the row's right edge. Title in
+white, value in slightly lower-contrast white. The visual separator
+is whitespace, not a divider — `Formato dell'ora` … `24 ore`,
+`Fuso orario` … `GMT+01:00…`, `Dynamic Normalizer` … `Off`.
+
+For a game library, the conceptual analog is per-row metadata:
+year, genre, rating short-form — anything compactly summarisable.
+
+**Current theme:** Game rows in the `detailed` textlist show the
+game NAME only. Year, genre, players, rating live in the side info
+panel (and currently not all of them are rendered — see G2).
+
+**Reference:** video A @ 3:30 (NTSC/PAL/DTV picker — the picker
+panel is U10's territory, but rows in same view show value-right);
+video B @ 4:30 (settings rows); video B @ 7:00 (date/time rows);
+video B @ 7:30 (AVLS Off / Dynamic Normalizer Off).
+
+**Feasibility:** Partial workaround — ES textlists don't natively
+support a per-row right-aligned value column. Each row is a single
+text string. Two options:
+
+1. **Format the row string with trailing value.** Bind the textlist
+   to a synthesised display string like `{game:name} — {game:year}`.
+   Limitation: ES textlist accepts only `{game:name}` (or
+   `{game:nameOrFilename}`) as the row text — there's no
+   composition syntax for textlist rows. Drop this option.
+2. **Overlay-tracked secondary text per slot.** Same mechanism as
+   G7 — overlay a small right-aligned `<text>` element at the
+   selected-slot row, bound to e.g. `{game:year}`. Only the
+   selected row gets the metadata — unselected rows show
+   name-only. This matches PSP's behaviour exactly (unselected
+   sub-items don't show their value either; PSP shows the value
+   only when the row is selected, in many firmwares).
+
+**Workaround sketch:** Pick option 2. Tightly couples with G7 (both
+need overlay tracking on the selected slot). Recommend
+implementing G7 and G8 together as a "selected-row enrichment"
+pair.
+
+**Effort:** Small if G7 ships first.
+
+**Dependencies:** G7 (overlay tracking primitive).
+
+**Evidence:** `_inc/gamelist.xml:164-177`; `THEMES.md` textlist
+section.
+
+---
+
+### G9. Right-side value picker (settings sidebar)
+
+**PSP behaviour:** When the user opens a settings row that has
+multiple discrete values (Theme: Originale / Classico / Croccante /
+Tema personalizzato; Video Output Mode: NTSC / PAL / DTV 480p /
+576p / 720p / 1080i; Color: vertical column of 8 colour swatches),
+a sidebar appears on the right with the option list. The currently-
+selected value is highlighted; the others are visible above and
+below for context.
+
+**Current theme:** This is an *ES menu* affordance, not a gamelist
+one — selecting a theme subset (PSP Color, Game Count, Battery,
+etc.) goes through ES's built-in menu UI, which has its own option
+list rendering. The current theme styles the menu via
+`_inc/menu.xml` but doesn't render a right-side picker panel in the
+gamelist views.
+
+**Reference:** video A @ 2:30 (Theme/Color colour swatches sidebar
+— 8 colours stacked vertically with up/down chevrons indicating
+overflow); video A @ 3:30 (Video Output Mode — six 480p/576p/720p
+options stacked); video B @ 3:00 (Theme picker — vertical option
+list with submenu chevron `▶` for "Tema personalizzato").
+
+**Feasibility:** Partial workaround — applies *only* to the ES
+menu, not the system / gamelist views. ES menus support theme
+overrides for option list styling (font, color, selector glow,
+spacing). Some Knulli builds expose more control than others;
+needs a spike on what's themeable in this build.
+
+**Workaround sketch:** Audit `_inc/menu.xml` against PSP-style
+sidebar rendering — option rows in narrow column, current selection
+highlighted with `selectorGlow`, dimmer non-selected rows, chevrons
+at top/bottom edges if overflow. Most ES menu themes render options
+*horizontally* across the bottom of a settings row; PSP renders
+them *vertically* in a side column. Whether ES menu can be
+re-positioned this aggressively requires inspection.
+
+If ES menu primitives are too rigid, this entry collapses to
+"accept the ES default menu chrome" and should be removed on next
+revision.
+
+**Effort:** Medium (spike + menu XML rework).
+
+**Dependencies:** none.
+
+**Evidence:** `_inc/menu.xml`; batocera-emulationstation `THEMES.md`
+menu section.
 
 ---
 
@@ -938,6 +1165,39 @@ class — separate render path from `ViewController`; no
 
 ---
 
+### U10. Multi-level breadcrumb (cross collapses to faded vertical strip on drill-in)
+
+**PSP behaviour:** When the user navigates from the top-level XMB
+cross into a sub-category, then into a deeper sub-item, the prior
+levels remain visible as a faded vertical breadcrumb on the LEFT
+edge. video A @ 2:30 shows three levels at once: the briefcase
+(Settings) at top-left, the Theme icon mid-left (current parent),
+and the Color row selected with a `◀` and a sidebar of swatches.
+Same effect at video A @ 3:30 (Settings > Display > Video Output)
+and video B @ 4:30 (Settings > System > Pannello visore).
+
+**Why unsupportable:** ES has no "collapse a carousel into a faded
+breadcrumb strip while still rendering" primitive. The system
+carousel either renders normally (in the system view) or is
+replaced by the gamelist view (when drilled in). There's no
+mechanism to display a faded version of the parent carousel
+alongside a sub-list, nor to show three levels of nesting
+simultaneously.
+
+**Closest we could get:** Today the gamelist view pins the
+selected system's icon at `crossX, crossY` (top-left), which gives
+a *single-level* breadcrumb — you see "which system you're in"
+while browsing its games. That's the closest analog. The
+multi-level nesting (showing parent + grandparent at once) has no
+ES theme analog because ES navigation isn't multi-level beyond
+system → game.
+
+**Evidence:** video A @ 2:00 (theme/color sidebar), 3:00 (display /
+video output sidebar), 5:00 (game / PS1 folder browser); ES
+`ViewController` swap model — one active view at a time.
+
+---
+
 ## Deliberately omitted
 
 These items were considered and dropped for **non-technical** reasons
@@ -962,6 +1222,20 @@ features. Listed so future audits don't re-discover them.
   4-directional; ES carousels also are. No gap exists.
 - **PSP DRM / Memory Stick / friend list / store UI.** PSP-specific
   concepts with no ES analog (and no reason to fake one).
+- **Subtler wave profile (PSP's lower-contrast curve vs. our 3-layer
+  stack).** PSP firmware ran on a 480×272 display where a high-
+  contrast wave would dominate; our target is 1024×768+ where the
+  current wave reads as a feature, not noise. Considered dialling
+  back the layer opacity to ~0.5 (from 0.85), but the on-device
+  readability tradeoff at 4:3 and below favours keeping prominence.
+  Settled design choice.
+- **Composed sub-item icons (wrench + context glyph).** PSP renders
+  each settings sub-item with a wrench-in-circle glyph layered with a
+  smaller context icon (monitor for display, clock for date/time,
+  speaker for audio). Our analogue surface is the ES menu, not the
+  system / gamelist views. Folded into S4's scope rather than its
+  own entry — if S4 ships, the helpsystem icons and any menu icons
+  inherit the composed style.
 
 ---
 
@@ -972,8 +1246,12 @@ features. Listed so future audits don't re-discover them.
 - Author the recommended grouping for a v0.10+v0.11 split, if used:
   - **High-impact / low-effort cluster:** S2, A1, X2, X3, X1 (verify)
   - **Per-game polish cluster:** G2, G5, G6
+  - **Selected-row enrichment cluster (couple together):** G7, G8 —
+    both need overlay-tracking on the selected slot. Ship as a pair.
+  - **Selection-chrome cluster:** S5 (chevron pointer) — couples
+    visually with G7+G8.
   - **Art-heavy cluster:** S1, S3, S4, G1
-  - **Spike-first cluster:** G3, G4, ST1, ST2
+  - **Spike-first cluster:** G3, G4, G9, ST1, ST2
 - Re-run this audit after any major version ships — the
   "Deliberately omitted" list captures decisions that should stick;
   the "Unsupportable in EmulationStation" list captures dead ends
