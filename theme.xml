@@ -57,4 +57,22 @@
     <include name="Show">./_inc/battery-show.xml</include>
     <include name="Hide">./_inc/battery-hide.xml</include>
   </subset>
+
+  <subset name="videoDelay" displayName="Video Delay">
+    <include name="5 seconds">./_inc/video-delay-5s.xml</include>
+    <include name="Instant">./_inc/video-delay-instant.xml</include>
+    <include name="2 seconds">./_inc/video-delay-2s.xml</include>
+    <include name="10 seconds">./_inc/video-delay-10s.xml</include>
+  </subset>
+
+  <subset name="videoAudio" displayName="Video Audio">
+    <include name="Off">./_inc/video-audio-off.xml</include>
+    <include name="On">./_inc/video-audio-on.xml</include>
+  </subset>
+
+  <subset name="scrollSpeed" displayName="Scroll Speed">
+    <include name="Normal">./_inc/scroll-speed-normal.xml</include>
+    <include name="Slow">./_inc/scroll-speed-slow.xml</include>
+    <include name="Fast">./_inc/scroll-speed-fast.xml</include>
+  </subset>
 </theme>

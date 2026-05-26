@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Video Delay: 5 seconds" (default).
+  Shows the still screenshot for 5 seconds, then transitions to the
+  preview video. This matches the theme's pre-v0.9.3-round-4 default.
+  Selected via UI Settings > Theme Configuration > Video Delay > 5 seconds.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <video name="md_video">
+      <delay>5</delay>
+    </video>
+  </view>
+</theme>
