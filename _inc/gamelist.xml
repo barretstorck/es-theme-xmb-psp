@@ -204,9 +204,21 @@
       <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
       <logoScale>${gameCarLogoScale}</logoScale>
       <logoAlignment>center</logoAlignment>
+      <!-- v0.9.3 round 4: maxLogoCount=3 restored (multi-visible XMB
+           layout). ES centers selected; minLogoOpacity=0.3 makes
+           unselected items significantly dimmer so the selected
+           dominates. Combined with logoScale=1.5 and the halo
+           element below, the selected boxart is unmistakably the
+           focal point. -->
       <maxLogoCount>3</maxLogoCount>
+      <minLogoOpacity>0.3</minLogoOpacity>
       <zIndex>5</zIndex>
     </gamecarousel>
+
+    <!-- (v0.9.3 round 4 added a selectedGameHalo element here but
+         deferred to v0.10: a white halo behind a text-fallback game
+         title made the title unreadable, and a per-state visibility
+         rule needs a design pass. See docs/v0.10-roadmap.md.) -->
     <!-- Per-game text label (the text fallback when no thumbnail is scraped,
          and the name overlay for all items). Styles the built-in
          'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->

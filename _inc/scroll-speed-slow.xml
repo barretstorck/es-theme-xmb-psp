@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Scroll Speed: Slow".
+  Sets autoScrollSpeed=300ms on the gamelist description text, giving
+  more time per line. Use if you find the default scrolling too fast.
+  Selected via UI Settings > Theme Configuration > Scroll Speed > Slow.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <view name="detailed,gamecarousel">
+    <text name="md_description">
+      <autoScrollSpeed>300</autoScrollSpeed>
+    </text>
+  </view>
+</theme>

@@ -29,7 +29,11 @@
     <!-- Vertical arm (P2): more room below the raised cross -->
     <gameColX>0.06</gameColX>
     <gameColTextY>0.47</gameColTextY>
-    <gameColCarY>0.46</gameColCarY>
+    <!-- gameColCarY at 1:1: anchored just below the caption at
+         captionY=0.38 (caption ends ~0.435). Same formula as the 4:3
+         default. v0.9.3 round 3: 0.46 → 0.33 alongside the
+         maxLogoCount=3 → 1 change. -->
+    <gameColCarY>0.33</gameColCarY>
     <gameColH>0.46</gameColH>
     <gameCarLogoW>0.36</gameCarLogoW>
     <gameCarLogoH>0.34</gameCarLogoH>

@@ -41,6 +41,21 @@
       <maxSize>${haloW} ${haloH}</maxSize>
       <color>FFFFFF</color>
       <zIndex>3</zIndex>
+      <!-- v0.9.3 round 4: fade the halo during carousel scroll so it
+           doesn't look like a stuck static dot when the user
+           navigates between systems. Storyboard event="scroll" fires
+           on cursor change in the carousel (CarouselComponent.cpp:
+           onCursorChanged). The default (no-event) storyboard fades
+           it back in once scrolling settles. Durations chosen to be
+           faster than the carousel's own transition (~300ms) for
+           the fade-out, slower for the fade-in so it eases back
+           rather than snapping. -->
+      <storyboard event="scroll">
+        <animation property="opacity" from="1" to="0" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard>
+        <animation property="opacity" from="0" to="1" duration="220" mode="linear"/>
+      </storyboard>
     </image>
 
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
