@@ -110,6 +110,47 @@ below; this section is the change-log.
   show ~80 parse warnings per render. Out of scope for the audit
   doc but worth fixing in a follow-up commit.
 
+## Spike-round-2 findings (RetroArch icon assets)
+
+A targeted spike investigated whether RetroArch's XMB-driver icon
+assets could fill the S1 (line-art system iconography) and G10
+(branded item icons) wishlist items.
+
+**Source:** `libretro/retroarch-assets` repo. The relevant set is
+`xmb/automatic/png/` — 256×256 white-on-transparent line-art
+inspired by Apple's 1984–2014 Mac line drawings and Super Famicom
+box art. 561 icons total. Visually very close to PSP XMB's own
+iconography and **exactly the line-art aesthetic S1 was asking
+for.**
+
+**License:** CC-BY 4.0 (`/tmp/retroarch-assets/COPYING`). One-way
+compatible with this theme's CC-BY-NC-SA 2.0 license. The
+incorporation cost is one CREDITS.md entry citing libretro
+contributors + the source URL + a "modifications: file renaming
+only, no visual edits" note.
+
+**Coverage:** 144 of our 186 system shortnames match (~77%) — 20
+directly, 124 with a rename. The remaining 42 split into:
+- **5 retro micros** present only in RA's `monochrome` set (CoCo,
+  Acorn Electron, Game & Watch, NEC PC-88, TI-99). Style mismatch
+  with `automatic` — don't backfill from `monochrome`; keep current
+  Knulli icons or hand-draw.
+- **37 homebrew / ports** with no RA equivalent (`abuse`,
+  `bennugd`, `devilutionx`, `openbor`, `pico8`, `solarus`,
+  `tyrian`, `fallout1-ce`, …). These overlap with G10's territory.
+
+**Auto-collection coverage** (G10's primary use case): RA's set
+includes dedicated `favorites`, `history`, `database`, `core`,
+`menu_drivers`, `images`, `movie`, `music`, `file` icons that map
+cleanly to `auto-favorites`, `auto-lastplayed`, `auto-allgames`,
+`ports`, `tools`, `imageviewer`, `mpv`/`recordings`, `vgmplay`,
+`odcommander`. These ride along with the system-icon import.
+
+**New active entry: S1a** carries the mechanical-adoption workflow
+(TSV mapping, copy script, A/B-test approach, CREDITS.md
+attribution snippet). S1 and G10 reference S1a as their delivery
+vehicle.
+
 **Entry template:**
 
 - **PSP behaviour** — what the real PSP firmware does.
@@ -142,24 +183,152 @@ hang together visually the way the PSP set does.
 **Reference:** PSP screenshots 1 (briefcase Settings icon) and 4 (game
 controller, filmstrip, globe).
 
-**Feasibility:** Partial workaround — pure art work, no ES limit.
+**Feasibility:** Ship-it. The bulk of the work is already done — see
+**S1a** below for the RetroArch `automatic` icon-set adoption (CC-BY
+4.0, ~78% drop-in coverage, exactly the PSP-XMB line-art aesthetic
+this entry was asking for).
 
-**Workaround sketch:** Authoring pass over `art/system-icons/*.png`,
-replacing the current set with a unified PSP-style line-art treatment.
-Group by physical media / vendor families (Nintendo carts, Sega
-consoles, Sony consoles, computers, handhelds) and design one icon per
-family that can be tinted slightly per-system or used identically.
-Couples cleanly with G5: an entry-shared icon set means the
-"per-system media fallback" icons in the gamecarousel can come from
-the same library at smaller sizes.
+**Workaround sketch:** Adopt the RetroArch `automatic` XMB icon set
+via the S1a workflow. Forty-two shortnames remain uncovered:
+- **5 retro micros** in the `automatic` set's gap (CoCo, Acorn
+  Electron, Game & Watch, NEC PC-88, TI-99) — keep current Knulli
+  icons or hand-draw in the `automatic` outline style.
+- **37 homebrew / ports** with no RA equivalent (`abuse`,
+  `devilutionx`, `gzdoom`, `openbor`, `pico8`, `solarus`, `tyrian`,
+  `cgenius`, `fallout1-ce`, `fallout2-ce`, `superbroswar`, … —
+  full list in S1a). These are G10's territory (branded item icons)
+  more than S1's; hand-craft per-app art if the user wants them
+  themed, otherwise fall back to `_default.png` / Knulli's existing
+  icon.
 
-**Effort:** Large (~180 system shortnames; even with grouping, ~30-50
-hand-drawn icons).
+**Effort:** Small (the S1a script does the rename + copy; CREDITS.md
+gets one entry). Optional Medium follow-up for the 5+37 stragglers
+if a unified set is desired.
 
-**Dependencies:** G5 (fallback icons share the same art language).
+**Dependencies:** S1a (mechanical adoption); G5 (fallback icons can
+reuse the same `automatic` icons at smaller sizes); G10 (the 37
+homebrew/port entries overlap with G10's branded-item-icon
+territory).
 
 **Evidence:** `art/system-icons/` listing; `_inc/system.xml:128-132`
-(per-system icon binding via `${system.theme}`).
+(per-system icon binding via `${system.theme}`);
+`/tmp/retroarch-assets/xmb/automatic/png/` (561-icon set);
+`/tmp/ra-analysis/preview/` (rendered comparison samples).
+
+---
+
+### S1a. RetroArch `automatic` icon-set adoption workflow
+
+**PSP behaviour:** N/A — this entry is the *delivery vehicle* for
+S1 (PSP-style line-art iconography) and partially for G10 (branded
+auto-collection icons).
+
+**Current theme:** No RetroArch icons used. `scripts/populate-fallback-icons.sh`
+copies `_default.png` for any system not in `art/system-icons/`.
+
+**Reference:** Investigation in spike round 2; full coverage table
+in `/tmp/ra-analysis/match2.py` MAPPING dict.
+
+**Feasibility:** Ship-it. License-compatible
+(CC-BY 4.0 → CC-BY-NC-SA 2.0 is one-way OK; only requirement is
+CREDITS.md attribution).
+
+**Workaround sketch:**
+
+1. **Clone RetroArch assets** (one-time, into the repo as a
+   gitignored sibling so updates can be pulled):
+   ```bash
+   git clone --depth=1 \
+     https://github.com/libretro/retroarch-assets.git \
+     ~/retroarch-assets
+   ```
+
+2. **Author a mapping TSV** at `scripts/ra-mapping.tsv`. Two
+   tab-separated columns: Knulli shortname, RetroArch
+   filename-without-extension. Examples:
+   ```
+   snes	Nintendo - Super Nintendo Entertainment System
+   nes	Nintendo - Nintendo Entertainment System
+   psx	Sony - PlayStation
+   psp	Sony - PlayStation Portable
+   megadrive	Sega - Mega Drive - Genesis
+   pcengine	NEC - PC Engine - TurboGrafx 16
+   amiga	Commodore - Amiga
+   amiga500	Commodore - Amiga
+   amiga1200	Commodore - Amiga
+   auto-favorites	favorites
+   auto-lastplayed	history
+   auto-allgames	database
+   tools	menu_drivers
+   ports	core
+   imageviewer	images
+   mpv	movie
+   vgmplay	music
+   ```
+   Full ~148-row mapping derivable from `/tmp/ra-analysis/match2.py`.
+   Family aliases (multiple shortnames → same RA icon) are explicit
+   per row.
+
+3. **Author a copy script** at `scripts/import-ra-icons.sh`:
+   ```bash
+   #!/usr/bin/env bash
+   set -euo pipefail
+   RA_DIR="${HOME}/retroarch-assets/xmb/automatic/png"
+   OUT_DIR="art/system-icons"
+   while IFS=$'\t' read -r short ra; do
+     [[ -z "$short" || "$short" == \#* ]] && continue
+     src="${RA_DIR}/${ra}.png"
+     [[ -f "$src" ]] || { echo "MISS: $short -> $ra" >&2; continue; }
+     cp "$src" "${OUT_DIR}/${short}.png"
+   done < scripts/ra-mapping.tsv
+   ```
+   Idempotent. A `MISS` line surfaces mapping errors immediately.
+
+4. **A/B-test before swap.** First run, point `OUT_DIR` at
+   `art/system-icons-ra/` (parallel folder) so the existing Knulli
+   set stays available. Render via `scripts/render.sh` with both,
+   compare. Once happy, point at `art/system-icons/` for the real
+   swap.
+
+5. **Update CREDITS.md** with this attribution block:
+   > **System icons** in `art/system-icons/` adapted from the
+   > RetroArch *automatic* XMB icon theme, © libretro contributors,
+   > licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+   > Source: https://github.com/libretro/retroarch-assets.
+   > Modifications: file renaming to Knulli `es_systems.cfg`
+   > shortnames; no visual edits.
+
+6. **Update README.md** "Known limitations" — the "fallback
+   placeholder" note becomes "drop-in-replaceable for any system
+   the user wants to customise."
+
+**Effort:** Small. The TSV is the only hand-edited artifact (~148
+rows, ~10-15 min). The rest is mechanical.
+
+**Dependencies:** S1 (this entry is its delivery). Couples
+indirectly with G5 and G10.
+
+**Style caveats:** The 5 retro micros that only exist in
+`monochrome` (CoCo, Electron, G&W, PC-88, TI-99) should NOT be
+backfilled from `monochrome` — its filled-silhouette style clashes
+with `automatic`'s line-art. Either keep current Knulli icons for
+these or hand-draw matching outlines.
+
+**Truly-unmatched homebrew / ports (37 entries):** `abuse`,
+`bennugd`, `camplynx`, `cdogs`, `cgenius`, `commanderx16`,
+`corsixth`, `devilutionx`, `easyrpg`, `fallout1-ce`,
+`fallout2-ce`, `flash`, `fury`, `gamate`, `hcl`, `hurrican`,
+`laser310`, `lcdgames`, `moonlight`, `multivision`, `namco22`,
+`openbor`, `pdp1`, `pico8`, `plugnplay`, `pygame`, `reminiscence`,
+`samcoupe`, `sdlpop`, `socrates`, `solarus`, `superbroswar`,
+`systemsp`, `thextech`, `tyrian`, `zeldac`. These are G10's
+territory if the user wants branded icons; otherwise fall back to
+`_default.png`.
+
+**Evidence:** `/tmp/retroarch-assets/COPYING` (CC-BY 4.0 license);
+`/tmp/retroarch-assets/xmb/automatic/png/` (561-icon set, 256×256
+white-on-transparent line-art); `/tmp/ra-analysis/match2.py`
+(coverage matcher with MAPPING dict).
 
 ---
 
@@ -994,30 +1163,46 @@ Game/Network icons).
 **Feasibility:** Ship-it — purely an art / asset decision.
 
 **Workaround sketch:** Identify which ES "system" entries should
-get branded treatment versus silhouette treatment. Candidates:
-- `auto-favorites.png` — could be a coloured heart/star (e.g.
-  gold/yellow), distinct from the silhouette category icons.
-- `auto-lastplayed.png` — could be a coloured clock or "recent"
-  badge.
-- Special launchers: `retroarch.png`, `ports.png`, `tools.png` —
-  could carry the host emulator/app's brand colour rather than
-  white silhouette.
-- Cloud/online services if Knulli ships them.
+get branded treatment versus silhouette treatment.
 
-Drop replacement PNGs into `art/system-icons/` with the same
-naming. The theme automatically picks them up. Keep silhouette
-icons for hardware-system entries (NES, SNES, etc.) so the
-hierarchy reads as "hardware = silhouette, service = branded."
+**Partial source: RetroArch `automatic` set** (CC-BY 4.0, see S1a).
+The RA set ALREADY ships dedicated icons for the system-tier auto-
+collections we'd want branded, with a visual style that contrasts
+cleanly against the silhouette hardware icons:
+- `auto-favorites.png` ← RA `favorites.png` (filled outline heart)
+- `auto-lastplayed.png` ← RA `history.png` (clock + reverse arrow)
+- `auto-allgames.png` ← RA `database.png` (stacked discs)
+- `tools.png` / `vaixterm.png` ← RA `menu_drivers.png`
+- `emulators.png` / `ports.png` ← RA `core.png`
+- `imageviewer.png` ← RA `images.png`
+- `mpv.png` / `recordings.png` ← RA `movie.png`
+- `vgmplay.png` ← RA `music.png`
+- `library.png` ← RA `database.png`
+- `odcommander.png` ← RA `file.png`
 
-**Effort:** Small (per icon) — but the *decision* of which entries
-to brand is the design work.
+These are included in S1a's mapping TSV — they ride along when S1a
+ships. Visual hierarchy: hardware-system shortnames get the
+line-art outline icons; the items above get the filled, slightly
+more graphic icons. Subtle but consistent.
 
-**Dependencies:** S1 (the silhouette pass; branded icons are
-defined as the *contrast* to the silhouette baseline).
+**Homebrew / port games (the 37 unmatched from S1a):** Not
+provided by RA. For these, only hand-crafted per-app art applies.
+Examples that arguably warrant branded icons: `pico8`, `openbor`,
+`gzdoom`, `devilutionx`, `solarus`, `fallout1-ce`, `fallout2-ce`,
+`tyrian`. Lower priority than the auto-collections — defer until a
+v0.11+ art pass.
 
-**Evidence:** N/A in current code; `art/system-icons/` directory
-naming convention from README ("To add a specific icon for any
-system, drop `<system-shortname>.png` into `art/system-icons/`").
+**Effort:** Small (auto-collections ride along with S1a); Medium-
+Large if hand-crafting per-app art for the 37 unmatched.
+
+**Dependencies:** S1a (the auto-collection mappings ride in the
+same TSV); S1 (overall icon-style direction).
+
+**Evidence:** `/tmp/retroarch-assets/xmb/automatic/png/` —
+`favorites.png`, `history.png`, `database.png`, `core.png`,
+`menu_drivers.png`, `images.png`, `movie.png`, `music.png`,
+`file.png` all present and stylistically distinct from the
+hardware-system icons.
 
 ---
 
@@ -1775,10 +1960,13 @@ features. Listed so future audits don't re-discover them.
   - **Per-game polish cluster:** G2 (key-value metadata sidebar),
     G5 (per-system media fallback icons + coupled halo), G6 (hide-
     only adaptive layout).
-  - **Art-heavy cluster:** S1 (silhouette icon redraw),
-    S3 (drop shadow — incidental to S1), S4 (helpsystem PSP glyphs),
+  - **Art-heavy cluster (now bootstrap-able from RetroArch):**
+    S1 + S1a (system iconography via RA `automatic` set — ~78%
+    coverage drop-in), G10 (auto-collection branded icons ride
+    along with S1a's TSV), S3 (drop shadow — incidental to S1),
+    S4 (helpsystem PSP glyphs — not in RA set, still hand-draw),
     G1 (launch-image splash), S7 (static boot splash via
-    `splash.xml`), G10 (branded-vs-silhouette icon dichotomy).
+    `splash.xml`).
 - **Constraint to apply when screening new wishlist items:** ES
   emits only `activate`, `deactivate`, `scroll`, `open` storyboard
   events plus the unnamed default. Any new entry that relies on a
