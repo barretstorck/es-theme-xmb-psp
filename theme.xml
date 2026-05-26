@@ -54,7 +54,8 @@
   </subset>
 
   <subset name="battery" displayName="Battery">
-    <include name="Show">./_inc/battery-show.xml</include>
+    <include name="Glyph + Percentage">./_inc/battery-glyph-pct.xml</include>
+    <include name="Glyph">./_inc/battery-glyph.xml</include>
     <include name="Hide">./_inc/battery-hide.xml</include>
   </subset>
 
