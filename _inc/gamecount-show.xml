@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Game Count: Show".
-  Shows the carousel's systemInfo slot, which displays blank briefly then
-  cycles to "X GAMES" after systemInfoDelay ms. The extra systemName
-  element (system.xml) is hidden so it doesn't overlap.
+  Keeps the extra systemName element visible (system name caption always
+  above the selected icon — independent of the Game Count toggle) and
+  also shows the carousel's count-cycling slot BELOW the name, set to
+  count-only mode so it skips the initial name phase and only displays
+  the "X GAMES" / "X ITEMS" / "X COLLECTIONS" text.
+
+  v0.9.3 design change: previously Show HID the systemName, which the
+  user pointed out was wrong — the system name should always be visible.
+
+  systemInfoCountOnly is a carousel property registered in
+  ThemeData.cpp:582 and consumed in SystemView.cpp:726 — when true, the
+  carousel skips the name phase of the systemInfo cycle and goes
+  straight to the count after systemInfoDelay.
+
   Selected via UI Settings > Theme Configuration > Game Count > Show.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
@@ -11,15 +22,16 @@
   <formatVersion>7</formatVersion>
   <view name="system">
     <carousel name="systemcarousel">
+      <systemInfoCountOnly>true</systemInfoCountOnly>
       <systemInfoDelay>1500</systemInfoDelay>
     </carousel>
-    <!-- Show the carousel's count-cycling element and hide the static
-         name caption so the name->count cycle is visible. -->
+    <!-- Count caption sits below the system-name caption. captionY=0.401,
+         countY=0.456 — vertical stacking with a small gap. -->
     <text name="systemInfo">
       <visible>true</visible>
+      <pos>${crossX} ${countY}</pos>
     </text>
-    <text name="systemName" extra="true">
-      <visible>false</visible>
-    </text>
+    <!-- systemName stays visible (do NOT override visible=false here).
+         The Show variant lets both name AND count appear simultaneously. -->
   </view>
 </theme>
