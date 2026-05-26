@@ -16,7 +16,7 @@
     <text name="clock">
       <pos>0.78 0.03</pos>
     </text>
-    <batteryIcon>
+    <batteryIcon name="batteryStatus">
       <visible>true</visible>
     </batteryIcon>
   </view>
