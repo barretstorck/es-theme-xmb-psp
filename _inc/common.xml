@@ -74,7 +74,15 @@
     <gameColX>0.08</gameColX>
     <gameColW>0.32</gameColW>
     <gameColTextY>0.50</gameColTextY>
-    <gameColCarY>0.486</gameColCarY>
+    <!-- gameColCarY positions the gamecarousel container so that with
+         maxLogoCount=1, the centered selected boxart's top edge sits
+         just below the caption bottom (XMB-faithful: selected directly
+         under system icon, no unselected preview between). Formula:
+         gameColCarY = captionY + caption_h + gap + container_h ×
+         (logoH × logoScale - 1) / 2. v0.9.3 round 3 moved from 0.486
+         (selected centered in middle of arm, with 1 unselected above
+         and below) to 0.34 (selected anchored just below caption). -->
+    <gameColCarY>0.34</gameColCarY>
     <gameColH>0.42</gameColH>
 
     <!-- Gamecarousel container-relative boxart sizing.
@@ -167,8 +175,15 @@
          Both gotchas were hit during v0.9.3 — fixed iteratively as
          on-device testing surfaced each one. -->
     <batteryIcon name="batteryStatus">
-      <pos>0.94 0.03</pos>
-      <origin>0 0</origin>
+      <!-- pos.y=0.052 + origin (0, 0.5) aligns the battery's vertical
+           center with the clock's vertical text center. The clock's
+           bounding box top is at y=0.03 with a 0.06-tall box, and the
+           rendered text sits roughly centered in that box (centre ≈
+           0.052 measured from device screenshots). Using origin y=0.5
+           here means pos.y is the centre line, which is easier to
+           reason about and tune than top-left positioning. -->
+      <pos>0.94 0.052</pos>
+      <origin>0 0.5</origin>
       <maxSize>0.05 0.04</maxSize>
       <color>${textPrimary}</color>
       <empty>./art/battery/battery-empty.png</empty>

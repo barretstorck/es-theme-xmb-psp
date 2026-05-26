@@ -204,7 +204,13 @@
       <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
       <logoScale>${gameCarLogoScale}</logoScale>
       <logoAlignment>center</logoAlignment>
-      <maxLogoCount>3</maxLogoCount>
+      <!-- v0.9.3 round 3: maxLogoCount=1 (was 3) for XMB-style "only the
+           selected item appears below the system icon, no preview
+           above". ES carousels center the selected logo in the
+           container; with 1 max, no neighbor slots render. The
+           container's gameColCarY is positioned so the centered
+           selected lands directly below the caption. -->
+      <maxLogoCount>1</maxLogoCount>
       <zIndex>5</zIndex>
     </gamecarousel>
     <!-- Per-game text label (the text fallback when no thumbnail is scraped,
