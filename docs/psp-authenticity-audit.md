@@ -41,115 +41,24 @@ Frame timestamps in `Reference:` fields use the form
 `video {A,B} @ M:SS` (e.g. `video B @ 4:30`). For 30-second-spaced
 extracted frames the mapping is frame N → (N−1)·30s into the video.
 
-## Spike-round-1 findings (incorporated)
+## Cross-cutting constraints
 
-A round of four parallel research/prototype spikes against the
-batocera-emulationstation source at `/tmp/bes-source` and the
-existing Docker render harness produced the following verdict shifts.
-Citations and prototype evidence live in the affected entries
-below; this section is the change-log.
+Useful facts to screen wishlist items against:
 
-**Resolved (moved out of Unsupportable):**
-- **U6 → S6.** Continuous wave across system carousel navigation is
-  achievable today via an undocumented `name="staticBackground*"`
-  prefix in `<view name="system">`. Verified with a two-shot render
-  diff (baseline 24% pixel diff = reset; spike 0.45% = continuous).
-- **U7 → Deliberately omitted.** Per-row cursor memory across
-  cross-axis navigation is the ES default. `ViewController` caches
-  game-list views by `SystemData*` and cursors persist inside the
-  cached views.
-
-**Reword without changing verdict:**
-- **U1.** A static themed boot splash IS supported via `splash.xml`
-  (one of `sSupportedViews`); only *animation* is blocked because
-  `Splash::render` doesn't tick storyboards. New active entry S7
-  added for the static splash.
-- **U3.** Color animations DO parse and work
-  (`ThemeColorAnimation` is first-class). The real blocker is
-  event-routing: the only storyboard event names ever fired
-  anywhere in the codebase are `activate`, `deactivate`, `scroll`,
-  `open`, plus the unnamed default — none bridges menu-interaction
-  to system-view extras.
-- **U2, U5, U10.** Tightened evidence citations.
-
-**Demoted (active → Unsupportable):**
-- **S2 → U11.** `<format>` on the clock element is rejected;
-  `<datetime>` missing from `createExtraComponent`. No theme-XML
-  path to render the date next to the clock. X3 (battery-hide
-  re-tune) dies with S2.
-- **ST2 → U12.** `GlobalBinding::getProperty` exhaustive list has
-  no wifi-strength / signal binding.
-- **G9 → U13.** `MenuComponent::updateSize()` hardcodes menu
-  position; the PSP right-side sidebar layout has no analog.
-
-**Promoted (spike-needed → Ship-it):**
-- **ST1.** `<batteryText>` element OR `{global:batteryLevel}`
-  binding — both verified.
-- **G3.** Native `<reflexion>` attribute (better than flipVertical;
-  does the PSP fade-out mirror automatically).
-- **G4.** `<itemTemplate>` works in `<gamecarousel>` with per-slot
-  binding resolution.
-- **G7 + G8.** Same `<itemTemplate>` mechanism plus
-  `event="activate"` / `event="deactivate"` storyboards on template
-  children. The audit's earlier "selector-tracked overlay text"
-  framing was the wrong mental model.
-
-**Cross-cutting constraints surfaced by the spikes:**
-- Storyboard events ever emitted by ES: **`activate`, `deactivate`,
-  `scroll`, `open`, default (unnamed).** Any future wishlist entry
+- **Storyboard events ever emitted by ES:** `activate`,
+  `deactivate`, `scroll`, `open`, default (unnamed). Any entry
   implying `event="boot"`, `event="select"`, `event="idle"`, etc.
   fails immediately on this constraint.
-- `extra="true"` images and `<itemTemplate>` children get
-  `ThemeFlags::ALL`. Carousel-managed intrinsic logos
+- **`extra="true"` images and `<itemTemplate>` children get
+  `ThemeFlags::ALL`.** Carousel-managed intrinsic logos
   (`<image name="logo">`) get only `COLOR | ALIGNMENT | VISIBLE`.
   Wrap or use a template to unlock advanced attributes like
   `reflexion`, `flipY`, full storyboards.
-- Pre-existing theme bug noticed during the S2 spike: the current
-  theme uses `<horizontalAlignment>` which is a typo. The correct
-  attribute is `<alignment>` (per `TextComponent.cpp:585`). Logs
-  show ~80 parse warnings per render. Out of scope for the audit
-  doc but worth fixing in a follow-up commit.
-
-## Spike-round-2 findings (RetroArch icon assets)
-
-A targeted spike investigated whether RetroArch's XMB-driver icon
-assets could fill the S1 (line-art system iconography) and G10
-(branded item icons) wishlist items.
-
-**Source:** `libretro/retroarch-assets` repo. The relevant set is
-`xmb/automatic/png/` — 256×256 white-on-transparent line-art
-inspired by Apple's 1984–2014 Mac line drawings and Super Famicom
-box art. 561 icons total. Visually very close to PSP XMB's own
-iconography and **exactly the line-art aesthetic S1 was asking
-for.**
-
-**License:** CC-BY 4.0 (`/tmp/retroarch-assets/COPYING`). One-way
-compatible with this theme's CC-BY-NC-SA 2.0 license. The
-incorporation cost is one CREDITS.md entry citing libretro
-contributors + the source URL + a "modifications: file renaming
-only, no visual edits" note.
-
-**Coverage:** 144 of our 186 system shortnames match (~77%) — 20
-directly, 124 with a rename. The remaining 42 split into:
-- **5 retro micros** present only in RA's `monochrome` set (CoCo,
-  Acorn Electron, Game & Watch, NEC PC-88, TI-99). Style mismatch
-  with `automatic` — don't backfill from `monochrome`; keep current
-  Knulli icons or hand-draw.
-- **37 homebrew / ports** with no RA equivalent (`abuse`,
-  `bennugd`, `devilutionx`, `openbor`, `pico8`, `solarus`,
-  `tyrian`, `fallout1-ce`, …). These overlap with G10's territory.
-
-**Auto-collection coverage** (G10's primary use case): RA's set
-includes dedicated `favorites`, `history`, `database`, `core`,
-`menu_drivers`, `images`, `movie`, `music`, `file` icons that map
-cleanly to `auto-favorites`, `auto-lastplayed`, `auto-allgames`,
-`ports`, `tools`, `imageviewer`, `mpv`/`recordings`, `vgmplay`,
-`odcommander`. These ride along with the system-icon import.
-
-**New active entry: S1a** carries the mechanical-adoption workflow
-(TSV mapping, copy script, A/B-test approach, CREDITS.md
-attribution snippet). S1 and G10 reference S1a as their delivery
-vehicle.
+- **Pre-existing theme bug (out of scope for this audit, worth
+  fixing separately):** the theme uses `<horizontalAlignment>`,
+  which is a typo. The correct attribute is `<alignment>` (per
+  `TextComponent.cpp:585`). Logs show ~80 parse warnings per
+  render.
 
 **Entry template:**
 
@@ -211,9 +120,9 @@ homebrew/port entries overlap with G10's branded-item-icon
 territory).
 
 **Evidence:** `art/system-icons/` listing; `_inc/system.xml:128-132`
-(per-system icon binding via `${system.theme}`);
-`/tmp/retroarch-assets/xmb/automatic/png/` (561-icon set);
-`/tmp/ra-analysis/preview/` (rendered comparison samples).
+(per-system icon binding via `${system.theme}`); `libretro/retroarch-assets`
+→ `xmb/automatic/png/` (561-icon set, 256×256 white-on-transparent
+line-art).
 
 ---
 
@@ -226,8 +135,7 @@ auto-collection icons).
 **Current theme:** No RetroArch icons used. `scripts/populate-fallback-icons.sh`
 copies `_default.png` for any system not in `art/system-icons/`.
 
-**Reference:** Investigation in spike round 2; full coverage table
-in `/tmp/ra-analysis/match2.py` MAPPING dict.
+**Reference:** None — this is an internal delivery-mechanism entry.
 
 **Feasibility:** Ship-it. License-compatible
 (CC-BY 4.0 → CC-BY-NC-SA 2.0 is one-way OK; only requirement is
@@ -265,7 +173,7 @@ CREDITS.md attribution).
    mpv	movie
    vgmplay	music
    ```
-   Full ~148-row mapping derivable from `/tmp/ra-analysis/match2.py`.
+   Full mapping is ~148 rows.
    Family aliases (multiple shortnames → same RA icon) are explicit
    per row.
 
@@ -325,29 +233,9 @@ these or hand-draw matching outlines.
 territory if the user wants branded icons; otherwise fall back to
 `_default.png`.
 
-**Evidence:** `/tmp/retroarch-assets/COPYING` (CC-BY 4.0 license);
-`/tmp/retroarch-assets/xmb/automatic/png/` (561-icon set, 256×256
-white-on-transparent line-art); `/tmp/ra-analysis/match2.py`
-(coverage matcher with MAPPING dict).
-
----
-
-### S2. ~~Date next to clock~~ — DEMOTED to U11
-
-This entry was demoted from active to **Unsupportable** by the
-spike-round-1 verification. See **U11** in the Unsupportable
-section below. The corollary entry X3 (battery-hide layout
-re-tune) is also dropped — it was a dependency of S2 only.
-
-Reason summary: `<text name="clock">`'s element has no `format`
-property in the parser map; `<format>` is rejected at parse with
-`Unknown property : text.format` (verified at
-`ThemeData.cpp:231-278`). The `<datetime>` element exists as a
-type with `format` support, but is missing from
-`createExtraComponent` (`ThemeData.cpp:2123-2163`), so a free
-`<datetime extra="true">` parses without warning but is never
-instantiated. No theme-XML path to render the date alongside the
-clock in `screen` view.
+**Evidence:** `libretro/retroarch-assets` repo →
+`xmb/automatic/png/` (561-icon set, 256×256 white-on-transparent
+line-art) and `COPYING` (CC-BY 4.0 license).
 
 ---
 
@@ -478,9 +366,8 @@ instead of the current gradient).
 
 **Dependencies:** S1 (chevron art-style consistency).
 
-**Spike-round-1 verification:** Confirmed supported. `<textlist>`
-accepts `<selectorImagePath>` (note: that's the spelled-out
-property name, not `<selectorImage>`) plus
+**Implementation notes:** `<textlist>` accepts `<selectorImagePath>`
+(note: spelled-out, not `<selectorImage>`) plus
 `<selectorImageTile>`, `<selectorHeight>`, `<selectorOffsetY>`
 (`TextListComponent.h:778-789`, `THEMES.md:1027-1035`).
 **Constraint:** the selector image's width is forced to the full
@@ -495,8 +382,7 @@ its selection-indicator mechanism is the centred + logoScale-
 enlarged slot. Use an `extra="true"` chevron pinned to
 `crossX` / selected-slot Y instead.
 
-**Evidence:** `TextListComponent.h:778-789`; `THEMES.md:1027-1035`;
-prototype render at `/tmp/spike-carousel-s5/s5.png`.
+**Evidence:** `TextListComponent.h:778-789`; `THEMES.md:1027-1035`.
 
 ---
 
@@ -517,8 +403,7 @@ since v0.3 in the README as a known limitation.
 **Reference:** PSP / video A / video B / video C all show the wave
 animating without ever restarting during navigation.
 
-**Feasibility:** Ship-it. Workaround discovered + verified during
-spike round 1.
+**Feasibility:** Ship-it.
 
 **Workaround sketch:** Use the undocumented `staticBackground*`
 name-prefix mechanism (`SystemView::getViewElements`,
@@ -548,18 +433,16 @@ Docker harness uses desktop GL21 while the device uses GLES2; one
 final TrimUI Brick render check is warranted before the v0.10
 ship.)
 
-**Dependencies:** Couples with X1 — the halo's
-`<storyboard event="scroll">` was dead code on this build
-(`CarouselComponent.cpp:267, 652` shows the `scroll` event fires
-only on the carousel's intrinsic logos, never on extras); after
-the rename it can be deleted outright.
+**Dependencies:** none. Along with the rename, delete the halo's
+existing `<storyboard event="scroll">` blocks — they're dead code
+on this build (`CarouselComponent.cpp:267, 652` shows the `scroll`
+event fires only on the carousel's intrinsic logos, never on
+extras).
 
 **Evidence:** `SystemView.cpp:889` (mStaticBackgrounds render),
 `:1045-1065` (name-prefix parse), `:852, 1534` (activateExtras →
 onShow on cursor change); `GuiComponent.cpp:937-944` (onShow resets
-storyboard); two-shot render diff in `/tmp/spike-u6-1/.dev/` —
-baseline 24.15% pixel diff (RESET) vs spike 0.45% (CONTINUOUS, at
-the sub-pixel sampling noise floor).
+storyboard).
 
 ---
 
@@ -703,10 +586,10 @@ behind it; no reflection.
 **Reference:** PSP screenshot 2 (Daxter title bottom-left has a soft
 reflection trailing the logo down).
 
-**Feasibility:** Ship-it. Spike-round-1 found the native primitive
-is `<reflexion>` (yes, that spelling), which renders the PSP-style
-faded mirror automatically — better than `flipY` because it includes
-the alpha gradient.
+**Feasibility:** Ship-it. The native primitive is `<reflexion>`
+(yes, that spelling), which renders the PSP-style faded mirror
+automatically — better than `flipY` because it includes the alpha
+gradient.
 
 **Workaround sketch:**
 
@@ -743,9 +626,7 @@ styled directly through the carousel does NOT honor `reflexion`
 
 **Evidence:** `ImageComponent.cpp:820-825` (`reflexion`
 `NORMALIZED_PAIR`); `ThemeData.cpp:2205` (extras get
-`ThemeFlags::ALL`); `THEMES.md:820-825`; prototype renders at
-`/tmp/spike-carousel-g3/g3.png` and
-`/tmp/spike-carousel-g3-real/g3-real.png`.
+`ThemeFlags::ALL`); `THEMES.md:820-825`.
 
 ---
 
@@ -763,8 +644,8 @@ alike.
 
 **Reference:** PSP screenshots 1 + 4; video B @ 0:30; video C @ 0:00.
 
-**Feasibility:** Ship-it. Spike-round-1 confirmed `<itemTemplate>`
-is supported in `<gamecarousel>` with per-slot binding resolution.
+**Feasibility:** Ship-it. `<itemTemplate>` is supported in
+`<gamecarousel>` with per-slot binding resolution.
 
 **Workaround sketch:**
 
@@ -832,8 +713,7 @@ v0.10 task.
 includes `gamecarousel`); `CarouselComponent.cpp:697-711, 770`
 (template per-entry instantiation + per-entry `updateBindings`);
 `BindingManager.cpp:447-480` (`GridTemplateBinding` falls through
-to FileData → `{game:*}` resolution); prototype render at
-`/tmp/spike-carousel-g4/g4.png`.
+to FileData → `{game:*}` resolution).
 
 ---
 
@@ -961,11 +841,9 @@ risponde alla chiusura del pannello visore"); video B @ 5:30
 ("Cambia uscita video / ta la visualizzazione dell'uscita video
 sullo schermo"); user screenshot 1 (AVLS row).
 
-**Feasibility:** Ship-it. The spike-round-1 framing of "selector-
-tracked overlay text" was the wrong mental model — there's no such
-primitive. The CORRECT mechanism is `<itemTemplate>` plus
+**Feasibility:** Ship-it. The mechanism is `<itemTemplate>` plus
 `event="activate"` / `event="deactivate"` storyboards on the
-template's description text element. Verified by prototype.
+template's description text element.
 
 **Workaround sketch:**
 
@@ -1051,7 +929,7 @@ template). G4 (same `<itemTemplate>` mechanism).
 `updateBindings(bindable)` at :316 — per-row binding resolution);
 `TextListComponent.h:637-660` (`activate`/`deactivate` storyboards
 on cursor change); `TextListComponent.h:682-684` (itemTemplate
-parsing); prototype render at `/tmp/spike-carousel-g78/g78.png`.
+parsing).
 
 ---
 
@@ -1113,26 +991,6 @@ behaviour in this build before committing to one path.
 
 **Evidence:** Same as G7 (`TextListComponent.h:274-340, 682-684`);
 prototype renders all rows with both title + right-aligned genre.
-
----
-
-### G9. ~~Right-side value picker~~ — DEMOTED to U13
-
-This entry was demoted from active to **Unsupportable** by the
-spike-round-1 verification. See **U13** in the Unsupportable
-section below.
-
-Reason summary: `MenuComponent::updateSize()` hardcodes menu
-position to horizontal-centered, width = `min(screenHeight,
-screenWidth * 0.90f)`. `OptionListPopup` is positioned by the
-same hardcoded math. No theme primitive controls menu layout.
-The PSP right-side sidebar form factor has no ES analog.
-
-A reduced-scope offshoot — "more aggressively style the menu
-chrome within what IS themable" (cornerSize, scrollbarColor,
-menuIcons, menuSwitch, menuButton paths, selectorImagePath) — is
-viable and could become its own entry (G9a) if pursued. Left
-unfiled until a v0.11 brainstorm decides whether to invest there.
 
 ---
 
@@ -1198,11 +1056,11 @@ Large if hand-crafting per-app art for the 37 unmatched.
 **Dependencies:** S1a (the auto-collection mappings ride in the
 same TSV); S1 (overall icon-style direction).
 
-**Evidence:** `/tmp/retroarch-assets/xmb/automatic/png/` —
-`favorites.png`, `history.png`, `database.png`, `core.png`,
-`menu_drivers.png`, `images.png`, `movie.png`, `music.png`,
-`file.png` all present and stylistically distinct from the
-hardware-system icons.
+**Evidence:** `libretro/retroarch-assets` → `xmb/automatic/png/`
+contains `favorites.png`, `history.png`, `database.png`,
+`core.png`, `menu_drivers.png`, `images.png`, `movie.png`,
+`music.png`, `file.png` — all present and stylistically distinct
+from the hardware-system icons.
 
 ---
 
@@ -1220,8 +1078,7 @@ auto-selects between 6 image states. No numeric.
 **Reference:** Not visible in the captured reference videos — this
 is a known PSP firmware feature, optional.
 
-**Feasibility:** Ship-it. Spike-round-1 confirmed two supported
-paths.
+**Feasibility:** Ship-it. Two supported paths.
 
 **Workaround sketch (recommended — native batteryText element):**
 
@@ -1266,30 +1123,12 @@ bool.
 
 **Effort:** Trivial.
 
-**Dependencies:** none (S2 dependency removed since S2 was
-demoted).
+**Dependencies:** none.
 
 **Evidence:** `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
 (auto-extra registration), `:2147-2148` (createExtraComponent
 dispatch); `BindingManager.cpp:52-53` (battery binding
 registration).
-
----
-
-### ST2. ~~Wifi-strength bars~~ — DEMOTED to U12
-
-This entry was demoted from active to **Unsupportable** by the
-spike-round-1 verification. See **U12** in the Unsupportable
-section below.
-
-Reason summary: `GlobalBinding::getProperty`
-(`BindingManager.cpp:18-71`) registers an exhaustive global-
-binding list with no wifi-strength entry — only the binary
-`{global:network}` (is IP set?) and `{global:ip}`. Knulli's
-`knulli-wifi` CLI handles enable/disable but exposes no scan/level
-interface to the theme layer. Closest achievable is the binary
-present/absent which is what ES's built-in `<networkIcon>` already
-shows.
 
 ---
 
@@ -1371,45 +1210,6 @@ center frequency ~800 Hz, with a slight pitch bend).
 
 ## Cross-cutting (X)
 
-### X1. ~~Halo fade on carousel scroll~~ — DEAD CODE, delete with S6
-
-**Audit-lens re-entry of v0.10 roadmap item 4.** See
-[v0.10-roadmap.md §4](v0.10-roadmap.md).
-
-**PSP behaviour:** The selected-item glow doesn't persist as a
-static dot during cross-axis movement. It fades out during the
-transition and back in once the new selection settles.
-
-**Current theme:** v0.9.3 round 4 added `<storyboard event="scroll">`
-to the `selectedHalo` element in `_inc/system.xml:53-58`. Spike-
-round-1 verified by source inspection that this is **dead code on
-this ES build**: `CarouselComponent` only fires the `"scroll"`
-event on its own intrinsic logos (`CarouselComponent.cpp:267, 652`
-— `mLogo[i]->selectStoryboard("scroll")`), never on extras. The
-halo is declared as `extra="true"` (not as an intrinsic logo), so
-the storyboard never receives the event. The fade-in default
-storyboard runs once at view-show (covering the initial system
-view appearance), then never again.
-
-**Recommended action:** Delete both `<storyboard>` blocks on the
-halo element when applying the S6 workaround (the halo will be
-renamed to `staticBackgroundHalo` as part of S6's
-`staticBackground*` rename pass). The visible behaviour is "halo
-sits static behind the selected icon" — same as v0.9.2 — which is
-acceptable per the original "Worst case" framing.
-
-**Effort:** Trivial (delete the two storyboard blocks; happens
-inside S6's edits anyway).
-
-**Dependencies:** S6 (apply together).
-
-**Evidence:** `CarouselComponent.cpp:267, 652` — scroll event is
-emitted only on intrinsic logos via `mLogo[i]->selectStoryboard
-("scroll")`, never on the surrounding extras vector.
-`_inc/system.xml:53-58` — the storyboards that were unreachable.
-
----
-
 ### X2. Description scroll affordance (▼ / ▲)
 
 **PSP behaviour:** When a text block exceeds its container, PSP
@@ -1430,13 +1230,13 @@ firmware would normally show a triangle.
 
 **Workaround sketch:** Two static `<image>` elements pinned at
 container top + bottom edges, sized ~12×8 px, with a downward /
-upward chevron PNG. Always visible — spike-round-1 confirmed there
-is no `descriptionoverflow` / scroll-state binding:
-`FileData::getProperty`'s static map
-(`FileData.cpp:40-61`) has no description-state entry, and
-`ScrollableContainer` exposes no `applyTheme` integration nor any
-binding hook for `mScrollPos` / `mAtEnd`. Slight visual overhang on
-short descriptions is the accepted tradeoff.
+upward chevron PNG. Always visible — there is no
+`descriptionoverflow` / scroll-state binding:
+`FileData::getProperty`'s static map (`FileData.cpp:40-61`) has
+no description-state entry, and `ScrollableContainer` exposes no
+`applyTheme` integration nor any binding hook for `mScrollPos` /
+`mAtEnd`. Slight visual overhang on short descriptions is the
+accepted tradeoff.
 
 Apply to both `detailed` and `gamecarousel` views — both share the
 same description container.
@@ -1446,14 +1246,6 @@ same description container.
 **Dependencies:** none.
 
 **Evidence:** `_inc/gamelist.xml:146-154` (description container).
-
----
-
-### X3. ~~Battery-Hide layout re-tune after S2~~ — DROPPED
-
-This entry was a corollary of S2 (date next to clock). With S2
-demoted to U11 (technically unsupportable in Knulli ES), X3 has
-no trigger and is dropped from the audit.
 
 ---
 
@@ -1550,7 +1342,7 @@ extend this entry; for now the verified phenomenon is the
 Color-picker live preview.)
 
 **Why unsupportable:** Originally claimed "Storyboards can't
-animate color." Spike-round-1 disproved that — color animations DO
+animate color." That's incorrect — color animations DO
 parse and work (`ThemeStoryboard.cpp:108-112` dispatches
 `ThemeColorAnimation` for any property typed `COLOR`, which most
 visual elements expose). The actual blocker is **event-routing**:
@@ -1634,64 +1426,6 @@ grep across source confirms no `event="boot"` /
 
 ---
 
-### U6. ~~Continuous wave animation across system carousel navigation~~ — RESOLVED
-
-This entry was wrong. Spike-round-1 found a working theme-XML-only
-solution that was missed by v0.3's "exhaustively verified"
-investigation: the **`name="staticBackground*"` prefix mechanism**
-(`SystemView::getViewElements`, `SystemView.cpp:1045-1065`).
-Elements whose `name` attribute begins with the literal string
-`"staticBackground"` are kept in a separate `mStaticBackgrounds`
-vector that is loaded ONCE at view construction, rendered with the
-bare view transform (no carousel cursor offset), and ticked every
-frame regardless of cursor — crucially, `onShow()` is only called
-on view-show, not on cursor change, so the storyboard `reset()`
-cascade never fires.
-
-The active entry **S6** carries the implementation sketch.
-
-**Verification:** Two-shot Docker render diff —
-baseline (current `extra="true"` declarations) shows 24.15% pixel
-diff between a no-nav and an 8-nav scenario at the same wall clock
-(RESET); spike (`staticBackground*` rename) shows 0.45% pixel diff
-(CONTINUOUS, at sub-pixel sampling noise floor). Halo's
-`<storyboard event="scroll">` was a separate finding from this
-spike — it was dead code on this build because
-`CarouselComponent` only fires the `scroll` event on its own
-intrinsic logos, not on extras (`CarouselComponent.cpp:267, 652`).
-
-**Evidence:** `SystemView.cpp:889` (mStaticBackgrounds render),
-`:1045-1065` (name-prefix parse), `:852, 1534` (activateExtras →
-onShow on cursor change); `GuiComponent.cpp:937-944` (onShow resets
-storyboard); spike data in `/tmp/spike-u6-1/.dev/`. README's
-"Known limitations" §1 needs to be revised when S6 ships.
-
----
-
-### U7. ~~Per-row cursor memory across cross-axis navigation~~ — ALREADY SHIPPED
-
-Spike-round-1 disproved the claim by reading the source. ES
-already remembers cursor position across system-to-system
-navigation by virtue of `ViewController` caching the gamelist
-view per system (`mGameListViews[system] = view` at
-`ViewController.cpp:826`; cache hit at `:673-675`). Cursor state
-lives inside the cached `IGameListView` (e.g., `mCursor` in
-`IList`/`TextListComponent`) and persists with the cached view.
-
-Even on theme reload (`reloadAll`), cursors are snapshotted into
-`cursorMap` and restored via `setCursor` after rebuild
-(`ViewController.cpp:1149-1153, 1216-1220`).
-
-Moved to **Deliberately omitted** (already-shipped category).
-This entry is left here as a placeholder so future readers
-searching for "cursor memory" find the answer.
-
-**Verification spike** (worthwhile but not blocking): on-device,
-navigate System A → game X → back → System B → game Y → back to
-System A; cursor should still be on game X.
-
----
-
 ### U8. Inline expand-on-select for settings rows
 
 **PSP behaviour:** Pressing ✕ on a settings row in PSP expands an
@@ -1749,7 +1483,7 @@ definition never instantiated.
 
 **Evidence:** `ThemeData.cpp:31` (sSupportedViews, no screensaver);
 `:1146` (silent skip); `SystemScreenSaver.cpp:1-100` (no theme
-calls); spike at `/tmp/spike-unsupportable-U9/`.
+calls).
 
 ---
 
@@ -1788,7 +1522,7 @@ transition split).
 
 ---
 
-### U11. Date next to clock in status bar (demoted from S2)
+### U11. Date next to clock in status bar
 
 **PSP behaviour:** Top-right status carries date + time as a single
 text run (`M/D HH:MM` on real PSP). Currently the theme shows time
@@ -1818,8 +1552,7 @@ screen view. Re-validate if Knulli adds a `date` global binding or
 extends `createExtraComponent` to dispatch `datetime`.
 
 **Closest we could get:** Status bar shows time only (current
-behaviour). Corollary entry X3 (battery-hide layout re-tune) also
-dies with this entry.
+behaviour).
 
 **Evidence:** `ClockComponent.cpp:30-34`; `ThemeData.cpp:231-278,
 371-397, 2123-2163`; prototype log shows `Unknown property :
@@ -1827,7 +1560,7 @@ text.format` on the clock element.
 
 ---
 
-### U12. Wifi signal-strength indicator (demoted from ST2)
+### U12. Wifi signal-strength indicator
 
 **PSP behaviour:** PSP shows wifi as a 4-bar signal-strength
 indicator. Theme today shows only ES's built-in binary
@@ -1855,7 +1588,7 @@ rendered `wifi:strength=[Unknown]` confirming no binding resolves.
 
 ---
 
-### U13. Right-side value picker / menu sidebar (demoted from G9)
+### U13. Right-side value picker / menu sidebar
 
 **PSP behaviour:** Settings rows with multiple discrete values
 open a vertical sidebar on the right with the option list — Color
@@ -1887,8 +1620,7 @@ from the PSP sidebar — would be filed as a separate active entry
 
 **Evidence:** `MenuComponent.cpp:334-362` (hardcoded layout);
 `OptionListComponent.h:183-186` (hardcoded popup position);
-`ThemeData.cpp:629-661` (exhaustive themed-element list); spike at
-`/tmp/spike-carousel-g9/`.
+`ThemeData.cpp:629-661` (exhaustive themed-element list).
 
 ---
 
@@ -1922,8 +1654,7 @@ features. Listed so future audits don't re-discover them.
   `:673-675`), and the cursor (held by `IList::mCursor` in the
   cached view) persists across system switches. Cursors are also
   snapshotted into `cursorMap` and restored on theme reload
-  (`:1149-1153, :1216-1220`). The audit's prior U7 framing was
-  wrong; see the U7 placeholder for cross-reference.
+  (`:1149-1153, :1216-1220`).
 - **Subtler wave profile (PSP's lower-contrast curve vs. our 3-layer
   stack).** PSP firmware ran on a 480×272 display where a high-
   contrast wave would dominate; our target is 1024×768+ where the
@@ -1945,9 +1676,9 @@ features. Listed so future audits don't re-discover them.
 
 - Entries are independent unless dependencies are called out — the
   audit is a wishlist, not a sequence.
-- Recommended grouping (post-spike-round-1):
+- Recommended grouping:
   - **Highest-impact / verified-ship-it cluster (target v0.10):**
-    S6 (continuous wave — RESOLVED), ST1 (battery %),
+    S6 (continuous wave), ST1 (battery %),
     X2 (description chevrons, always-on), X1 (halo storyboard
     cleanup — was dead code, delete with S6).
   - **`<itemTemplate>` adoption cluster (target v0.10 or v0.11 — one
