@@ -14,19 +14,20 @@ IMAGE="es-xmb-harness:knulli-${ES_PIN}"
 VIEW="system"
 RESOLUTION="1024x768"
 COLORSET="January Blue"
-BATTERY="Show"
+BATTERY="Glyph + Percentage"
 LIBRARY=""
 OUT="${REPO_ROOT}/.dev/render.png"
 
 usage() {
   cat <<EOF
 Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
-                 [--battery Show|Hide] [--library PATH] [--out FILE]
+                 [--battery "Glyph + Percentage"|Glyph|Hide] [--library PATH] [--out FILE]
 
   --view        system | gamelist | gamecarousel | menu   (default: system)
   --resolution  Xvfb geometry, e.g. 1024x768 (4:3) or 1280x720 (16:9)
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
-  --battery     Battery subset variant: Show | Hide       (default: Show)
+  --battery     Battery subset variant: "Glyph + Percentage" | Glyph | Hide
+                (default: Glyph + Percentage)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
   --out         host path for the captured PNG            (default: .dev/render.png)
 EOF
@@ -51,8 +52,8 @@ case "${VIEW}" in
   *) echo "bad --view: ${VIEW}" >&2; exit 2 ;;
 esac
 case "${BATTERY}" in
-  Show|Hide) ;;
-  *) echo "bad --battery: ${BATTERY} (expected Show or Hide)" >&2; exit 2 ;;
+  "Glyph + Percentage"|Glyph|Hide) ;;
+  *) echo "bad --battery: ${BATTERY} (expected \"Glyph + Percentage\", Glyph, or Hide)" >&2; exit 2 ;;
 esac
 if [[ "${VIEW}" == gamelist || "${VIEW}" == gamecarousel ]] && [[ -z "${LIBRARY}" ]]; then
   echo "--library is required for --view ${VIEW}" >&2; exit 2

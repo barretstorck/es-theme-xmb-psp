@@ -6,7 +6,7 @@ set -euo pipefail
 VIEW="${VIEW:-system}"
 RESOLUTION="${RESOLUTION:-1024x768}"
 COLORSET="${COLORSET:-January Blue}"
-BATTERY="${BATTERY:-Show}"
+BATTERY="${BATTERY:-Glyph + Percentage}"
 OUTNAME="${OUTNAME:-render.png}"
 HAS_LIBRARY="${HAS_LIBRARY:-0}"
 
