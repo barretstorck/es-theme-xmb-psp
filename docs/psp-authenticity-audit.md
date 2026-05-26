@@ -32,6 +32,10 @@ aspect ratios should inherit any change unless noted.
 - YouTube video B — `https://www.youtube.com/watch?v=8vS2gBVJr7s` —
   real PSP firmware, Italian locale, ~6.x era (Skype + PSN visible).
   Primary canonical reference for PSP UI behaviour.
+- YouTube video C — `https://www.youtube.com/watch?v=UsXQMTDMuQQ` —
+  real PSP firmware, English locale, focused on the Theme/Color
+  picker. Particularly useful for live colorset-preview behaviour and
+  branded-item icon style. 3:23 total runtime.
 
 Frame timestamps in `Reference:` fields use the form
 `video {A,B} @ M:SS` (e.g. `video B @ 4:30`). For 30-second-spaced
@@ -542,6 +546,13 @@ on line 1, and an italic-looking lower-contrast description on line
 title. A thin horizontal underline visually separates the selected
 row's title from its description.
 
+The second line is also used for **metadata-style status info** on
+some rows. Video C @ 1:00 shows "Memory Stick™" as title with
+"Free Space  542 MB" as the second line — title + metadata
+(label + right-aligned value) combined on a single row. So G7's
+second-line slot is reused for either prose description (settings)
+or labelled metadata (status items).
+
 This is distinct from a side-panel description (which the audit's
 G2 covers) — it's the row itself expanding to two lines when
 selected.
@@ -610,7 +621,11 @@ panel (and currently not all of them are rendered — see G2).
 **Reference:** video A @ 3:30 (NTSC/PAL/DTV picker — the picker
 panel is U10's territory, but rows in same view show value-right);
 video B @ 4:30 (settings rows); video B @ 7:00 (date/time rows);
-video B @ 7:30 (AVLS Off / Dynamic Normalizer Off).
+video B @ 7:30 (AVLS Off / Dynamic Normalizer Off); video C @ 2:30
+(Date Format `DD/MM/YYY...`, Time Format `24 Hour Clo...` — both
+showing **truncation with `...`** when the value is wider than its
+slot, and a **multi-line value** on the Date and Time row showing
+`7/4/2025` on line 1 stacked with `0:16` on line 2 at right-aligned).
 
 **Feasibility:** Partial workaround — ES textlists don't natively
 support a per-row right-aligned value column. Each row is a single
@@ -690,6 +705,60 @@ revision.
 
 **Evidence:** `_inc/menu.xml`; batocera-emulationstation `THEMES.md`
 menu section.
+
+---
+
+### G10. Branded item icons (colour, not monochrome)
+
+**PSP behaviour:** Top-level category icons (Music, Video, Game,
+Settings, Network) are flat monochrome white silhouettes. But
+*items inside those categories* that represent third-party apps,
+storefronts, or services — PlayStation Network, PS Store, Skype,
+Information Board, Internet Search — use **full-colour 3D-rendered
+icons**, each with its own brand identity. The visual hierarchy is
+"category = silhouette, item = brand."
+
+**Current theme:** All system icons in `art/system-icons/` are
+white silhouettes (via Knulli's icon pack). The auto-collections
+(`auto-favorites`, `auto-lastplayed`, `auto-allgames`) use the
+same monochrome style as system icons. There's no "branded item"
+treatment for special entries.
+
+**Reference:** video C @ 0:00 (Network category sub-item: blue/
+purple PSN swirl icon next to monochrome Network globe — clear
+two-tier hierarchy visible in the same frame); video C @ 3:00
+(PSN landing showing PlayStation Network swirl, blue shopping-bag
+PS Store icon, orange Information Board icon — all full colour);
+video B @ 0:30 (Skype `S` logo in blue circle next to monochrome
+Game/Network icons).
+
+**Feasibility:** Ship-it — purely an art / asset decision.
+
+**Workaround sketch:** Identify which ES "system" entries should
+get branded treatment versus silhouette treatment. Candidates:
+- `auto-favorites.png` — could be a coloured heart/star (e.g.
+  gold/yellow), distinct from the silhouette category icons.
+- `auto-lastplayed.png` — could be a coloured clock or "recent"
+  badge.
+- Special launchers: `retroarch.png`, `ports.png`, `tools.png` —
+  could carry the host emulator/app's brand colour rather than
+  white silhouette.
+- Cloud/online services if Knulli ships them.
+
+Drop replacement PNGs into `art/system-icons/` with the same
+naming. The theme automatically picks them up. Keep silhouette
+icons for hardware-system entries (NES, SNES, etc.) so the
+hierarchy reads as "hardware = silhouette, service = branded."
+
+**Effort:** Small (per icon) — but the *decision* of which entries
+to brand is the design work.
+
+**Dependencies:** S1 (the silhouette pass; branded icons are
+defined as the *contrast* to the silhouette baseline).
+
+**Evidence:** N/A in current code; `art/system-icons/` directory
+naming convention from README ("To add a specific icon for any
+system, drop `<system-shortname>.png` into `art/system-icons/`").
 
 ---
 
@@ -1007,29 +1076,45 @@ properties absent; v0.10-roadmap.md §1 evidence trail.
 
 ---
 
-### U3. Top-level category cross-fade transitions
+### U3. Live colorset preview (wave updates during settings change)
 
-**PSP behaviour:** Navigating between top-level XMB categories
-(Settings → Photo → Music → Game) smoothly cross-fades the wave
-*color* from one category's hue to the next over ~400 ms. The PSP
-month-coloured wave is actually category-coloured at runtime, not
-month-coloured — the "month-colour" maps to whichever category is
-currently in focus.
+**PSP behaviour:** In the Settings → Theme → Color picker, the
+wave background updates **immediately** as the user scrolls through
+the colour swatches in the sidebar — no commit step, no
+intermediate "applying…" message. Highlight gold in the sidebar →
+wave is gold. Highlight red → wave is red. Highlight teal → wave is
+teal. The transition between swatches looks close to instant in the
+captured frames; whether it has a short cross-fade (<100ms) or is
+truly instant isn't resolvable at the 15-second extraction interval.
+
+(Note: a *separate* claim — that the PSP wave cross-fades between
+top-level XMB categories at navigation time — is sometimes
+reported as PSP behaviour but is **not directly verified** in any
+of the three reference videos here. Across multiple category
+navigations in videos A, B, and C the wave appears to stay the same
+hue. If a future reference confirms category-level cross-fade,
+extend this entry; for now the verified phenomenon is the
+Color-picker live preview.)
 
 **Why unsupportable:** ES treats theme variables as resolved
-at parse-time. `${waveTint}` is baked into the
-`<color>` attribute of the wave image when the theme is loaded, and
-cannot be animated between values. Storyboards can animate `x`, `y`,
-`scale`, `opacity`, `rotation` properties — not `color`. Switching
-colorsets requires a full theme reload, which clears the screen.
+at parse-time. `${waveTint}` is baked into the `<color>` attribute
+of the wave image when the theme is loaded, and cannot be animated
+between values. Storyboards can animate `x`, `y`, `scale`,
+`opacity`, `rotation` properties — not `color`. Switching colorsets
+via the subset mechanism requires a full theme reload, which clears
+the screen and re-renders.
 
-**Closest we could get:** Ship 12 fixed colorsets the user picks once
-(current behaviour). Each system / category is *not* coloured
-independently.
+**Closest we could get:** Ship the 12 fixed colorsets (current
+behaviour) and require the user to pick one via UI Settings → Theme
+Configuration. Each selection requires a Quit → Restart ES cycle
+for the change to take effect; PSP's no-restart live preview is
+unsupportable.
 
-**Evidence:** ES storyboard `<animation property="...">` enum
-(`THEMES.md` storyboard section) — no `color` property; subset
-mechanism in `theme.xml:31-44` requires full reload.
+**Evidence:** Video C @ 2:00-3:00 (wave changing red → orange →
+teal → cyan as the user scrolls the Color-picker sidebar); ES
+storyboard `<animation property="...">` enum (`THEMES.md` storyboard
+section) — no `color` property; subset mechanism in
+`theme.xml:31-44` requires full reload.
 
 ---
 
@@ -1058,11 +1143,16 @@ ELF binaries, not ES extensions.
 
 ---
 
-### U5. Wave-color shifts during boot warmup
+### U5. Wave-colour shifts during boot warmup
 
-**PSP behaviour:** During the first ~5-10 seconds after boot, the
-wave colours warm up — desaturated → full saturation — as part of
-the "system starting" cue.
+**PSP behaviour:** Reported lore: during the first ~5-10 seconds
+after boot, the wave colours warm up — desaturated → full saturation
+— as part of the "system starting" cue. **Not directly verified in
+any of the reference videos** (none of them captured a boot
+sequence). Kept in this list because the underlying unsupportability
+holds regardless of whether this specific phenomenon is real —
+**any** runtime wave-colour animation is blocked by the same root
+cause.
 
 **Why unsupportable:** Combination of U1 (no boot-phase hook) and U3
 (no `<color>` animation primitive). Even if we had a boot hook to
@@ -1250,7 +1340,9 @@ features. Listed so future audits don't re-discover them.
     both need overlay-tracking on the selected slot. Ship as a pair.
   - **Selection-chrome cluster:** S5 (chevron pointer) — couples
     visually with G7+G8.
-  - **Art-heavy cluster:** S1, S3, S4, G1
+  - **Art-heavy cluster:** S1, S3, S4, G1, G10 (the branded-icon
+    set sits opposite S1's silhouette pass and shares the design
+    direction conversation)
   - **Spike-first cluster:** G3, G4, G9, ST1, ST2
 - Re-run this audit after any major version ships — the
   "Deliberately omitted" list captures decisions that should stick;
