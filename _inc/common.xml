@@ -29,10 +29,13 @@
     <!-- XMB cross anchor. crossX/crossY = where the selected system icon is
          centered in the system and both gamelist views. captionY = the top
          of the system-name caption, just under the icon — it tracks crossY
-         (v0.6 moved both up together when the cross anchor was squared). -->
+         (v0.6 moved both up together when the cross anchor was squared).
+         countY = the top of the optional game-count caption (Game Count:
+         Show variant only), stacked under captionY. -->
     <crossX>0.24</crossX>
     <crossY>0.291</crossY>
     <captionY>0.401</captionY>
+    <countY>0.456</countY>
 
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
