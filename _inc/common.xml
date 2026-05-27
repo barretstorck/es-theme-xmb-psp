@@ -110,6 +110,26 @@
     <mdVideoY>0.39</mdVideoY>
     <mdVideoW>0.50</mdVideoW>
     <mdVideoH>0.34</mdVideoH>
+
+    <!-- v0.11 PR redesign: PSP-card row format variables.
+         See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md. -->
+    <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets). -->
+    <rowIconW>0.10</rowIconW>
+    <rowIconH>0.13</rowIconH>
+    <rowIconX>0.06</rowIconX>
+    <rowTextX>0.18</rowTextX>
+    <rowTextRightPad>0.03</rowTextRightPad>
+    <rowLineH>0.002</rowLineH>
+    <titleFontSize>0.030</titleFontSize>
+    <metaFontSize>0.020</metaFontSize>
+
+    <!-- Title visibility (overridden by title-visibility-{strict,friendly}.xml subsets). -->
+    <titleUnselectedY>0.25</titleUnselectedY>
+    <titleUnselectedOpacity>0</titleUnselectedOpacity>
+    <titleSelectedY>0.25</titleSelectedY>
+
+    <!-- Video preview delay (uses existing video-delay-*.xml subset values). -->
+    <videoDelay>2000</videoDelay>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
