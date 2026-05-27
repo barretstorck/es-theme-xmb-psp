@@ -131,12 +131,18 @@
     </rating>
 
     <!-- v0.11 PR F: G2 metadata key-value rows.
-         Uses ES built-in element names (md_lbl_releasedate / md_releasedate
-         etc.) — ES recognizes these by name and auto-populates the value,
-         so no manual {game:*} text binding is needed. Hidden via
-         <visible>exists()> when the underlying field is empty (audit U2:
-         pos is not bindable, so empty rows leave a fixed gap — accept). -->
-    <text name="md_lbl_releasedate">
+         CRITICAL: must use extra="true" with custom element names — ES's
+         BindingManager skips ExtraType::BUILTIN components, so the built-in
+         md_releasedate / md_genre / md_players names get neither dynamic
+         {game:*} value bindings nor dynamic <visible> evaluation. With
+         custom names + extra="true" we manually bind text via
+         <text>{game:releaseyear}</text> etc. and the <visible> expression
+         is re-evaluated per game (audit U2: pos is not bindable, so empty
+         rows leave a fixed gap — accept).
+         Year value uses {game:releaseyear} (string) rather than
+         {game:releasedate} (date type), which renders cleanly as the
+         4-digit year. -->
+    <text name="mdYearLabel" extra="true">
       <pos>${mdLabelX} ${mdYearY}</pos>
       <size>${mdLabelW} ${mdRowH}</size>
       <fontPath>${fontLight}</fontPath>
@@ -145,22 +151,23 @@
       <text>Year</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:releasedate})</visible>
+      <visible>!empty({game:releaseyear})</visible>
       <zIndex>5</zIndex>
     </text>
-    <datetime name="md_releasedate">
+    <text name="mdYearValue" extra="true">
       <pos>${mdValueX} ${mdYearY}</pos>
       <size>${mdValueW} ${mdRowH}</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.022</fontSize>
       <color>${textPrimary}</color>
+      <text>{game:releaseyear}</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:releasedate})</visible>
+      <visible>!empty({game:releaseyear})</visible>
       <zIndex>5</zIndex>
-    </datetime>
+    </text>
 
-    <text name="md_lbl_genre">
+    <text name="mdGenreLabel" extra="true">
       <pos>${mdLabelX} ${mdGenreY}</pos>
       <size>${mdLabelW} ${mdRowH}</size>
       <fontPath>${fontLight}</fontPath>
@@ -169,22 +176,23 @@
       <text>Genre</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:genre})</visible>
+      <visible>!empty({game:genre})</visible>
       <zIndex>5</zIndex>
     </text>
-    <text name="md_genre">
+    <text name="mdGenreValue" extra="true">
       <pos>${mdValueX} ${mdGenreY}</pos>
       <size>${mdValueW} ${mdRowH}</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.022</fontSize>
       <color>${textPrimary}</color>
+      <text>{game:genre}</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:genre})</visible>
+      <visible>!empty({game:genre})</visible>
       <zIndex>5</zIndex>
     </text>
 
-    <text name="md_lbl_players">
+    <text name="mdPlayersLabel" extra="true">
       <pos>${mdLabelX} ${mdPlayersY}</pos>
       <size>${mdLabelW} ${mdRowH}</size>
       <fontPath>${fontLight}</fontPath>
@@ -193,23 +201,31 @@
       <text>Players</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:players})</visible>
+      <visible>!empty({game:players})</visible>
       <zIndex>5</zIndex>
     </text>
-    <text name="md_players">
+    <text name="mdPlayersValue" extra="true">
       <pos>${mdValueX} ${mdPlayersY}</pos>
       <size>${mdValueW} ${mdRowH}</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.022</fontSize>
       <color>${textPrimary}</color>
+      <text>{game:players}</text>
       <alignment>left</alignment>
       <verticalAlignment>center</verticalAlignment>
-      <visible>exists({game:players})</visible>
+      <visible>!empty({game:players})</visible>
       <zIndex>5</zIndex>
     </text>
 
     <!-- Shows the game's snapshot still during the 5s delay and whenever
-         the game has no preview video, then plays the video. -->
+         the game has no preview video, then plays the video.
+         v0.11 PR F (#16) note: ES's BindingManager skips built-in
+         components (DetailedContainer.cpp:1026 only iterates extras),
+         so a <visible>!empty({game:video}) or !empty({game:image})>
+         here would be a no-op (static-true). Fortunately the built-in
+         video component renders a transparent panel when no video/image
+         is set, so an unscraped game already shows nothing here —
+         no <visible> guard needed to fulfil #16's hide-only intent. -->
     <video name="md_video">
       <pos>${mdVideoX} ${mdVideoY}</pos>
       <size>${mdVideoW} ${mdVideoH}</size>
@@ -220,7 +236,10 @@
       <zIndex>5</zIndex>
     </video>
 
-    <!-- Scrolling description text. -->
+    <!-- Scrolling description text.
+         v0.11 PR F (#16) note: same built-in constraint as md_video.
+         An empty desc renders as empty text, so unscraped games leave
+         the bottom of the panel naturally quiet without a guard. -->
     <text name="md_description">
       <pos>${panelX} ${panelDescY}</pos>
       <size>${panelW} ${panelDescH}</size>
