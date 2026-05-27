@@ -41,14 +41,32 @@
     <!-- Right info panel (P3): compress to fit alongside vertical arm -->
     <panelX>0.40</panelX>
     <panelW>0.56</panelW>
-    <panelDescY>0.58</panelDescY>
-    <panelDescH>0.36</panelDescH>
+    <!-- v0.11 PR F: description pushed down to clear the relocated
+         video (see mdVideoY below). Height tightened to keep the
+         panel inside the 0.94 bottom margin. -->
+    <panelDescY>0.68</panelDescY>
+    <panelDescH>0.26</panelDescH>
     <mdRatingX>0.59</mdRatingX>
 
-    <!-- Video aspect (P4): 4:3 box at 1:1 -> W/H = (4/3)·(1/1) = 4/3 -->
+    <!-- v0.11 PR F: video pushed down + compressed to clear the
+         Year/Genre/Players key-value rows at y=0.22/0.27/0.32.
+         Previous y=0.37, h=0.33 placed the video top at y=0.205
+         (overlapping all three rows). New center y=0.52, h=0.28
+         puts video.top at 0.38. mdValueX from common.xml (0.55) fits
+         comfortably to the left of the new video at 1:1. -->
     <mdVideoX>0.68</mdVideoX>
-    <mdVideoY>0.37</mdVideoY>
+    <mdVideoY>0.52</mdVideoY>
     <mdVideoW>0.44</mdVideoW>
-    <mdVideoH>0.33</mdVideoH>
+    <mdVideoH>0.28</mdVideoH>
+
+    <!-- v0.11 PR F: at 1:1 the info-panel narrows (panelW=0.56 vs 0.55).
+         The base mdValueX=0.55 lands just left of the video; mdValueW
+         tightened to 0.16 keeps long genre strings inside the panel
+         without colliding with the video at mdVideoX=0.68 - mdVideoW/2
+         = 0.46. -->
+    <mdValueX>0.50</mdValueX>
+    <mdValueW>0.18</mdValueW>
+    <mdLabelX>0.40</mdLabelX>
+    <mdLabelW>0.09</mdLabelW>
   </variables>
 </theme>
