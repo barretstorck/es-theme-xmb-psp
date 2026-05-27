@@ -130,6 +130,84 @@
       <zIndex>5</zIndex>
     </rating>
 
+    <!-- v0.11 PR F: G2 metadata key-value rows.
+         Uses ES built-in element names (md_lbl_releasedate / md_releasedate
+         etc.) — ES recognizes these by name and auto-populates the value,
+         so no manual {game:*} text binding is needed. Hidden via
+         <visible>exists()> when the underlying field is empty (audit U2:
+         pos is not bindable, so empty rows leave a fixed gap — accept). -->
+    <text name="md_lbl_releasedate">
+      <pos>${mdLabelX} ${mdYearY}</pos>
+      <size>${mdLabelW} ${mdRowH}</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textSecondary}</color>
+      <text>Year</text>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:releasedate})</visible>
+      <zIndex>5</zIndex>
+    </text>
+    <datetime name="md_releasedate">
+      <pos>${mdValueX} ${mdYearY}</pos>
+      <size>${mdValueW} ${mdRowH}</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textPrimary}</color>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:releasedate})</visible>
+      <zIndex>5</zIndex>
+    </datetime>
+
+    <text name="md_lbl_genre">
+      <pos>${mdLabelX} ${mdGenreY}</pos>
+      <size>${mdLabelW} ${mdRowH}</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textSecondary}</color>
+      <text>Genre</text>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:genre})</visible>
+      <zIndex>5</zIndex>
+    </text>
+    <text name="md_genre">
+      <pos>${mdValueX} ${mdGenreY}</pos>
+      <size>${mdValueW} ${mdRowH}</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textPrimary}</color>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:genre})</visible>
+      <zIndex>5</zIndex>
+    </text>
+
+    <text name="md_lbl_players">
+      <pos>${mdLabelX} ${mdPlayersY}</pos>
+      <size>${mdLabelW} ${mdRowH}</size>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textSecondary}</color>
+      <text>Players</text>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:players})</visible>
+      <zIndex>5</zIndex>
+    </text>
+    <text name="md_players">
+      <pos>${mdValueX} ${mdPlayersY}</pos>
+      <size>${mdValueW} ${mdRowH}</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.022</fontSize>
+      <color>${textPrimary}</color>
+      <alignment>left</alignment>
+      <verticalAlignment>center</verticalAlignment>
+      <visible>exists({game:players})</visible>
+      <zIndex>5</zIndex>
+    </text>
+
     <!-- Shows the game's snapshot still during the 5s delay and whenever
          the game has no preview video, then plays the video. -->
     <video name="md_video">
