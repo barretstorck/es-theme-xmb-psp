@@ -191,7 +191,7 @@
            0.052 measured from device screenshots). Using origin y=0.5
            here means pos.y is the centre line, which is easier to
            reason about and tune than top-left positioning. -->
-      <pos>0.94 0.065</pos>
+      <pos>0.94 0.052</pos>
       <origin>0 0.5</origin>
       <maxSize>0.05 0.04</maxSize>
       <color>${textPrimary}</color>
