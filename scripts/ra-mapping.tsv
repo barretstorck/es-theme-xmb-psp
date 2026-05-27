@@ -175,6 +175,11 @@ apple2gs	Apple - IIGS
 macintosh	Apple - Macintosh
 
 # Game engines / interpreters
+# Note: DOOM-family engines (prboom, gzdoom, raze, rott, eduke32, iortcw)
+# could all share RA's DOOM.png, but are intentionally NOT mapped here —
+# Knulli's existing per-engine icons differentiate the variants better
+# than collapsing them under one icon. Revisit if a future iteration
+# adopts a per-engine RA art pass.
 scummvm	ScummVM
 arduboy	Arduboy Inc - Arduboy
 cannonball	Cannonball
