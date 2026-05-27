@@ -14,19 +14,17 @@ IMAGE="es-xmb-harness:knulli-${ES_PIN}"
 VIEW="system"
 RESOLUTION="1024x768"
 COLORSET="January Blue"
-BATTERY="Show"
 LIBRARY=""
 OUT="${REPO_ROOT}/.dev/render.png"
 
 usage() {
   cat <<EOF
 Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
-                 [--battery Show|Hide] [--library PATH] [--out FILE]
+                 [--library PATH] [--out FILE]
 
   --view        system | gamelist | gamecarousel | menu   (default: system)
   --resolution  Xvfb geometry, e.g. 1024x768 (4:3) or 1280x720 (16:9)
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
-  --battery     Battery subset variant: Show | Hide       (default: Show)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
   --out         host path for the captured PNG            (default: .dev/render.png)
 EOF
@@ -38,7 +36,6 @@ while [[ $# -gt 0 ]]; do
     --view)       VIEW="${2:?}"; shift 2 ;;
     --resolution) RESOLUTION="${2:?}"; shift 2 ;;
     --colorset)   COLORSET="${2:?}"; shift 2 ;;
-    --battery)    BATTERY="${2:?}"; shift 2 ;;
     --library)    LIBRARY="${2:?}"; shift 2 ;;
     --out)        OUT="${2:?}"; shift 2 ;;
     -h|--help)    usage 0 ;;
@@ -49,10 +46,6 @@ done
 case "${VIEW}" in
   system|gamelist|gamecarousel|menu) ;;
   *) echo "bad --view: ${VIEW}" >&2; exit 2 ;;
-esac
-case "${BATTERY}" in
-  Show|Hide) ;;
-  *) echo "bad --battery: ${BATTERY} (expected Show or Hide)" >&2; exit 2 ;;
 esac
 if [[ "${VIEW}" == gamelist || "${VIEW}" == gamecarousel ]] && [[ -z "${LIBRARY}" ]]; then
   echo "--library is required for --view ${VIEW}" >&2; exit 2
@@ -84,7 +77,7 @@ if [[ -n "${LIBRARY}" ]]; then
 fi
 DOCKER_ARGS+=(
   -e VIEW="${VIEW}" -e RESOLUTION="${RESOLUTION}" -e COLORSET="${COLORSET}"
-  -e BATTERY="${BATTERY}" -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
+  -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
 )
 
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \

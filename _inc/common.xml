@@ -144,57 +144,20 @@
       <visible>false</visible>
     </controllerActivity>
     <!-- ES's real wall-clock, top-right, enlarged (v0.6); pos.x nudged
-         left in v0.9 from 0.84 → 0.78 to leave room for batteryIcon at
-         x=0.94. Clock right edge = pos.x + size.x = 0.78 + 0.14 = 0.92,
-         leaving a 0.02 gap before the battery. The screen view renders
-         as an overlay across all views. -->
+         v0.10 pulled the batteryIcon — vertical-alignment and
+         percentage-rendering bugs surfaced on-device couldn't be
+         resolved in this iteration. Clock right-aligned at x=0.84
+         (right edge at 0.98) leaves the status bar clock-only for
+         now. art/battery/* assets and the batteryIcon syntax notes
+         are preserved in the tree for the restoration attempt. -->
     <text name="clock">
       <visible>true</visible>
-      <pos>0.78 0.03</pos>
+      <pos>0.84 0.03</pos>
       <size>0.14 0.06</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.042</fontSize>
       <color>${textPrimary}</color>
-      <horizontalAlignment>right</horizontalAlignment>
+      <alignment>right</alignment>
     </text>
-
-    <!-- Battery glyph (sits at pos.x=0.94; clock right edge at 0.78+0.14
-         = 0.92 → 0.02 gap to the battery, matching the PSP XMB spacing).
-         ES auto-cycles the image based on charge level via the 6 state
-         slots (incharge/full/at75/at50/at25/empty). Auto-hides on
-         devices that don't report a battery, and respects the user's
-         ES "Show Battery Status" setting. The Docker harness reports
-         no battery, so this element silently won't render there;
-         on-device verification is required for acceptance.
-         IMPORTANT — TWO syntax gotchas to keep this element from being
-         silently dropped at theme parse time:
-         (a) The element TAG must be <batteryIcon> (not <image
-             name="batteryIcon">) — ES dispatches element types by tag
-             name (ThemeData.cpp:1795).
-         (b) The element MUST have a name="..." attribute — elements
-             without a name are skipped with a warning log
-             (ThemeData.cpp:1506-1511). The name value itself is free;
-             it just needs to exist.
-         Both gotchas were hit during v0.9.3 — fixed iteratively as
-         on-device testing surfaced each one. -->
-    <batteryIcon name="batteryStatus">
-      <!-- pos.y=0.052 + origin (0, 0.5) aligns the battery's vertical
-           center with the clock's vertical text center. The clock's
-           bounding box top is at y=0.03 with a 0.06-tall box, and the
-           rendered text sits roughly centered in that box (centre ≈
-           0.052 measured from device screenshots). Using origin y=0.5
-           here means pos.y is the centre line, which is easier to
-           reason about and tune than top-left positioning. -->
-      <pos>0.94 0.065</pos>
-      <origin>0 0.5</origin>
-      <maxSize>0.05 0.04</maxSize>
-      <color>${textPrimary}</color>
-      <empty>./art/battery/battery-empty.png</empty>
-      <at25>./art/battery/battery-25.png</at25>
-      <at50>./art/battery/battery-50.png</at50>
-      <at75>./art/battery/battery-75.png</at75>
-      <full>./art/battery/battery-full.png</full>
-      <incharge>./art/battery/battery-incharge.png</incharge>
-    </batteryIcon>
   </view>
 </theme>

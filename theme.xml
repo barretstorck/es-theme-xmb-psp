@@ -53,10 +53,9 @@
     <include name="Show">./_inc/gamecount-show.xml</include>
   </subset>
 
-  <subset name="battery" displayName="Battery">
-    <include name="Show">./_inc/battery-show.xml</include>
-    <include name="Hide">./_inc/battery-hide.xml</include>
-  </subset>
+  <!-- v0.10 pulled the Battery subset — see _inc/common.xml comment
+       block for context. Will be re-introduced when the batteryIcon
+       restoration ships. -->
 
   <subset name="videoDelay" displayName="Video Delay">
     <include name="5 seconds">./_inc/video-delay-5s.xml</include>
