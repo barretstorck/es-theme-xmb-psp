@@ -256,6 +256,33 @@
         </text>
       </itemTemplate>
     </gamecarousel>
+
+    <!-- v0.11 PR D Task 6: PSP-XMB reflection beneath the selected
+         boxart. Per issue #13 Prototype A: extra="true" overlay at the
+         selected-slot screen position (carousel centers selected).
+         {game:thumbnail} rebinds on cursor change via
+         CarouselGameListView::updateInfoPanel — no manual
+         selection-tracking needed. When the selected game has no
+         thumbnail this overlay's path resolves empty and ES draws
+         nothing, so the reflection vanishes without needing an
+         explicit <visible> rule.
+         pos = selected-slot screen center =
+           (gameColX + gameColW/2, gameColCarY + gameColH/2)
+           = (0.08 + 0.32/2, 0.46 + 0.42/2)
+           = (0.24, 0.67)
+         maxSize = selected-slot screen footprint =
+           (gameCarLogoW × gameCarLogoScale × gameColW,
+            gameCarLogoH × gameCarLogoScale × gameColH)
+           = (0.35 × 1.5 × 0.32, 0.28 × 1.5 × 0.42)
+           ≈ (0.168, 0.176). -->
+    <image name="boxArtReflect" extra="true">
+      <path>{game:thumbnail}</path>
+      <pos>0.24 0.67</pos>
+      <maxSize>0.168 0.176</maxSize>
+      <origin>0.5 0.5</origin>
+      <reflexion>0.7 0.0</reflexion>
+      <zIndex>6</zIndex>
+    </image>
   </view>
 
 </theme>
