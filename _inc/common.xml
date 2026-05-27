@@ -110,6 +110,24 @@
     <mdVideoY>0.39</mdVideoY>
     <mdVideoW>0.50</mdVideoW>
     <mdVideoH>0.34</mdVideoH>
+
+    <!-- v0.11 PR F: metadata key-value rows in the right info panel.
+         Three rows (Year / Genre / Players) sit between the rating row
+         (y=0.17) and the video (y=0.39 = mdVideoY). Each row is 0.04
+         tall. Label column anchored to the info panel's left edge
+         (panelX=0.43); value column starts at the midpoint so longer
+         values (genre names) don't truncate. mdLabelW deliberately
+         tight (0.10) to give the value column more room.
+         Hidden via <visible>exists()> when their binding is empty;
+         <pos> is not bindable so layout doesn't reflow (audit U2). -->
+    <mdLabelX>0.43</mdLabelX>
+    <mdValueX>0.55</mdValueX>
+    <mdLabelW>0.10</mdLabelW>
+    <mdValueW>0.43</mdValueW>
+    <mdRowH>0.04</mdRowH>
+    <mdYearY>0.22</mdYearY>
+    <mdGenreY>0.27</mdGenreY>
+    <mdPlayersY>0.32</mdPlayersY>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
