@@ -128,6 +128,20 @@
     <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
   </subset>
 
+  <!-- v0.11 redesign: orthogonal subsets controlling the PSP-card row layout.
+       Must appear BEFORE the gamelist <include> so the variables they set
+       (rowIconW/H, titleFontSize, metaFontSize, titleUnselectedY/Opacity)
+       are resolved by the time _inc/gamelist.xml is parsed. -->
+  <subset name="iconSize" displayName="Icon Size">
+    <include name="Boxart">./_inc/icon-size-boxart.xml</include>
+    <include name="Compact">./_inc/icon-size-compact.xml</include>
+  </subset>
+
+  <subset name="titleVisibility" displayName="Title Visibility">
+    <include name="PSP-Faithful">./_inc/title-visibility-strict.xml</include>
+    <include name="With Titles">./_inc/title-visibility-friendly.xml</include>
+  </subset>
+
   <include>./_inc/system.xml</include>
   <include>./_inc/gamelist.xml</include>
   <include>./_inc/menu.xml</include>
@@ -158,18 +172,5 @@
     <include name="Normal">./_inc/scroll-speed-normal.xml</include>
     <include name="Slow">./_inc/scroll-speed-slow.xml</include>
     <include name="Fast">./_inc/scroll-speed-fast.xml</include>
-  </subset>
-
-  <!-- v0.11 redesign: orthogonal subsets controlling the PSP-card row layout.
-       iconSize:  per-row icon dimensions + paired font sizes.
-       titleVisibility: whether unselected-row titles render at full opacity. -->
-  <subset name="iconSize" displayName="Icon Size">
-    <include name="Boxart">./_inc/icon-size-boxart.xml</include>
-    <include name="Compact">./_inc/icon-size-compact.xml</include>
-  </subset>
-
-  <subset name="titleVisibility" displayName="Title Visibility">
-    <include name="PSP-Faithful">./_inc/title-visibility-strict.xml</include>
-    <include name="With Titles">./_inc/title-visibility-friendly.xml</include>
   </subset>
 </theme>
