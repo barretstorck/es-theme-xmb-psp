@@ -22,13 +22,6 @@
       <zIndex>0</zIndex>
     </image>
 
-    <!-- v0.10 pulled the selected-icon halo. Render math against the
-         new mStaticBackgrounds paint path didn't reproduce the v0.9.3
-         look at acceptable visual quality; will revisit individually
-         in a later iteration. art/halo.png and the haloW/haloH
-         variables in common.xml are preserved for the restoration
-         attempt. -->
-
     <!-- Wave layer 1: top crest, slowest scroll (copied from
          _inc/wave-motion.xml; the staticBackground* render path
          requires the elements to be declared directly in the view). -->
@@ -77,6 +70,28 @@
                    duration="12000" mode="linear"
                    repeat="forever"/>
       </storyboard>
+    </image>
+
+    <!-- Selected-icon halo: white gaussian behind the focused carousel item.
+         Declared inside mStaticBackgrounds (staticBackground* name prefix)
+         so it ticks every frame and paints with the wave layers as a
+         group, BEFORE the carousel renders on top.
+
+         Paint order within mStaticBackgrounds is set by zIndex
+         (SystemView.cpp:1065 stable_sort by zIndex, ascending — lower
+         paints first / underneath). The wave base sits at zIndex 0 and
+         the three wave layers occupy 1, 2, 3. zIndex=4 places the halo
+         ABOVE all wave layers but still BELOW the carousel (zIndex 5+).
+
+         Reuses art/halo.png + haloW/haloH from v0.10's preserved scaffold. -->
+    <image name="staticBackgroundHalo">
+      <path>./art/halo.png</path>
+      <pos>${crossX} ${crossY}</pos>
+      <origin>0.5 0.5</origin>
+      <maxSize>${haloW} ${haloH}</maxSize>
+      <color>FFFFFF</color>
+      <opacity>0.6</opacity>
+      <zIndex>4</zIndex>
     </image>
 
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
