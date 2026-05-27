@@ -170,7 +170,15 @@
       <alignment>center</alignment>
       <primaryColor>${textSecondary}</primaryColor>
       <secondaryColor>${textSecondary}</secondaryColor>
-      <selectorColor>${selectorGlow}</selectorColor>
+      <!-- v0.11 / #9: replace the default bar selector with a left-edge
+           chevron. art/chevron.png is a wide canvas (256x32) with the
+           glyph at the LEFT edge; ES stretches selectorImagePath to the
+           textlist width so only the leftmost ~10% paints visibly.
+           selectorColor recolors the white glyph per colorset. -->
+      <selectorImagePath>./art/chevron.png</selectorImagePath>
+      <selectorImageTile>false</selectorImageTile>
+      <selectorHeight>${chevronH}</selectorHeight>
+      <selectorColor>${textPrimary}</selectorColor>
       <selectedColor>${textPrimary}</selectedColor>
       <lineSpacing>1.4</lineSpacing>
       <zIndex>5</zIndex>
