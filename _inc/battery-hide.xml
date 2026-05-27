@@ -17,6 +17,7 @@
     </text>
     <batteryIcon name="batteryStatus">
       <visible>false</visible>
+      <opacity>0</opacity>
     </batteryIcon>
   </view>
 </theme>
