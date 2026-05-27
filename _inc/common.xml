@@ -100,6 +100,16 @@
     <gameCarLogoH>0.28</gameCarLogoH>
     <gameCarLogoScale>1.5</gameCarLogoScale>
 
+    <!-- Chevron pointer (◀) for selected sub-item. PR C / v0.11 / #9.
+         The detailed textlist consumes art/chevron.png via
+         <selectorImagePath>; the gamecarousel pins it as an extra
+         overlay at the centered selected-slot Y. chevronOffsetX is
+         negative so the chevron sits to the LEFT of the row/boxart
+         center. -->
+    <chevronW>0.03</chevronW>
+    <chevronH>0.04</chevronH>
+    <chevronOffsetX>-0.02</chevronOffsetX>
+
     <!-- Right info panel -->
     <panelX>0.43</panelX>
     <panelW>0.55</panelW>
