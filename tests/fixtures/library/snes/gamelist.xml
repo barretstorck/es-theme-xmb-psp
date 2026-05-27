@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<gameList>
+  <game>
+    <path>./super-metroid.smc</path>
+    <name>Super Metroid</name>
+    <desc>Side-scrolling action-adventure. Samus explores Zebes.</desc>
+    <image>./media/box/super-metroid.png</image>
+    <thumbnail>./media/box/super-metroid.png</thumbnail>
+    <video>./media/videos/super-metroid.mp4</video>
+    <genre>Action</genre>
+    <releasedate>19940318T000000</releasedate>
+    <players>1</players>
+    <rating>0.9</rating>
+  </game>
+  <game>
+    <path>./zelda3.smc</path>
+    <name>The Legend of Zelda: A Link to the Past</name>
+    <desc>Top-down action-RPG with a dark world parallel realm.</desc>
+    <image>./media/box/zelda3.png</image>
+    <thumbnail>./media/box/zelda3.png</thumbnail>
+    <genre>Action RPG</genre>
+    <releasedate>19911121T000000</releasedate>
+    <players>1</players>
+    <rating>0.95</rating>
+  </game>
+  <game>
+    <path>./unscraped-game.smc</path>
+    <name>Unscraped Game</name>
+  </game>
+  <game>
+    <path>./no-desc.smc</path>
+    <name>No-Description Game</name>
+    <image>./media/box/no-desc.png</image>
+    <thumbnail>./media/box/no-desc.png</thumbnail>
+    <genre>Puzzle</genre>
+    <releasedate>20000101T000000</releasedate>
+    <players>1</players>
+    <rating>0.5</rating>
+  </game>
+</gameList>
