@@ -6,7 +6,6 @@ set -euo pipefail
 VIEW="${VIEW:-system}"
 RESOLUTION="${RESOLUTION:-1024x768}"
 COLORSET="${COLORSET:-January Blue}"
-BATTERY="${BATTERY:-Glyph + Percentage}"
 OUTNAME="${OUTNAME:-render.png}"
 HAS_LIBRARY="${HAS_LIBRARY:-0}"
 
@@ -74,7 +73,6 @@ cat > "${ES_CFG}/es_settings.cfg" <<XML
 <config>
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
-  <string name="subset.battery" value="${BATTERY}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
   <bool name="ShowHelpPrompts" value="false" />
   <bool name="MusicEnabled" value="false" />
