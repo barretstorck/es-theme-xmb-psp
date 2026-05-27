@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Icon Size: Compact".
+  Smaller row icons + smaller fonts for users with long game lists who
+  prefer to see more entries on screen.
+  Selected via UI Settings > Theme Configuration > Icon Size > Compact.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <rowIconW>0.06</rowIconW>
+    <rowIconH>0.08</rowIconH>
+    <titleFontSize>0.026</titleFontSize>
+    <metaFontSize>0.018</metaFontSize>
+  </variables>
+</theme>

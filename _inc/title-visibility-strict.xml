@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Title Visibility: PSP-Faithful" (Strict; default).
+  Unselected rows show only the icon — title is hidden (opacity 0).
+  Selected row's title slides up to Y=0.25 with full opacity.
+  Selected via UI Settings > Theme Configuration > Title Visibility > PSP-Faithful.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <titleUnselectedY>0.25</titleUnselectedY>
+    <titleUnselectedOpacity>0</titleUnselectedOpacity>
+  </variables>
+</theme>
