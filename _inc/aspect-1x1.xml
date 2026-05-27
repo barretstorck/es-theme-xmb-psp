@@ -21,34 +21,18 @@
     <!-- Icon squareness (P1): square screen -> equal W and H -->
     <sysIconMaxW>0.16</sysIconMaxW>
     <sysIconMaxH>0.16</sysIconMaxH>
-    <glIconMaxW>0.20</glIconMaxW>
-    <glIconMaxH>0.20</glIconMaxH>
     <sysCarouselLogoW>0.13</sysCarouselLogoW>
     <sysCarouselLogoH>0.13</sysCarouselLogoH>
 
     <!-- Vertical arm (P2): more room below the raised cross -->
     <gameColX>0.06</gameColX>
     <gameColTextY>0.47</gameColTextY>
-    <!-- gameColCarY at 1:1: anchored just below the caption at
-         captionY=0.38 (caption ends ~0.435). Same formula as the 4:3
-         default. v0.9.3 round 3: 0.46 → 0.33 alongside the
-         maxLogoCount=3 → 1 change. -->
-    <gameColCarY>0.33</gameColCarY>
     <gameColH>0.46</gameColH>
-    <gameCarLogoW>0.36</gameCarLogoW>
-    <gameCarLogoH>0.34</gameCarLogoH>
 
     <!-- Right info panel (P3): compress to fit alongside vertical arm -->
     <panelX>0.40</panelX>
     <panelW>0.56</panelW>
     <panelDescY>0.58</panelDescY>
     <panelDescH>0.36</panelDescH>
-    <mdRatingX>0.59</mdRatingX>
-
-    <!-- Video aspect (P4): 4:3 box at 1:1 -> W/H = (4/3)·(1/1) = 4/3 -->
-    <mdVideoX>0.68</mdVideoX>
-    <mdVideoY>0.37</mdVideoY>
-    <mdVideoW>0.44</mdVideoW>
-    <mdVideoH>0.33</mdVideoH>
   </variables>
 </theme>
