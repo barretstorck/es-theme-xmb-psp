@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v0.11 PR D: default media-fallback path. Loaded unconditionally before
+     the per-system overrides so any system not mapped explicitly still
+     gets a valid (_default) fallback glyph. -->
+<theme>
+  <variables>
+    <mediaFallbackPath>./art/system-media/_default.png</mediaFallbackPath>
+  </variables>
+</theme>
