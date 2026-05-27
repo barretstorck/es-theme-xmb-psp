@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<gameList>
+  <game>
+    <path>./ff7.bin</path>
+    <name>Final Fantasy VII</name>
+    <desc>JRPG. Cloud Strife, a mercenary, gets pulled into a battle for the planet.</desc>
+    <image>./media/box/ff7.png</image>
+    <thumbnail>./media/box/ff7.png</thumbnail>
+    <video>./media/videos/ff7.mp4</video>
+    <genre>RPG</genre>
+    <releasedate>19970131T000000</releasedate>
+    <players>1</players>
+    <rating>0.95</rating>
+  </game>
+  <game>
+    <path>./mgs.bin</path>
+    <name>Metal Gear Solid</name>
+    <desc>Stealth action espionage thriller.</desc>
+    <image>./media/box/mgs.png</image>
+    <thumbnail>./media/box/mgs.png</thumbnail>
+    <genre>Stealth</genre>
+    <releasedate>19980903T000000</releasedate>
+    <players>1</players>
+    <rating>0.95</rating>
+  </game>
+  <game>
+    <path>./no-video.bin</path>
+    <name>No-Video Game</name>
+    <desc>Has metadata but no scraped video.</desc>
+    <image>./media/box/no-video.png</image>
+    <thumbnail>./media/box/no-video.png</thumbnail>
+    <genre>Adventure</genre>
+    <releasedate>19990101T000000</releasedate>
+    <players>1</players>
+    <rating>0.6</rating>
+  </game>
+  <game>
+    <path>./no-thumb.bin</path>
+    <name>No-Thumbnail Game</name>
+    <desc>Will exercise the fallback-icon path once G5 lands.</desc>
+    <genre>Mystery</genre>
+    <releasedate>20000101T000000</releasedate>
+    <players>1</players>
+    <rating>0.7</rating>
+  </game>
+</gameList>
