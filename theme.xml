@@ -159,4 +159,17 @@
     <include name="Slow">./_inc/scroll-speed-slow.xml</include>
     <include name="Fast">./_inc/scroll-speed-fast.xml</include>
   </subset>
+
+  <!-- v0.11 redesign: orthogonal subsets controlling the PSP-card row layout.
+       iconSize:  per-row icon dimensions + paired font sizes.
+       titleVisibility: whether unselected-row titles render at full opacity. -->
+  <subset name="iconSize" displayName="Icon Size">
+    <include name="Boxart">./_inc/icon-size-boxart.xml</include>
+    <include name="Compact">./_inc/icon-size-compact.xml</include>
+  </subset>
+
+  <subset name="titleVisibility" displayName="Title Visibility">
+    <include name="PSP-Faithful">./_inc/title-visibility-strict.xml</include>
+    <include name="With Titles">./_inc/title-visibility-friendly.xml</include>
+  </subset>
 </theme>
