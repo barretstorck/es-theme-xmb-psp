@@ -283,6 +283,23 @@
       <reflexion>0.7 0.0</reflexion>
       <zIndex>6</zIndex>
     </image>
+
+    <!-- v0.11 PR D Task 7: selected-slot halo for the gamecarousel.
+         Mirrors PR B's system-carousel halo design (white gaussian, no
+         accent tint), reusing art/halo.png. Pinned to the centered
+         selected slot at the same screen position as the reflection
+         overlay. zIndex 4 sits BEHIND the carousel logos (zIndex 5) so
+         the boxart paints over the halo's bright center but the
+         gaussian shoulder still reads as a diffuse glow around the
+         selection. -->
+    <image name="selectedGameHalo" extra="true">
+      <path>./art/halo.png</path>
+      <pos>0.24 0.67</pos>
+      <maxSize>${haloW} ${haloH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <color>FFFFFF</color>
+      <zIndex>4</zIndex>
+    </image>
   </view>
 
 </theme>
