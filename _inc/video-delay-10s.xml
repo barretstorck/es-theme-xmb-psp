@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Video Delay: 10 seconds".
-  Shows the still screenshot for 10 seconds before transitioning to
-  the preview video. Useful if you prefer to read the description
+  Sets ${videoDelay}=10 so the still screenshot shows for 10 seconds before
+  the preview video starts. Useful if you prefer to read the description
   before the video starts.
   Selected via UI Settings > Theme Configuration > Video Delay > 10 seconds.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="detailed,gamecarousel">
-    <video name="md_video">
-      <delay>10</delay>
-    </video>
-  </view>
+  <variables>
+    <videoDelay>10</videoDelay>
+  </variables>
 </theme>

@@ -19,9 +19,5 @@
     <sysIconMaxW>0.10</sysIconMaxW>
     <sysIconMaxH>0.17</sysIconMaxH>
     <sysCarouselLogoW>0.08</sysCarouselLogoW>
-
-    <!-- Right info panel fits (P3): use the extra horizontal room -->
-    <panelX>0.40</panelX>
-    <panelW>0.58</panelW>
   </variables>
 </theme>
