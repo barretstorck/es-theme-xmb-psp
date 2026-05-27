@@ -27,7 +27,14 @@
       <color>${textPrimary}</color>
       <alignment>right</alignment>
       <text>{global:batteryLevel}%</text>
-      <visible>{global:battery}</visible>
+      <!-- v0.10 round-3: <visible>{global:battery}</visible> appeared to
+           evaluate false on-device even with a battery present, hiding
+           the element. Removed; the percentage renders unconditionally.
+           The batteryIcon's built-in auto-hide handles devices without
+           a battery. On a no-battery device the binding may resolve to
+           a sentinel (e.g. "[None]%") — acceptable until a working
+           visible-binding is found. -->
+      <visible>true</visible>
     </text>
 
     <!-- Clock shifted left so its right edge clears the percentage's
