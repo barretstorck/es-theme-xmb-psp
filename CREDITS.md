@@ -53,3 +53,15 @@ Systems without a hand-tuned or harvested icon use a generic `_default.png`
 placeholder (which itself comes from the upstream parent-theme chain).
 To override: drop a hand-tuned `<system-shortname>.png` into
 `art/system-icons/`.
+
+## RetroArch `monochrome` icon set
+
+Icons in `art/system-icons/` derived from the RetroArch `monochrome`
+XMB icon set:
+
+- Source: [libretro/retroarch-assets](https://github.com/libretro/retroarch-assets) → `xmb/monochrome/png/`
+- License: CC-BY 4.0
+- Used for: ~134 system-specific icons (see `scripts/ra-mapping.tsv`),
+  utility/auto-collection icons, and as the design reference for 8
+  hand-authored port icons (`scripts/gen-port-icons.py`).
+
