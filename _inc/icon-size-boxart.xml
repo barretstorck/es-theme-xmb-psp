@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Icon Size: Boxart" (default).
+  Larger row icons for users with scraped boxart they want to see.
+  Selected via UI Settings > Theme Configuration > Icon Size > Boxart.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <rowIconW>0.10</rowIconW>
+    <rowIconH>0.13</rowIconH>
+    <titleFontSize>0.030</titleFontSize>
+    <metaFontSize>0.020</metaFontSize>
+  </variables>
+</theme>
