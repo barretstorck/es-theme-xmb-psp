@@ -76,13 +76,6 @@
     <gameColTextY>0.50</gameColTextY>
     <gameColH>0.42</gameColH>
 
-    <!-- Right info panel (legacy gamelist; retained as panelX/panelW are
-         referenced in any future right-side layout). -->
-    <panelX>0.43</panelX>
-    <panelW>0.55</panelW>
-    <panelDescY>0.60</panelDescY>
-    <panelDescH>0.32</panelDescH>
-
     <!-- v0.11 PR redesign: PSP-card row format variables.
          See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md. -->
     <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets). -->
@@ -90,7 +83,6 @@
     <rowIconH>0.13</rowIconH>
     <rowIconX>0.06</rowIconX>
     <rowTextX>0.18</rowTextX>
-    <rowTextRightPad>0.03</rowTextRightPad>
     <rowLineH>0.002</rowLineH>
     <titleFontSize>0.030</titleFontSize>
     <metaFontSize>0.020</metaFontSize>
@@ -98,10 +90,12 @@
     <!-- Title visibility (overridden by title-visibility-{strict,friendly}.xml subsets). -->
     <titleUnselectedY>0.25</titleUnselectedY>
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
-    <titleSelectedY>0.25</titleSelectedY>
 
-    <!-- Video preview delay (uses existing video-delay-*.xml subset values). -->
-    <videoDelay>2000</videoDelay>
+    <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,
+         matching the values written by _inc/video-delay-*.xml subsets).
+         Default 5 matches the pre-v0.11 default; the four user-facing subsets
+         (Instant/2s/5s/10s) override this via the videoDelay variable. -->
+    <videoDelay>5</videoDelay>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">

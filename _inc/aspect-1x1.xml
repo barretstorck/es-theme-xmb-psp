@@ -3,7 +3,7 @@
   es-theme-xmb-psp - 1:1 (square) aspect-ratio overrides.
   Loaded conditionally by theme.xml when ${screen.ratio} == '1/1'.
   Design surface: 720x720 (RG Cube X). Square is the hardest case —
-  the XMB cross + right info panel must share narrow horizontal space.
+  the XMB cross must share narrow horizontal space with the gamelist.
   See P1-P4 in
   docs/superpowers/specs/2026-05-23-v0.8-multi-aspect-ratio-design.md.
   CC-BY-NC-SA 2.0. See CREDITS.md.
@@ -28,11 +28,5 @@
     <gameColX>0.06</gameColX>
     <gameColTextY>0.47</gameColTextY>
     <gameColH>0.46</gameColH>
-
-    <!-- Right info panel (P3): compress to fit alongside vertical arm -->
-    <panelX>0.40</panelX>
-    <panelW>0.56</panelW>
-    <panelDescY>0.58</panelDescY>
-    <panelDescH>0.36</panelDescH>
   </variables>
 </theme>

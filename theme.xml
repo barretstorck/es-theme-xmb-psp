@@ -130,8 +130,8 @@
 
   <!-- v0.11 redesign: orthogonal subsets controlling the PSP-card row layout.
        Must appear BEFORE the gamelist <include> so the variables they set
-       (rowIconW/H, titleFontSize, metaFontSize, titleUnselectedY/Opacity)
-       are resolved by the time _inc/gamelist.xml is parsed. -->
+       (rowIconW/H, titleFontSize, metaFontSize, titleUnselectedY/Opacity,
+       videoDelay) are resolved by the time _inc/gamelist.xml is parsed. -->
   <subset name="iconSize" displayName="Icon Size">
     <include name="Boxart">./_inc/icon-size-boxart.xml</include>
     <include name="Compact">./_inc/icon-size-compact.xml</include>
@@ -140,6 +140,16 @@
   <subset name="titleVisibility" displayName="Title Visibility">
     <include name="PSP-Faithful">./_inc/title-visibility-strict.xml</include>
     <include name="With Titles">./_inc/title-visibility-friendly.xml</include>
+  </subset>
+
+  <!-- v0.11: videoDelay moved before gamelist include because subsets now
+       set the ${videoDelay} variable (which gamelist.xml substitutes into
+       tplVideo's <delay>) rather than writing directly into md_video. -->
+  <subset name="videoDelay" displayName="Video Delay">
+    <include name="5 seconds">./_inc/video-delay-5s.xml</include>
+    <include name="Instant">./_inc/video-delay-instant.xml</include>
+    <include name="2 seconds">./_inc/video-delay-2s.xml</include>
+    <include name="10 seconds">./_inc/video-delay-10s.xml</include>
   </subset>
 
   <include>./_inc/system.xml</include>
@@ -155,13 +165,6 @@
   <!-- v0.10 pulled the Battery subset — see _inc/common.xml comment
        block for context. Will be re-introduced when the batteryIcon
        restoration ships. -->
-
-  <subset name="videoDelay" displayName="Video Delay">
-    <include name="5 seconds">./_inc/video-delay-5s.xml</include>
-    <include name="Instant">./_inc/video-delay-instant.xml</include>
-    <include name="2 seconds">./_inc/video-delay-2s.xml</include>
-    <include name="10 seconds">./_inc/video-delay-10s.xml</include>
-  </subset>
 
   <subset name="videoAudio" displayName="Video Audio">
     <include name="Off">./_inc/video-audio-off.xml</include>

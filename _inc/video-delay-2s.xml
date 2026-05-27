@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Video Delay: 2 seconds".
-  Shows the still screenshot for 2 seconds, then transitions to the
-  preview video.
+  Sets ${videoDelay}=2 so the still screenshot shows for 2 seconds before
+  the preview video starts on the selected gamelist row.
   Selected via UI Settings > Theme Configuration > Video Delay > 2 seconds.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="detailed,gamecarousel">
-    <video name="md_video">
-      <delay>2</delay>
-    </video>
-  </view>
+  <variables>
+    <videoDelay>2</videoDelay>
+  </variables>
 </theme>

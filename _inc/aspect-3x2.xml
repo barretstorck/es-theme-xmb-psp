@@ -17,9 +17,5 @@
     <!-- Carousel slot spacing (constant 165 px across ratios) -->
     <sysCarouselSizeW>1.60</sysCarouselSizeW>     <!-- K=1.62 × logoW=0.09 × 11 -->
     <sysCarouselPosX>-0.56</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.24 - 0.80 -->
-
-    <!-- Right info panel fits (P3): wider screen, slightly wider panel -->
-    <panelX>0.42</panelX>
-    <panelW>0.56</panelW>
   </variables>
 </theme>
