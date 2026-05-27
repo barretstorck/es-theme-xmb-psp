@@ -9,8 +9,14 @@
 # each alias's filename.
 #
 # Every row verified against ~/retroarch-assets/xmb/automatic/png/ at
-# authoring time. If you add a row, run the validator at the bottom of
-# Task 3 of docs/v0.11-icon-adoption-plan.md before committing.
+# authoring time. If you add a row, validate that the right-hand value
+# resolves to a real ${RA_DIR}/<ra-filename>.png — re-run the smoke test
+# scripts/tests/test-import-ra-icons.sh, and/or:
+#   while IFS=$'\t' read -r short ra; do
+#     [[ -z "${short}" || "${short}" == \#* ]] && continue
+#     [[ -f "${HOME}/retroarch-assets/xmb/automatic/png/${ra}.png" ]] \
+#       || echo "MISS: ${short} -> ${ra}"
+#   done < scripts/ra-mapping.tsv
 
 # --- Tier 1: hardware systems (RA `automatic` line-art outlines) ---
 
