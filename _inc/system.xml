@@ -76,11 +76,12 @@
          Uses the staticBackground* name prefix (same mechanism as the
          wave): loaded once at view construction, never reset on cursor
          change — no slide-and-snap on system change.
-         zIndex stack: wave=0, layers=1/2/3, halo=10, carousel=5/6,
-         caption=7. Halo at 10 sits above the layers; no conflict with
-         the carousel since carousel paints later (insertion order
-         breaks z-index ties, practical render order:
-         wave → layers → halo → carousel).
+         zIndex stack: wave=0, layers=1/2/3, halo=4, carousel=5/6,
+         caption=7. Halo at 4 sits above all wave layers but below the
+         carousel: the carousel (including its logo) paints over the
+         halo, so the icon obscures the halo's bright gaussian center
+         and only the outer gaussian shoulder is visible as a soft
+         diffuse glow. This restores the v0.9.3 visual.
          Sized via ${haloW}/${haloH} in common.xml.
          v0.9.3 event="scroll" and default storyboards deleted —
          dead code per audit X1. -->
@@ -90,7 +91,7 @@
       <origin>0.5 0.5</origin>
       <maxSize>${haloW} ${haloH}</maxSize>
       <color>FFFFFF</color>
-      <zIndex>10</zIndex>
+      <zIndex>4</zIndex>
     </image>
 
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
