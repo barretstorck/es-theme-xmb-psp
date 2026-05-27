@@ -8,8 +8,10 @@
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
+    <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.80
+         yields ~100px boxart icons. See common.xml for sizing notes. -->
     <rowIconW>0.10</rowIconW>
-    <rowIconH>0.13</rowIconH>
+    <rowIconH>0.80</rowIconH>
     <titleFontSize>0.030</titleFontSize>
     <metaFontSize>0.020</metaFontSize>
   </variables>

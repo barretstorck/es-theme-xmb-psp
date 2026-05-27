@@ -68,6 +68,13 @@
     <haloW>0.28</haloW>
     <haloH>0.28</haloH>
 
+    <!-- Row-halo size (slot-relative, used by the gamelist itemTemplate
+         tplHalo). Sized so the gaussian shoulder reads as a diffuse
+         glow around the row icon without clipping vertically against
+         the row-slot. -->
+    <rowHaloW>0.25</rowHaloW>
+    <rowHaloH>1.30</rowHaloH>
+
     <!-- Gamelist: shared geometry vars. Per-row variables for the v0.11
          card layout are defined below in the v0.11 block; legacy gamecarousel
          /info-panel/glIcon vars were removed in the v0.11 redesign. -->
@@ -77,13 +84,20 @@
     <gameColH>0.42</gameColH>
 
     <!-- v0.11 PR redesign: PSP-card row format variables.
-         See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md. -->
+         See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.
+         IMPORTANT: itemTemplate <pos>/<size>/<maxSize> values are scaled
+         by the textlist row-slot's pixel size, not the screen. Slot
+         pixel size = (textlist.w * screenW) x (textlist.h / lines *
+         screenH). At 4:3 that is roughly 1024 x 128 px, so a value
+         like maxSize="0.10 0.13" only yields a 102x17 px icon. Pick
+         the y component large enough relative to the slot's short
+         pixel-axis (rowIconH=0.80 ~= 100px of a 128px-tall slot). -->
     <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets). -->
     <rowIconW>0.10</rowIconW>
-    <rowIconH>0.13</rowIconH>
+    <rowIconH>0.80</rowIconH>
     <rowIconX>0.06</rowIconX>
     <rowTextX>0.18</rowTextX>
-    <rowLineH>0.002</rowLineH>
+    <rowLineH>0.02</rowLineH>
     <titleFontSize>0.030</titleFontSize>
     <metaFontSize>0.020</metaFontSize>
 

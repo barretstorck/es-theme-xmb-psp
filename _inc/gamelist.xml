@@ -140,10 +140,19 @@
     <textlist name="gamelist">
       <pos>0.0 0.45</pos>
       <size>1.0 0.50</size>
+      <!-- <lines>3</lines> forces the textlist to allocate three equal
+           vertical slots inside <size>, so each slot is ~0.167 tall.
+           Without this, ES sizes slots based on <fontSize>, which (when
+           set tiny to suppress default text rendering) collapses every
+           slot to ~0px, causing the per-row icons/lines to render as
+           overlapping thin stripes. See TextListComponent.h:611. -->
+      <lines>3</lines>
       <lineSpacing>1.0</lineSpacing>
       <!-- Suppress the textlist's own default text rendering (game names
            at tiny default fontSize, cycling primary/selected/secondary
-           colors). itemTemplate replaces that with our card layout. -->
+           colors). itemTemplate replaces that with our card layout. The
+           fontSize value no longer drives row height because <lines>3</lines>
+           overrides it. -->
       <fontSize>0.0001</fontSize>
       <primaryColor>00000000</primaryColor>
       <secondaryColor>00000000</secondaryColor>
@@ -159,7 +168,7 @@
           <path>./art/halo.png</path>
           <pos>${rowIconX} 0.5</pos>
           <origin>0 0.5</origin>
-          <maxSize>${haloW} ${haloH}</maxSize>
+          <maxSize>${rowHaloW} ${rowHaloH}</maxSize>
           <color>FFFFFF</color>
           <opacity>0</opacity>
           <zIndex>0</zIndex>
@@ -171,21 +180,24 @@
           </storyboard>
         </image>
 
-        <!-- 2a. Scraped boxart, if present. -->
+        <!-- 2a. Scraped boxart, if present. <maxSize> preserves aspect
+             ratio (boxart isn't 1:1, e.g. PSP UMD jewel cases are tall),
+             where <size> would force-stretch arbitrary scraped images. -->
         <image name="tplIcon">
           <path>{game:thumbnail}</path>
           <pos>${rowIconX} 0.5</pos>
-          <size>${rowIconW} ${rowIconH}</size>
+          <maxSize>${rowIconW} ${rowIconH}</maxSize>
           <origin>0 0.5</origin>
           <zIndex>2</zIndex>
         </image>
 
         <!-- 2b. Media-fallback when no thumbnail. mediaFallbackPath comes from
-             _inc/media-fallback/<system>.xml (loaded conditionally by theme.xml). -->
+             _inc/media-fallback/<system>.xml (loaded conditionally by theme.xml).
+             <maxSize> for the same aspect-preserving reason as tplIcon. -->
         <image name="tplFallbackIcon">
           <path>${mediaFallbackPath}</path>
           <pos>${rowIconX} 0.5</pos>
-          <size>${rowIconW} ${rowIconH}</size>
+          <maxSize>${rowIconW} ${rowIconH}</maxSize>
           <origin>0 0.5</origin>
           <visible>!exists({game:thumbnail})</visible>
           <zIndex>2</zIndex>
@@ -263,7 +275,14 @@
           <fontPath>${fontLight}</fontPath>
           <fontSize>${metaFontSize}</fontSize>
           <color>${textSecondary}</color>
-          <text>{game:genre} · ★ {game:rating} · {game:lastplayed}</text>
+          <!-- {game:stars} returns Unicode RATINGSTAR (U+F005) glyphs in
+               proportion to the rating (0..5). Cleaner than {game:rating}
+               which would render as a raw float "0.850000".
+               {game:lastplayed} is intentionally omitted: the MD_TIME
+               binding returns "01/01/70" (Unix epoch formatted) for
+               never-played games on this build, so shipping it leaks
+               that placeholder into every fresh library. -->
+          <text>{game:genre} · {game:stars}</text>
           <alignment>left</alignment>
           <verticalAlignment>center</verticalAlignment>
           <opacity>0</opacity>
