@@ -16,7 +16,8 @@
 | Asset | Source | Origin author / license |
 |---|---|---|
 | Wave background | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
-| System icons | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
+| System icons (majority, v0.11+) | RetroArch `automatic` XMB set | libretro contributors — CC-BY 4.0 (see "System icons" section below) |
+| System icons (remainder + pre-v0.11) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 (see "Icon attribution (v0.4)" section below) |
 | UI chrome (selector, separators) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Sound effects | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Font: Roboto Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed) | The Roboto Project Authors — SIL OFL 1.1 (see `fonts/OFL.txt`) |
@@ -54,11 +55,11 @@ placeholder (which itself comes from the upstream parent-theme chain).
 To override: drop a hand-tuned `<system-shortname>.png` into
 `art/system-icons/`.
 
-## System icons
+## System icons (v0.11+)
 
-System icons in `art/system-icons/` are adapted from the RetroArch
-*automatic* XMB icon theme, © libretro contributors, licensed under
-[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+System icons in `art/system-icons/` are primarily adapted from the
+RetroArch *automatic* XMB icon theme, © libretro contributors, licensed
+under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 - Source: https://github.com/libretro/retroarch-assets
 - Subdirectory: `xmb/automatic/png/`
