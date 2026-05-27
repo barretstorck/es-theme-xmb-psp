@@ -223,6 +223,32 @@
       <zIndex>5</zIndex>
     </gamecarousel>
 
+    <!-- v0.11 / #9: PSP-XMB selected-slot chevron. The gamecarousel
+         centers its selected boxart at (gameColX + gameColW/2,
+         gameColCarY + gameColH/2). We pin a chevron just LEFT of the
+         boxart via an extra-overlay image with a right-edge origin
+         so the glyph sits OUTSIDE the boxart's left edge.
+         Independent of the carousel's intrinsic render — does not
+         require <itemTemplate>.
+
+         Plan math placed pos.x at the boxart CENTER which overlapped
+         the chevron with the boxart. Corrected to anchor at the
+         boxart's LEFT edge:
+           boxart_w = gameCarLogoW * gameColW * gameCarLogoScale
+                    = 0.35 * 0.32 * 1.5 = 0.168
+           boxart_left = gameColX + gameColW/2 - boxart_w/2
+                       = 0.08 + 0.16 - 0.084 = 0.156
+           pos.x = boxart_left + chevronOffsetX = 0.156 - 0.02 = 0.136
+         Y math: gameColCarY (0.46) + gameColH (0.42) / 2 = 0.67 -->
+    <image name="gamecarSelChevron" extra="true">
+      <path>./art/chevron.png</path>
+      <pos>0.136 0.67</pos>
+      <size>${chevronW} ${chevronH}</size>
+      <origin>1.0 0.5</origin>
+      <color>${textPrimary}</color>
+      <zIndex>7</zIndex>
+    </image>
+
     <!-- (v0.9.3 round 4 added a selectedGameHalo element here but
          deferred to v0.10: a white halo behind a text-fallback game
          title made the title unreadable, and a per-state visibility
