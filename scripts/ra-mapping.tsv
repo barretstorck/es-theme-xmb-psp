@@ -1,0 +1,209 @@
+# scripts/ra-mapping.tsv
+#
+# Maps Knulli system shortnames -> RetroArch `automatic` XMB icon filenames
+# (filename without the .png extension). Two tab-separated columns.
+# Used by scripts/import-ra-icons.sh.
+#
+# Family aliases (e.g. amiga / amiga500 / amiga1200) each get their own
+# row pointing at the same RA source — the script copies the source under
+# each alias's filename.
+#
+# Every row verified against ~/retroarch-assets/xmb/automatic/png/ at
+# authoring time. If you add a row, validate that the right-hand value
+# resolves to a real ${RA_DIR}/<ra-filename>.png — re-run the smoke test
+# scripts/tests/test-import-ra-icons.sh, and/or:
+#   while IFS=$'\t' read -r short ra; do
+#     [[ -z "${short}" || "${short}" == \#* ]] && continue
+#     [[ -f "${HOME}/retroarch-assets/xmb/automatic/png/${ra}.png" ]] \
+#       || echo "MISS: ${short} -> ${ra}"
+#   done < scripts/ra-mapping.tsv
+
+# --- Tier 1: hardware systems (RA `automatic` line-art outlines) ---
+
+# Nintendo
+nes	Nintendo - Nintendo Entertainment System
+fds	Nintendo - Family Computer Disk System
+snes	Nintendo - Super Nintendo Entertainment System
+sgb	Nintendo - Super Nintendo Entertainment System
+sgb-msu1	Nintendo - Super Nintendo Entertainment System
+snes-msu1	Nintendo - Super Nintendo Entertainment System
+n64	Nintendo - Nintendo 64
+n64dd	Nintendo - Nintendo 64DD
+gamecube	Nintendo - GameCube
+wii	Nintendo - Wii
+wiiu	Nintendo - Wii U
+gb	Nintendo - Game Boy
+gb2players	Nintendo - Game Boy
+gbc	Nintendo - Game Boy Color
+gbc2players	Nintendo - Game Boy Color
+gba	Nintendo - Game Boy Advance
+nds	Nintendo - Nintendo DS
+3ds	Nintendo - Nintendo 3DS
+virtualboy	Nintendo - Virtual Boy
+pokemini	Nintendo - Pokemon Mini
+satellaview	Nintendo - Satellaview
+sufami	Nintendo - Sufami Turbo
+
+# Sega
+mastersystem	Sega - Master System - Mark III
+megadrive	Sega - Mega Drive - Genesis
+genesis	Sega - Mega Drive - Genesis
+msu-md	Sega - Mega Drive - Genesis
+segacd	Sega - Mega-CD - Sega CD
+sega32x	Sega - 32X
+saturn	Sega - Saturn
+dreamcast	Sega - Dreamcast
+gamegear	Sega - Game Gear
+sg-1000	Sega - SG-1000
+pico	Sega - PICO
+naomi	Sega - Naomi
+naomi2	Sega - Naomi 2
+
+# Sony
+psx	Sony - PlayStation
+ps2	Sony - PlayStation 2
+psp	Sony - PlayStation Portable
+
+# Atari
+atari2600	Atari - 2600
+atari5200	Atari - 5200
+atari7800	Atari - 7800
+atari800	Atari - 8-bit Family
+atarist	Atari - ST
+atarilynx	Atari - Lynx
+atarijaguar	Atari - Jaguar
+atarijaguarcd	Atari - Jaguar CD
+xegs	Atari - XEGS
+
+# NEC
+pcengine	NEC - PC Engine - TurboGrafx 16
+pcenginecd	NEC - PC Engine CD - TurboGrafx-CD
+pce-cd	NEC - PC Engine CD - TurboGrafx-CD
+supergrafx	NEC - PC Engine SuperGrafx
+pc98	NEC - PC-98
+
+# SNK
+neogeo	SNK - Neo Geo
+neogeocd	SNK - Neo Geo CD
+ngp	SNK - Neo Geo Pocket
+ngpc	SNK - Neo Geo Pocket Color
+
+# Commodore
+c64	Commodore - 64
+c128	Commodore - 128
+c20	Commodore - VIC-20
+pet	Commodore - PET
+amiga	Commodore - Amiga
+amiga500	Commodore - Amiga
+amiga1200	Commodore - Amiga
+amigacd32	Commodore - CD32
+amigacdtv	Commodore - CDTV
+cplus4	Commodore - Plus-4
+
+# Bandai / Apple-Bandai
+wonderswan	Bandai - WonderSwan
+wonderswancolor	Bandai - WonderSwan Color
+
+# Coleco / Magnavox / Mattel / etc.
+colecovision	Coleco - ColecoVision
+adam	Coleco - ColecoVision ADAM
+odyssey2	Magnavox - Odyssey2
+videopacplus	Philips - Videopac+
+intellivision	Mattel - Intellivision
+channelf	Fairchild - Channel F
+vectrex	GCE - Vectrex
+3do	The 3DO Company - 3DO
+cdi	Philips - CD-i
+astrocade	Bally - Astrocade
+arcadia	Emerson - Arcadia 2001
+vc4000	Interton - VC 4000
+advision	Entex - Adventure Vision
+multivision	Bandai - Super Vision 8000
+crvision	VTech - CreatiVision
+creativision	VTech - CreatiVision
+socrates	VTech - Socrates
+vsmile	VTech - V.Smile
+gamate	Bit Corporation - Gamate
+gamecom	Tiger - Game.com
+gamepock	Epoch - Game Pocket Computer
+gmaster	Hartung - Game Master
+megaduck	Welback - Mega Duck
+pv1000	Casio - PV-1000
+supracan	Funtech - Super Acan
+tutor	Tomy - Tutor
+scv	Epoch - Super Cassette Vision
+spectravideo	Spectravideo - SVI-318 - SVI-328
+apfm1000	APF - MP-1000
+
+# Microsoft / Sinclair / Sharp / Acorn / others
+msx	Microsoft - MSX
+msx1	Microsoft - MSX
+msx2	Microsoft - MSX2
+msx2+	Microsoft - MSX2
+msxturbor	Microsoft - MSX2
+x68000	Sharp - X68000
+x1	Sharp - X1
+zxspectrum	Sinclair - ZX Spectrum
+zx81	Sinclair - ZX 81
+bbcmicro	Acorn - BBC Micro
+archimedes	Acorn - Archimedes
+atom	Acorn - Atom
+thomson	Thomson - MOTO
+gp32	GamePark - GP32
+
+# DOS / PC / Japanese micros
+dos	DOS
+pc	DOS
+fmtowns	Fujitsu - FM Towns
+fm7	Fujitsu - FM-7
+
+# Arcade
+arcade	MAME
+mame	MAME
+fbneo	FBNeo - Arcade Games
+atomiswave	Atomiswave
+
+# Handhelds / oddities
+gameandwatch	Handheld Electronic Game
+supervision	Watara - Supervision
+gx4000	Amstrad - GX4000
+
+# Computers
+amstradcpc	Amstrad - CPC
+apple2	Apple - II
+apple2gs	Apple - IIGS
+macintosh	Apple - Macintosh
+
+# Game engines / interpreters
+# Note: DOOM-family engines (prboom, gzdoom, raze, rott, eduke32, iortcw)
+# could all share RA's DOOM.png, but are intentionally NOT mapped here —
+# Knulli's existing per-engine icons differentiate the variants better
+# than collapsing them under one icon. Revisit if a future iteration
+# adopts a per-engine RA art pass.
+scummvm	ScummVM
+arduboy	Arduboy Inc - Arduboy
+cannonball	Cannonball
+cavestory	Cave Story
+easyrpg	RPG Maker
+lowresnx	LowRes NX
+lutro	Lutro
+tic80	TIC-80
+uzebox	Uzebox
+quake	Quake
+quake2	Quake II
+
+# --- Tier 2: branded auto-collections, tools, media (RA filled-graphic) ---
+
+auto-favorites	favorites
+auto-lastplayed	history
+auto-allgames	database
+library	database
+tools	menu_drivers
+vaixterm	menu_drivers
+emulators	core
+ports	core
+imageviewer	images
+mpv	movie
+recordings	movie
+vgmplay	music
+odcommander	file
