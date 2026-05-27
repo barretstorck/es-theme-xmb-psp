@@ -24,7 +24,7 @@
 <theme>
   <formatVersion>7</formatVersion>
 
-  <view name="basic, detailed, gamecarousel">
+  <view name="detailed,gamecarousel">
 
     <!-- Wave background. extra="true" required to render. -->
     <image name="waveBackground" extra="true">
