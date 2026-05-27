@@ -103,13 +103,23 @@
     <!-- Right info panel -->
     <panelX>0.43</panelX>
     <panelW>0.55</panelW>
-    <panelDescY>0.60</panelDescY>
-    <panelDescH>0.32</panelDescH>
+    <!-- v0.11 PR F: description pushed down from 0.60 to 0.66 to clear
+         the relocated video bottom (now at 0.64). Height trimmed 0.32 -> 0.26
+         to keep the panel within the 0.92 bottom margin. -->
+    <panelDescY>0.66</panelDescY>
+    <panelDescH>0.26</panelDescH>
     <mdRatingX>0.615</mdRatingX>
     <mdVideoX>0.705</mdVideoX>
-    <mdVideoY>0.39</mdVideoY>
+    <!-- v0.11 PR F: video pushed down + compressed to make room for
+         the Year/Genre/Players metadata rows above. Previous values
+         (y=0.39, h=0.34) placed video.top at y=0.22, colliding with
+         the new rows at y=0.22/0.27/0.32. New: center y=0.50, h=0.28
+         puts video.top at 0.36 (clears rows) and video.bottom at 0.64
+         (overlaps description start at 0.60 by 0.04 — description
+         pushed to 0.66 below). -->
+    <mdVideoY>0.50</mdVideoY>
     <mdVideoW>0.50</mdVideoW>
-    <mdVideoH>0.34</mdVideoH>
+    <mdVideoH>0.28</mdVideoH>
 
     <!-- v0.11 PR F: metadata key-value rows in the right info panel.
          Three rows (Year / Genre / Players) sit between the rating row
