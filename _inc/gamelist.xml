@@ -153,33 +153,6 @@
       <zIndex>5</zIndex>
     </text>
 
-    <!-- Description scroll affordance chevrons. Both float OUTSIDE the
-         description box — not inside it:
-           ▲ (descScrollUp)  : bottom edge aligned to panelDescY, so it
-             floats just above the description top edge. origin="0 1"
-             is intentional and load-bearing.
-           ▼ (descScrollDown): top edge aligned to descScrollDownY
-             (= panelDescY + panelDescH - margin), so it floats just
-             below the description bottom edge.
-         Always visible (no description-overflow binding exists —
-         audit X2). -->
-    <image name="descScrollUp" extra="true">
-      <path>./art/ui/chevron-up.png</path>
-      <pos>${panelX} ${panelDescY}</pos>
-      <origin>0 1</origin>
-      <maxSize>0.014 0.011</maxSize>
-      <color>${textSecondary}</color>
-      <zIndex>6</zIndex>
-    </image>
-
-    <image name="descScrollDown" extra="true">
-      <path>./art/ui/chevron-down.png</path>
-      <pos>${panelX} ${descScrollDownY}</pos>
-      <maxSize>0.014 0.011</maxSize>
-      <color>${textSecondary}</color>
-      <zIndex>6</zIndex>
-    </image>
-
   </view>
 
   <!-- ============================================================
