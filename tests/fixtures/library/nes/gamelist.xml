@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<gameList>
+  <game>
+    <path>./smb3.nes</path>
+    <name>Super Mario Bros 3</name>
+    <desc>Platformer with overworld map and power-up costumes.</desc>
+    <image>./media/box/smb3.png</image>
+    <thumbnail>./media/box/smb3.png</thumbnail>
+    <genre>Platformer</genre>
+    <releasedate>19881023T000000</releasedate>
+    <players>1-2</players>
+    <rating>0.95</rating>
+  </game>
+  <game>
+    <path>./contra.nes</path>
+    <name>Contra</name>
+    <desc>Run-and-gun side-scroller.</desc>
+    <image>./media/box/contra.png</image>
+    <thumbnail>./media/box/contra.png</thumbnail>
+    <genre>Shoot 'em up</genre>
+    <releasedate>19880202T000000</releasedate>
+    <players>1-2</players>
+    <rating>0.85</rating>
+  </game>
+  <game>
+    <path>./no-genre.nes</path>
+    <name>No-Genre Game</name>
+    <desc>Has everything but a genre tag.</desc>
+    <image>./media/box/no-genre.png</image>
+    <thumbnail>./media/box/no-genre.png</thumbnail>
+    <releasedate>19900101T000000</releasedate>
+    <players>1</players>
+    <rating>0.5</rating>
+  </game>
+  <game>
+    <path>./zero-metadata.nes</path>
+    <name>Zero Metadata</name>
+  </game>
+</gameList>
