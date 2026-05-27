@@ -161,7 +161,7 @@
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.042</fontSize>
       <color>${textPrimary}</color>
-      <horizontalAlignment>right</horizontalAlignment>
+      <alignment>right</alignment>
     </text>
 
     <!-- Battery glyph (sits at pos.x=0.94; clock right edge at 0.78+0.14
