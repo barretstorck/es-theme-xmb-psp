@@ -110,9 +110,9 @@ Two additional sources of partial authority are referenced:
   with extracted firmware files, and the hex codes are testable against
   the videos.
 - **RetroArch's `xmb.c`** (https://github.com/libretro/RetroArch/blob/master/menu/drivers/xmb.c)
-  and its `automatic` icon theme — open-source XMB-style implementation
+  and its `monochrome` icon theme — open-source XMB-style implementation
   with measurable defaults. Used as a corroborating cross-reference for
-  icon-line-art conventions only; its layout maths differ from
+  filled-silhouette icon conventions only; its layout maths differ from
   EmulationStation's and are not a layout source for this theme.
 
 If a future contributor uncovers a SCEI-internal layout doc, an
@@ -618,10 +618,12 @@ hierarchy**:
 
 This theme follows that hierarchy:
 
-- **Hardware-system icons** (NES, SNES, PSX, etc.) — silhouette
-  treatment. Currently served by Knulli's icon pack; planned migration
-  to RetroArch `automatic` icon set (CC-BY 4.0 line-art, see audit
-  S1a) for visual coherence.
+- **Hardware-system icons** (NES, SNES, PSX, etc.) — filled-silhouette
+  treatment. Served by a hybrid set: Knulli's per-system silhouettes
+  retained where they read as PSP-style, with ~134 shortnames adopted
+  from RetroArch's `monochrome` icon set (CC-BY 4.0 filled-silhouette,
+  see audit S1a and #23) for visual coherence, plus 8 hand-authored
+  port icons in matching style.
 - **Auto-collection icons** (`auto-favorites`, `auto-lastplayed`,
   `auto-allgames`, `tools`, `ports`, etc.) — branded treatment.
   Served by RetroArch's `favorites.png` (heart), `history.png`
@@ -649,7 +651,7 @@ Guidelines v5.00 §3):
 This theme renders at much higher resolutions than the PSP's native
 480×272, so the source-bitmap sizes above are *information* but not
 *constraints*. The theme uses **256×256 px** white-on-transparent PNGs
-for category icons (drop-in compatible with RetroArch's `automatic`
+for category icons (drop-in compatible with RetroArch's `monochrome`
 set, see audit S1a). The `halo.png` source is also 256×256 (square)
 and ES scales it via `<maxSize>` at render time.
 
@@ -690,8 +692,8 @@ PSP face buttons are: **✕ Cross (confirm), ○ Circle (back), □ Square,
 This theme currently uses ES's built-in helpsystem icons (not
 PSP-shaped). Future migration is audit S4: author 6-10 small PNG
 glyphs (~32×32 px source, rendered at `fontSize=0.025` ≈ 19px tall)
-at the same line-art weight as the planned system-icon redraw, then
-bind via:
+in the same filled-silhouette weight as the shipped system icons,
+then bind via:
 
 ```xml
 <helpsystem name="help">
@@ -1283,9 +1285,11 @@ evidence:
 
 - **RetroArch `xmb.c`**:
   https://github.com/libretro/RetroArch/blob/master/menu/drivers/xmb.c
-- **RetroArch `automatic` icon set** (CC-BY 4.0):
-  https://github.com/libretro/retroarch-assets/tree/master/xmb/automatic/png
-  — drop-in line-art replacement for hardware-system icons (audit S1a).
+- **RetroArch `monochrome` icon set** (CC-BY 4.0):
+  https://github.com/libretro/retroarch-assets/tree/master/xmb/monochrome/png
+  — drop-in filled-silhouette replacement for hardware-system icons
+  (audit S1a, #23 research conclusion). Historical note: PR #22 tried
+  the `automatic` (line-art) set and rolled back — see #23 for why.
 - **Libretro XMB Interface docs**:
   https://docs.libretro.com/guides/xmb/
 
