@@ -53,3 +53,14 @@ Systems without a hand-tuned or harvested icon use a generic `_default.png`
 placeholder (which itself comes from the upstream parent-theme chain).
 To override: drop a hand-tuned `<system-shortname>.png` into
 `art/system-icons/`.
+
+## System icons
+
+System icons in `art/system-icons/` are adapted from the RetroArch
+*automatic* XMB icon theme, © libretro contributors, licensed under
+[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+- Source: https://github.com/libretro/retroarch-assets
+- Subdirectory: `xmb/automatic/png/`
+- Modifications: file renaming to Knulli `es_systems.cfg` shortnames; no visual edits.
+- Coverage: roughly three quarters of the ~191 Knulli shortnames are covered by the RA `automatic` set; the remainder retain icons from the pre-v0.11 Knulli-derived set.
