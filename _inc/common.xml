@@ -68,48 +68,20 @@
     <haloW>0.28</haloW>
     <haloH>0.28</haloH>
 
-    <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
-    <glIconMaxW>0.15</glIconMaxW>
-    <glIconMaxH>0.21</glIconMaxH>
+    <!-- Gamelist: shared geometry vars. Per-row variables for the v0.11
+         card layout are defined below in the v0.11 block; legacy gamecarousel
+         /info-panel/glIcon vars were removed in the v0.11 redesign. -->
     <gameColX>0.08</gameColX>
     <gameColW>0.32</gameColW>
     <gameColTextY>0.50</gameColTextY>
-    <!-- gameColCarY positions the gamecarousel container so the
-         CENTERED selected boxart has slot[-1] (the unselected item
-         above the selected) just below the caption — not in the
-         empty space between caption and selected. v0.9.3 round 4
-         restored maxLogoCount=3 (multi-visible XMB-style) with
-         dimmed unselected (minLogoOpacity=0.3) and larger selected
-         (logoScale=1.5) plus halo for visual dominance.
-         Math: slot[-1] top edge = caption_bottom + small_gap. Solving
-         for gameColCarY = caption_bottom + gap - logoH×container_h/2
-         + (container_h - slot_h) / 2 - slot_h; for 4:3 defaults this
-         lands around 0.46. -->
-    <gameColCarY>0.46</gameColCarY>
     <gameColH>0.42</gameColH>
 
-    <!-- Gamecarousel container-relative boxart sizing.
-         Note: ES's vertical carousel slot height is 1/maxLogoCount of the
-         container (CarouselComponent.cpp:394). With maxLogoCount=3 each
-         slot is 0.333 container-units; gameCarLogoH must stay <= 0.333
-         to avoid logo overlap. 0.28 leaves ~0.053 of vertical gap per
-         slot (visible padding between thumbnails). v0.9.3 reduced from
-         0.37, which was 11% over slot height and produced visible
-         overlap of neighbouring boxart on-device. -->
-    <gameCarLogoW>0.35</gameCarLogoW>
-    <gameCarLogoH>0.28</gameCarLogoH>
-    <gameCarLogoScale>1.5</gameCarLogoScale>
-
-    <!-- Right info panel -->
+    <!-- Right info panel (legacy gamelist; retained as panelX/panelW are
+         referenced in any future right-side layout). -->
     <panelX>0.43</panelX>
     <panelW>0.55</panelW>
     <panelDescY>0.60</panelDescY>
     <panelDescH>0.32</panelDescH>
-    <mdRatingX>0.615</mdRatingX>
-    <mdVideoX>0.705</mdVideoX>
-    <mdVideoY>0.39</mdVideoY>
-    <mdVideoW>0.50</mdVideoW>
-    <mdVideoH>0.34</mdVideoH>
 
     <!-- v0.11 PR redesign: PSP-card row format variables.
          See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md. -->
