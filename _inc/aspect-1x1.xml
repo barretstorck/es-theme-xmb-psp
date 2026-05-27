@@ -50,5 +50,8 @@
     <mdVideoY>0.37</mdVideoY>
     <mdVideoW>0.44</mdVideoW>
     <mdVideoH>0.33</mdVideoH>
+
+    <!-- descScrollDownY: panelDescY(0.58) + panelDescH(0.36) - 0.01 margin -->
+    <descScrollDownY>0.93</descScrollDownY>
   </variables>
 </theme>
