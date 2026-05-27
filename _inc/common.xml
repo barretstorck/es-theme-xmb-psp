@@ -110,6 +110,12 @@
     <mdVideoY>0.39</mdVideoY>
     <mdVideoW>0.50</mdVideoW>
     <mdVideoH>0.34</mdVideoH>
+
+    <!-- v0.10: Description scroll-affordance chevron position. Down-
+         chevron y-coordinate; equals panelDescY + panelDescH minus a
+         small margin. Per-aspect override in aspect-1x1.xml.
+         (No descScrollUpY needed — up-chevron uses ${panelDescY}.) -->
+    <descScrollDownY>0.91</descScrollDownY>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
