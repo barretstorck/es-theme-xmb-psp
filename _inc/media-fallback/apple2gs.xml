@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v0.11 PR D: media-fallback for apple2gs. Sets mediaFallbackPath so the
+     gamecarousel itemTemplate's <tplFallback> image resolves to the
+     computer glyph for games with no scraped thumbnail. -->
+<theme>
+  <variables>
+    <mediaFallbackPath>./art/system-media/computer.png</mediaFallbackPath>
+  </variables>
+</theme>
