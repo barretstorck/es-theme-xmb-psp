@@ -213,21 +213,49 @@
       <maxLogoCount>3</maxLogoCount>
       <minLogoOpacity>0.3</minLogoOpacity>
       <zIndex>5</zIndex>
-    </gamecarousel>
 
-    <!-- (v0.9.3 round 4 added a selectedGameHalo element here but
-         deferred to v0.10: a white halo behind a text-fallback game
-         title made the title unreadable, and a per-state visibility
-         rule needs a design pass. See docs/v0.10-roadmap.md.) -->
-    <!-- Per-game text label (the text fallback when no thumbnail is scraped,
-         and the name overlay for all items). Styles the built-in
-         'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
-    <text name="gamecarouselLogoText">
-      <color>${textPrimary}</color>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.030</fontSize>
-      <zIndex>5</zIndex>
-    </text>
+      <!-- v0.11 PR D: per-slot itemTemplate. ES renders this once per
+           game in the carousel. Boxart paints when {game:thumbnail}
+           resolves; tplFallback paints the system-media glyph
+           (mediaFallbackPath, set by _inc/media-fallback/<sys>.xml)
+           when the thumbnail path is empty. tplLabel paints the game
+           name beside every slot, selected and unselected alike (PSP
+           XMB behaviour). #13 #14 #15. -->
+      <itemTemplate>
+        <!-- Boxart slot: scraped thumbnail when present. -->
+        <image name="tplBoxart">
+          <pos>0.0 0.0</pos>
+          <size>${gameCarLogoW} ${gameCarLogoH}</size>
+          <origin>0 0.5</origin>
+          <path>{game:thumbnail}</path>
+        </image>
+
+        <!-- System-media fallback when no thumbnail. mediaFallbackPath
+             is resolved per-system at theme load via the
+             _inc/media-fallback/ include files (Task 4 Path B: nested
+             variable indirection failed the Task 2 spike). -->
+        <image name="tplFallback">
+          <pos>0.0 0.0</pos>
+          <size>${gameCarLogoW} ${gameCarLogoH}</size>
+          <origin>0 0.5</origin>
+          <path>${mediaFallbackPath}</path>
+          <visible>!exists({game:thumbnail})</visible>
+        </image>
+
+        <!-- Per-logo title. Selected and unselected alike (PSP behaviour). -->
+        <text name="tplLabel">
+          <pos>0.45 0.0</pos>
+          <size>0.55 0.4</size>
+          <origin>0 0.5</origin>
+          <fontPath>${fontLight}</fontPath>
+          <fontSize>0.030</fontSize>
+          <color>${textPrimary}</color>
+          <text>{game:name}</text>
+          <alignment>left</alignment>
+          <verticalAlignment>center</verticalAlignment>
+        </text>
+      </itemTemplate>
+    </gamecarousel>
   </view>
 
 </theme>
