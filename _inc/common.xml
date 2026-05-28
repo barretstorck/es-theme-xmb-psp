@@ -92,17 +92,21 @@
          like maxSize="0.10 0.13" only yields a 102x17 px icon. Pick
          the y component large enough relative to the slot's short
          pixel-axis (rowIconH=0.80 ~= 100px of a 128px-tall slot). -->
-    <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets). -->
+    <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets).
+         rowIconCenterX = rowIconX + rowIconW/2; needed as a separate variable
+         because XML has no arithmetic and the halo (center-anchored to glow
+         symmetrically around the icon) needs the icon's center X. -->
     <rowIconW>0.10</rowIconW>
     <rowIconH>0.80</rowIconH>
     <rowIconX>0.06</rowIconX>
+    <rowIconCenterX>0.11</rowIconCenterX>
     <rowTextX>0.18</rowTextX>
     <rowLineH>0.02</rowLineH>
     <titleFontSize>0.030</titleFontSize>
     <metaFontSize>0.020</metaFontSize>
 
     <!-- Title visibility (overridden by title-visibility-{strict,friendly}.xml subsets). -->
-    <titleUnselectedY>0.25</titleUnselectedY>
+    <titleUnselectedY>0.38</titleUnselectedY>
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
 
     <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,

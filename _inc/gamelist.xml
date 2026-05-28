@@ -93,9 +93,12 @@
       <zIndex>6</zIndex>
     </image>
 
-    <!-- System-name caption under the pinned icon. -->
+    <!-- System-name caption under the pinned icon. Icon vertical span is
+         y=[0.08, 0.24] (center 0.16 ± maxSize 0.16/2); caption sits ~0.02
+         below that, just under the icon, matching the v0.10 baseline's
+         tight icon+caption stacking. -->
     <text name="md_systemName" extra="true">
-      <pos>${gameColX} 0.30</pos>
+      <pos>${gameColX} 0.26</pos>
       <size>0.18 0.04</size>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.026</fontSize>
@@ -163,11 +166,14 @@
 
       <itemTemplate>
 
-        <!-- 1. Halo behind selected icon. Opacity 0 default; fades to 0.6 on selection. -->
+        <!-- 1. Halo behind selected icon. Opacity 0 default; fades to 0.6 on selection.
+             Center-anchored at the icon's center X (rowIconCenterX, defined per
+             icon-size subset) so the halo glow extends symmetrically around the
+             icon. Left-edge anchoring offsets the halo to the right of the icon. -->
         <image name="tplHalo">
           <path>./art/halo.png</path>
-          <pos>${rowIconX} 0.5</pos>
-          <origin>0 0.5</origin>
+          <pos>${rowIconCenterX} 0.5</pos>
+          <origin>0.5 0.5</origin>
           <maxSize>${rowHaloW} ${rowHaloH}</maxSize>
           <color>FFFFFF</color>
           <opacity>0</opacity>
@@ -216,11 +222,12 @@
         </video>
 
         <!-- 4. Title. Y position and opacity animate per subset; title's selected
-             Y is constant 0.25. Only y is animated since property="position" is
-             not supported on this Knulli build. -->
+             Y is constant 0.38 so the title's bottom edge sits just above the
+             horizontal line at slot Y=0.5. Only y is animated since
+             property="position" is not supported on this Knulli build. -->
         <text name="tplTitle">
           <pos>${rowTextX} ${titleUnselectedY}</pos>
-          <size>0.76 0.45</size>
+          <size>0.76 0.30</size>
           <origin>0 0.5</origin>
           <fontPath>${fontRegular}</fontPath>
           <fontSize>${titleFontSize}</fontSize>
@@ -232,7 +239,7 @@
           <storyboard event="activate">
             <animation property="y"
               from="${titleUnselectedY}"
-              to="0.25"
+              to="0.38"
               duration="150" mode="linear"/>
             <animation property="opacity"
               from="${titleUnselectedOpacity}"
@@ -241,7 +248,7 @@
           </storyboard>
           <storyboard event="deactivate">
             <animation property="y"
-              from="0.25"
+              from="0.38"
               to="${titleUnselectedY}"
               duration="150" mode="linear"/>
             <animation property="opacity"
@@ -267,10 +274,12 @@
           </storyboard>
         </image>
 
-        <!-- 6. Metadata below the line. Opacity 0 default. -->
+        <!-- 6. Metadata below the line. Opacity 0 default. Y=0.62 places the
+             metadata's top edge just below the line at slot Y=0.5, matching
+             the tight stacking in the TEKKEN 6 PSP reference image. -->
         <text name="tplMetadata">
-          <pos>${rowTextX} 0.75</pos>
-          <size>0.76 0.40</size>
+          <pos>${rowTextX} 0.62</pos>
+          <size>0.76 0.30</size>
           <origin>0 0.5</origin>
           <fontPath>${fontLight}</fontPath>
           <fontSize>${metaFontSize}</fontSize>
