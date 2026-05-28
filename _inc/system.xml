@@ -125,9 +125,9 @@
     <text name="systemInfo">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.055</size>
+      <size>0.5 0.06</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.034</fontSize>
+      <fontSize>0.040</fontSize>
       <color>${textSecondary}</color>
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>
@@ -147,9 +147,9 @@
     <text name="systemName" extra="true">
       <pos>${crossX} ${captionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.055</size>
+      <size>0.5 0.06</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.034</fontSize>
+      <fontSize>0.040</fontSize>
       <color>${textSecondary}</color>
       <backgroundColor>00000000</backgroundColor>
       <alignment>center</alignment>

@@ -11,11 +11,19 @@
   <variables>
     <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.50
          yields ~64px compact icons. See common.xml for sizing notes.
-         rowIconCenterX = rowIconX + rowIconW/2 = 0.06 + 0.03 = 0.09. -->
+         v0.11 round 3 (bug 15): rowIconCenterX = crossX (0.24); rowIconX =
+         rowIconCenterX - rowIconW/2 = 0.24 - 0.03 = 0.21.
+         rowTextX = rowIconX + rowIconW + 0.01 = 0.28.
+         rowDescX/W: metadata occupies rowTextX..rowTextX+0.30 (0.28..0.58);
+         description begins at 0.59 and extends to 0.97 — width 0.38. -->
     <rowIconW>0.06</rowIconW>
     <rowIconH>0.50</rowIconH>
-    <rowIconCenterX>0.09</rowIconCenterX>
-    <titleFontSize>0.026</titleFontSize>
-    <metaFontSize>0.018</metaFontSize>
+    <rowIconCenterX>0.24</rowIconCenterX>
+    <rowIconX>0.21</rowIconX>
+    <rowTextX>0.28</rowTextX>
+    <rowDescX>0.59</rowDescX>
+    <rowDescW>0.38</rowDescW>
+    <titleFontSize>0.034</titleFontSize>
+    <metaFontSize>0.024</metaFontSize>
   </variables>
 </theme>
