@@ -4,12 +4,15 @@
   Sets autoScrollSpeed=75ms on the gamelist description text, halving
   the per-line wait. Use if you prefer to skim descriptions.
   Selected via UI Settings > Theme Configuration > Scroll Speed > Fast.
+  v0.11 round 4 (bug 21): retargeted from md_description (old info-panel
+  element, removed in the v0.11 redesign) to tplDesc (per-row description
+  text inside the itemTemplate).
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <view name="detailed,gamecarousel">
-    <text name="md_description">
+    <text name="tplDesc">
       <autoScrollSpeed>75</autoScrollSpeed>
     </text>
   </view>
