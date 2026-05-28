@@ -84,28 +84,29 @@
       </storyboard>
     </image>
 
-    <!-- Pinned system icon at top-left. -->
+    <!-- Pinned system icon. v0.11 round 3 (bug 14): positioned at the same
+         (crossX, crossY) where the selected icon sits in the system view's
+         carousel, so navigating from system view to gamelist view keeps the
+         icon at the same screen anchor. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
-      <pos>${gameColX} 0.16</pos>
-      <maxSize>0.12 0.16</maxSize>
+      <pos>${crossX} ${crossY}</pos>
+      <maxSize>${sysIconMaxW} ${sysIconMaxH}</maxSize>
       <origin>0.5 0.5</origin>
       <zIndex>6</zIndex>
     </image>
 
-    <!-- System-name caption under the pinned icon. Icon vertical span is
-         y=[0.08, 0.24] (center 0.16 ± maxSize 0.16/2); caption sits ~0.02
-         below that, just under the icon, matching the v0.10 baseline's
-         tight icon+caption stacking. -->
+    <!-- System-name caption under the pinned icon. Aligned to captionY (0.401)
+         matching the v0.10 system view's caption position (bug 14). -->
     <text name="md_systemName" extra="true">
-      <pos>${gameColX} 0.26</pos>
-      <size>0.18 0.04</size>
+      <pos>${crossX} ${captionY}</pos>
+      <origin>0.5 0</origin>
+      <size>0.5 0.06</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.026</fontSize>
+      <fontSize>0.040</fontSize>
       <color>${textSecondary}</color>
       <text>${system.theme}</text>
       <alignment>center</alignment>
-      <origin>0.5 0.0</origin>
       <forceUppercase>true</forceUppercase>
       <zIndex>6</zIndex>
     </text>
@@ -166,10 +167,12 @@
 
       <itemTemplate>
 
-        <!-- 1. Halo behind selected icon. Opacity 0 default; fades to 0.6 on selection.
-             Center-anchored at the icon's center X (rowIconCenterX, defined per
-             icon-size subset) so the halo glow extends symmetrically around the
-             icon. Left-edge anchoring offsets the halo to the right of the icon. -->
+        <!-- 1. Halo behind selected icon. DISABLED in PR #32 visual round 3
+             pending tuning (Bug 10): the white glow read too bright against
+             the wave background, especially in Compact-Strict where the
+             smaller boxart leaves the halo edges visible.
+             TODO: re-enable after PR #32 visual tuning. -->
+        <!--
         <image name="tplHalo">
           <path>./art/halo.png</path>
           <pos>${rowIconCenterX} 0.5</pos>
@@ -185,6 +188,8 @@
             <animation property="opacity" from="0.6" to="0" duration="150" mode="linear"/>
           </storyboard>
         </image>
+        -->
+
 
         <!-- 2a. Scraped boxart, if present. <maxSize> preserves aspect
              ratio (boxart isn't 1:1, e.g. PSP UMD jewel cases are tall),
@@ -209,17 +214,13 @@
           <zIndex>2</zIndex>
         </image>
 
-        <!-- 3. Inline video preview. Plays on selection after delay; hidden when no video. -->
-        <video name="tplVideo">
-          <path>{game:video}</path>
-          <pos>${rowIconX} 0.5</pos>
-          <size>${rowIconW} ${rowIconH}</size>
-          <origin>0 0.5</origin>
-          <delay>${videoDelay}</delay>
-          <showSnapshotNoVideo>false</showSnapshotNoVideo>
-          <visible>exists({game:video})</visible>
-          <zIndex>3</zIndex>
-        </video>
+        <!-- 3. Inline video preview: MOVED OUT of itemTemplate in v0.11 round 3
+             (bug 13). When rendered per-row, every visible row's video element
+             ticks its <delay> in parallel and ES starts playing ALL their audio
+             tracks simultaneously after the delay. The single screen-positioned
+             <video extra="true"> element below the textlist binds {game:video}
+             to the currently selected game (CarouselGameListView::updateInfoPanel
+             rebinds on cursor change), so only one stream is ever active. -->
 
         <!-- 4. Title. Y position and opacity animate per subset; title's selected
              Y is constant 0.38 so the title's bottom edge sits just above the
@@ -274,12 +275,12 @@
           </storyboard>
         </image>
 
-        <!-- 6. Metadata below the line. Opacity 0 default. Y=0.62 places the
-             metadata's top edge just below the line at slot Y=0.5, matching
-             the tight stacking in the TEKKEN 6 PSP reference image. -->
+        <!-- 6. Metadata below the line, LEFT half of the row.
+             v0.11 round 3 (bug 17): metadata shrunk from 0.76 wide to 0.30 so
+             a description marquee can occupy the right portion of the row. -->
         <text name="tplMetadata">
           <pos>${rowTextX} 0.62</pos>
-          <size>0.76 0.30</size>
+          <size>0.30 0.30</size>
           <origin>0 0.5</origin>
           <fontPath>${fontLight}</fontPath>
           <fontSize>${metaFontSize}</fontSize>
@@ -303,8 +304,57 @@
           </storyboard>
         </text>
 
+        <!-- 7. Scrolling description on the RIGHT of the row, under the line.
+             v0.11 round 3 (bug 17): occupies the space between rowDescX and
+             rowDescX+rowDescW. <container>true</container> requests marquee
+             scroll if the build supports it inside <itemTemplate>; if not,
+             ES wraps the description text to the bounding box and we accept
+             a static multi-line render rather than a scrolling marquee. -->
+        <text name="tplDesc">
+          <pos>${rowDescX} 0.62</pos>
+          <size>${rowDescW} 0.30</size>
+          <origin>0 0.5</origin>
+          <fontPath>${fontLight}</fontPath>
+          <fontSize>${metaFontSize}</fontSize>
+          <color>${textSecondary}</color>
+          <text>{game:desc}</text>
+          <alignment>left</alignment>
+          <verticalAlignment>center</verticalAlignment>
+          <container>true</container>
+          <opacity>0</opacity>
+          <storyboard event="activate">
+            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
+          </storyboard>
+          <storyboard event="deactivate">
+            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
+          </storyboard>
+        </text>
+
       </itemTemplate>
     </textlist>
+
+    <!-- Single video preview for the currently selected game (bug 13). ES
+         rebinds {game:video} to the cursor's game on selection change
+         (CarouselGameListView::updateInfoPanel), so only ONE audio track
+         is ever active. Positioned to overlay the top (selected) row slot
+         in the textlist. textlist origin is (0.0, 0.45) with size (1.0,
+         0.50) and <lines>3</lines>; slot height = 0.50/3 ≈ 0.167; the
+         selected slot (top) centers at y ≈ 0.45 + 0.167/2 ≈ 0.533.
+         X uses rowIconX directly (textlist x=0, width=1.0 so slot-X equals
+         screen-X for this textlist). Approximate sizing covers the row icon
+         area: 0.10 wide x 0.13 tall — close enough to the rowIconW/rowIconH
+         slot-scaled footprint for the Boxart subset. <visible>exists> hides
+         the element entirely for games with no scraped video. -->
+    <video name="selectedVideo" extra="true">
+      <path>{game:video}</path>
+      <pos>${rowIconX} 0.533</pos>
+      <size>${rowIconW} 0.13</size>
+      <origin>0 0.5</origin>
+      <delay>${videoDelay}</delay>
+      <showSnapshotNoVideo>false</showSnapshotNoVideo>
+      <visible>exists({game:video})</visible>
+      <zIndex>7</zIndex>
+    </video>
 
   </view>
 </theme>

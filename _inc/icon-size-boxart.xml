@@ -10,11 +10,21 @@
   <variables>
     <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.80
          yields ~100px boxart icons. See common.xml for sizing notes.
-         rowIconCenterX = rowIconX + rowIconW/2 = 0.06 + 0.05 = 0.11. -->
+         v0.11 round 3 (bug 15): rowIconCenterX = crossX (0.24) so row icons
+         align vertically with the pinned system icon at the top of the view.
+         rowIconX = rowIconCenterX - rowIconW/2 = 0.24 - 0.05 = 0.19.
+         rowTextX = rowIconX + rowIconW + 0.01 = 0.30.
+         rowDescX/W carve a scrolling description area at the row's right
+         (bug 17): metadata occupies rowTextX..rowTextX+0.30 (0.30..0.60);
+         description begins at 0.61 and extends to 0.97 — width 0.36. -->
     <rowIconW>0.10</rowIconW>
     <rowIconH>0.80</rowIconH>
-    <rowIconCenterX>0.11</rowIconCenterX>
-    <titleFontSize>0.030</titleFontSize>
-    <metaFontSize>0.020</metaFontSize>
+    <rowIconCenterX>0.24</rowIconCenterX>
+    <rowIconX>0.19</rowIconX>
+    <rowTextX>0.30</rowTextX>
+    <rowDescX>0.61</rowDescX>
+    <rowDescW>0.36</rowDescW>
+    <titleFontSize>0.040</titleFontSize>
+    <metaFontSize>0.026</metaFontSize>
   </variables>
 </theme>

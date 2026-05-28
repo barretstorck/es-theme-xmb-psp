@@ -96,14 +96,22 @@
          rowIconCenterX = rowIconX + rowIconW/2; needed as a separate variable
          because XML has no arithmetic and the halo (center-anchored to glow
          symmetrically around the icon) needs the icon's center X. -->
+    <!-- Row icons anchor under the system icon (crossX=0.24). rowIconCenterX
+         = crossX, rowIconX = rowIconCenterX - rowIconW/2. rowTextX = rowIconX
+         + rowIconW + 0.01 (small gap). Defaults match the Boxart subset; the
+         Compact subset overrides rowIconW/H/X plus rowTextX.
+         rowDescX / rowDescW carve out the right portion of the row below the
+         line for a scrolling description; metadata occupies the left ~0.30. -->
     <rowIconW>0.10</rowIconW>
     <rowIconH>0.80</rowIconH>
-    <rowIconX>0.06</rowIconX>
-    <rowIconCenterX>0.11</rowIconCenterX>
-    <rowTextX>0.18</rowTextX>
+    <rowIconX>0.19</rowIconX>
+    <rowIconCenterX>0.24</rowIconCenterX>
+    <rowTextX>0.30</rowTextX>
+    <rowDescX>0.61</rowDescX>
+    <rowDescW>0.36</rowDescW>
     <rowLineH>0.02</rowLineH>
-    <titleFontSize>0.030</titleFontSize>
-    <metaFontSize>0.020</metaFontSize>
+    <titleFontSize>0.040</titleFontSize>
+    <metaFontSize>0.026</metaFontSize>
 
     <!-- Title visibility (overridden by title-visibility-{strict,friendly}.xml subsets). -->
     <titleUnselectedY>0.38</titleUnselectedY>
