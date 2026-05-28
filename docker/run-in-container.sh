@@ -111,7 +111,8 @@ case "${VIEW}" in
   system)
     : ;;                                   # already on the system carousel
   gamelist|gamecarousel)
-    key Return 4 ;;                        # enter the selected system's gamelist
+    key Return 4
+    for _i in $(seq 1 "${GAMELIST_DOWN:-0}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;
