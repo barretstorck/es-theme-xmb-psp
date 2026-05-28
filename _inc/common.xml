@@ -37,6 +37,14 @@
     <captionY>0.401</captionY>
     <countY>0.456</countY>
 
+    <!-- v0.11 v6 gamelist redesign (PR #32). The gamelist header sits HIGHER
+         than the system view's cross anchor: glLogoY=0.14 puts the pinned
+         system icon at the top, glCaptionY tight below it. These are gamelist-
+         only and deliberately do NOT touch crossY/captionY (which the system
+         view still uses). See docs/screenshots/v0.11-mockups/. -->
+    <glLogoY>0.14</glLogoY>
+    <glCaptionY>0.215</glCaptionY>
+
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
          Per-ratio overrides live in _inc/aspect-{8x7,3x2,16x9,1x1}.xml,
@@ -92,29 +100,60 @@
          like maxSize="0.10 0.13" only yields a 102x17 px icon. Pick
          the y component large enough relative to the slot's short
          pixel-axis (rowIconH=0.80 ~= 100px of a 128px-tall slot). -->
-    <!-- Per-row geometry (overridden by icon-size-{boxart,compact}.xml subsets).
-         rowIconCenterX = rowIconX + rowIconW/2; needed as a separate variable
-         because XML has no arithmetic and the halo (center-anchored to glow
-         symmetrically around the icon) needs the icon's center X. -->
-    <!-- Row icons anchor under the system icon (crossX=0.24). rowIconCenterX
-         = crossX, rowIconX = rowIconCenterX - rowIconW/2. rowTextX = rowIconX
-         + rowIconW + 0.01 (small gap). Defaults match the Boxart subset; the
-         Compact subset overrides rowIconW/H/X plus rowTextX.
-         rowDescX / rowDescW carve out the right portion of the row below the
-         line for a scrolling description; metadata occupies the left ~0.30. -->
-    <rowIconW>0.10</rowIconW>
-    <rowIconH>0.80</rowIconH>
-    <rowIconX>0.19</rowIconX>
-    <rowIconCenterX>0.24</rowIconCenterX>
-    <rowTextX>0.30</rowTextX>
-    <rowDescX>0.61</rowDescX>
-    <rowDescW>0.36</rowDescW>
-    <rowLineH>0.02</rowLineH>
-    <titleFontSize>0.040</titleFontSize>
-    <metaFontSize>0.026</metaFontSize>
+    <!-- ====================================================================
+         v6 LAYOUT GEOMETRY (Path B: fixed card extras + textlist peeks).
+         All BIG-CARD vars are SCREEN-relative (the card elements are
+         extra="true", not inside the textlist). The PEEK vars split into a
+         SCREEN-relative width cap (peekIconW) and a SLOT-relative height
+         (peekIconH) because the peek icons live in the textlist itemTemplate.
+         ==================================================================== -->
 
-    <!-- Title visibility (overridden by title-visibility-{strict,friendly}.xml subsets). -->
-    <titleUnselectedY>0.38</titleUnselectedY>
+    <!-- Card vertical anchor: the textlist's middle slot center. Row centers
+         are 0.37 / 0.59 / 0.81 (uniform 0.22 spacing); the card sits at 0.59. -->
+    <cardY>0.59</cardY>
+
+    <!-- Textlist geometry so its 3 slot centers land at 0.37 / 0.59 / 0.81.
+         glListTop = 0.37 - slotH/2 = 0.37 - 0.11 = 0.26; glListH = 3 * 0.22. -->
+    <glListTop>0.26</glListTop>
+    <glListH>0.66</glListH>
+
+    <!-- Selected boxart: 240px square at 4:3 = 0.234 (W of 1024) x 0.3125
+         (H of 768). maxSize preserves aspect, so for a square boxart the
+         binding dimension is whichever yields 240px (both do). Overridden
+         smaller by the Compact subset. -->
+    <cardBoxartW>0.234</cardBoxartW>
+    <cardBoxartH>0.3125</cardBoxartH>
+
+    <!-- Big-card text column begins just right of the boxart (boxart right
+         edge = crossX + cardBoxartW/2 = 0.24 + 0.117 = 0.357; + gap). -->
+    <cardTextX>0.385</cardTextX>
+    <cardTextW>0.585</cardTextW>
+    <cardTitleY>0.585</cardTitleY>
+    <cardTitleFontSize>0.075</cardTitleFontSize>
+
+    <!-- Horizontal line: from cardTextX to the right margin, bisecting the
+         boxart at cardY. 2px tall (line-1px.png stretched). -->
+    <cardLineW>0.585</cardLineW>
+    <cardLineH>0.004</cardLineH>
+
+    <!-- Metadata (left) + scrolling description (right), below the line. -->
+    <cardMetaY>0.61</cardMetaY>
+    <cardMetaFontSize>0.030</cardMetaFontSize>
+    <cardDescX>0.62</cardDescX>
+    <cardDescW>0.35</cardDescW>
+
+    <!-- Peek icons (prev/next rows): 65px square at 4:3.
+         peekIconW = 65/1024 (screen width cap); peekIconH = 65/169 (slot
+         height; slot ~169px tall at 4:3 = glListH*768/3). Overridden smaller
+         by the Compact subset. peekTextX positions the Friendly peek title
+         right of the peek icon (peek right edge = crossX + peekIconW/2). -->
+    <peekIconW>0.063</peekIconW>
+    <peekIconH>0.385</peekIconH>
+    <peekTextX>0.30</peekTextX>
+    <peekTitleFontSize>0.030</peekTitleFontSize>
+
+    <!-- Title Visibility subset controls ONLY the peek title's opacity:
+         Strict (PSP-Faithful) = 0 (icon-only peeks); Friendly = 1. -->
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
 
     <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,

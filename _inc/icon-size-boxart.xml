@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Icon Size: Boxart" (default).
-  Larger row icons for users with scraped boxart they want to see.
-  Selected via UI Settings > Theme Configuration > Icon Size > Boxart.
+  Larger selected boxart + peek icons for users with scraped boxart they want
+  to see. Selected via UI Settings > Theme Configuration > Icon Size > Boxart.
+
+  v0.11 v6 (PR #32): selected card boxart 240px (0.234 x 0.3125), peek icons
+  65px (0.063 width-cap / 0.385 slot-height). Selected-to-peek ratio ~3.7x.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-    <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.80
-         yields ~100px boxart icons. See common.xml for sizing notes.
-         v0.11 round 3 (bug 15): rowIconCenterX = crossX (0.24) so row icons
-         align vertically with the pinned system icon at the top of the view.
-         rowIconX = rowIconCenterX - rowIconW/2 = 0.24 - 0.05 = 0.19.
-         rowTextX = rowIconX + rowIconW + 0.01 = 0.30.
-         rowDescX/W carve a scrolling description area at the row's right
-         (bug 17): metadata occupies rowTextX..rowTextX+0.30 (0.30..0.60);
-         description begins at 0.61 and extends to 0.97 — width 0.36. -->
-    <rowIconW>0.10</rowIconW>
-    <rowIconH>0.80</rowIconH>
-    <rowIconCenterX>0.24</rowIconCenterX>
-    <rowIconX>0.19</rowIconX>
-    <rowTextX>0.30</rowTextX>
-    <rowDescX>0.61</rowDescX>
-    <rowDescW>0.36</rowDescW>
-    <titleFontSize>0.040</titleFontSize>
-    <metaFontSize>0.026</metaFontSize>
+    <cardBoxartW>0.234</cardBoxartW>
+    <cardBoxartH>0.3125</cardBoxartH>
+    <cardTextX>0.385</cardTextX>
+    <cardTextW>0.585</cardTextW>
+    <cardLineW>0.585</cardLineW>
+    <cardTitleFontSize>0.075</cardTitleFontSize>
+    <cardMetaFontSize>0.030</cardMetaFontSize>
+    <cardDescX>0.62</cardDescX>
+    <cardDescW>0.35</cardDescW>
+    <peekIconW>0.063</peekIconW>
+    <peekIconH>0.385</peekIconH>
+    <peekTextX>0.30</peekTextX>
+    <peekTitleFontSize>0.030</peekTitleFontSize>
   </variables>
 </theme>

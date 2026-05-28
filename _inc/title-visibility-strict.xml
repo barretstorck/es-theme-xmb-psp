@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Title Visibility: PSP-Faithful" (Strict; default).
-  Unselected rows show only the icon — title is hidden (opacity 0).
-  Selected row's title sits at Y=0.38 (just above the horizontal line at
-  slot Y=0.5) with full opacity.
+  Peek (prev/next) rows show only the icon — title hidden (opacity 0). The
+  selected game's title always shows on the big card regardless of this setting.
   Selected via UI Settings > Theme Configuration > Title Visibility > PSP-Faithful.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-    <titleUnselectedY>0.38</titleUnselectedY>
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
   </variables>
 </theme>

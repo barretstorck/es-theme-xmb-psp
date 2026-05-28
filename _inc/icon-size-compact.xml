@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Icon Size: Compact".
-  Smaller row icons + smaller fonts for users with long game lists who
-  prefer to see more entries on screen.
+  Smaller selected boxart + peek icons + fonts for users who prefer a denser
+  card. Keeps the v6 selected-dominates layout but scaled down.
   Selected via UI Settings > Theme Configuration > Icon Size > Compact.
+
+  v0.11 v6 (PR #32): selected card boxart 165px (0.161 x 0.215), peek icons
+  46px (0.045 width-cap / 0.272 slot-height). Dominance ratio preserved ~3.6x.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-    <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.50
-         yields ~64px compact icons. See common.xml for sizing notes.
-         v0.11 round 3 (bug 15): rowIconCenterX = crossX (0.24); rowIconX =
-         rowIconCenterX - rowIconW/2 = 0.24 - 0.03 = 0.21.
-         rowTextX = rowIconX + rowIconW + 0.01 = 0.28.
-         rowDescX/W: metadata occupies rowTextX..rowTextX+0.30 (0.28..0.58);
-         description begins at 0.59 and extends to 0.97 — width 0.38. -->
-    <rowIconW>0.06</rowIconW>
-    <rowIconH>0.50</rowIconH>
-    <rowIconCenterX>0.24</rowIconCenterX>
-    <rowIconX>0.21</rowIconX>
-    <rowTextX>0.28</rowTextX>
-    <rowDescX>0.59</rowDescX>
-    <rowDescW>0.38</rowDescW>
-    <titleFontSize>0.034</titleFontSize>
-    <metaFontSize>0.024</metaFontSize>
+    <cardBoxartW>0.161</cardBoxartW>
+    <cardBoxartH>0.215</cardBoxartH>
+    <cardTextX>0.345</cardTextX>
+    <cardTextW>0.625</cardTextW>
+    <cardLineW>0.625</cardLineW>
+    <cardTitleFontSize>0.060</cardTitleFontSize>
+    <cardMetaFontSize>0.026</cardMetaFontSize>
+    <cardDescX>0.58</cardDescX>
+    <cardDescW>0.39</cardDescW>
+    <peekIconW>0.045</peekIconW>
+    <peekIconH>0.272</peekIconH>
+    <peekTextX>0.275</peekTextX>
+    <peekTitleFontSize>0.026</peekTitleFontSize>
   </variables>
 </theme>
