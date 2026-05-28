@@ -95,15 +95,15 @@
       </storyboard>
     </image>
 
-    <!-- Pinned system icon. v0.11 v6 (PR #32 redesign): moved UP to
-         (crossX, glLogoY=0.14) per the approved v6 mockup so the header sits
-         above the card list. Sized to the SELECTED system-carousel icon
-         (sysIconMaxW/H * logoScale=1.5 = 0.18 x 0.24) so it still visually
-         matches the system->gamelist transition anchor. -->
+    <!-- Pinned system icon. v0.11 v7 (PR #32 on-device tweaks): LOWERED to
+         (crossX, glLogoY=0.18) and SHRUNK to a 0.13-square maxSize per the
+         approved v7 mockup (proposed-v7-ondevice-tweaks.png). 0.13 width =
+         ~133px at 4:3; 0.173 height keeps the box square (133px tall). The
+         caption (glCaptionY) follows it down to stay tight below. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${glLogoY}</pos>
-      <maxSize>0.18 0.24</maxSize>
+      <maxSize>0.13 0.173</maxSize>
       <origin>0.5 0.5</origin>
       <zIndex>6</zIndex>
     </image>
@@ -159,7 +159,13 @@
     <video name="cardVideo" extra="true">
       <path>{game:video}</path>
       <pos>${crossX} ${cardY}</pos>
-      <size>${cardBoxartW} ${cardBoxartH}</size>
+      <!-- v7 device-behaviour fix: was <size> which force-stretched the video
+           to the square boxart envelope, squishing non-square (e.g. 4:3 / 16:9)
+           videos. <maxSize> preserves the video's native aspect ratio,
+           letterboxing it inside the cardBoxartW x cardBoxartH envelope instead
+           of distorting it. NOTE: needs on-device verification — the harness has
+           no scraped video so this element does not render in static captures. -->
+      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
       <origin>0.5 0.5</origin>
       <delay>${videoDelay}</delay>
       <showSnapshotNoVideo>false</showSnapshotNoVideo>
@@ -207,14 +213,18 @@
     </text>
 
     <!-- Scrolling description, RIGHT of the metadata, under the line.
+         v7 device-behaviour fix: smaller font (cardDescFontSize ~18px) plus a
+         NARROWER cardDescW (0.28 @ 4:3) so typical descriptions overflow the
+         box and the <autoScrollSpeed> marquee actually triggers on-device.
          <autoScrollSpeed> drives the marquee (NOT <container> on this build);
-         tunable via the Scroll Speed subset. -->
+         tunable via the Scroll Speed subset. NOTE: marquee MOTION cannot be
+         verified in a static render — only the config + first frame are. -->
     <text name="cardDesc" extra="true">
       <pos>${cardDescX} ${cardMetaY}</pos>
       <size>${cardDescW} 0.10</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>${cardMetaFontSize}</fontSize>
+      <fontSize>${cardDescFontSize}</fontSize>
       <color>${textSecondary}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>

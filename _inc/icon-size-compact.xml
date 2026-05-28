@@ -5,8 +5,10 @@
   card. Keeps the v6 selected-dominates layout but scaled down.
   Selected via UI Settings > Theme Configuration > Icon Size > Compact.
 
-  v0.11 v6 (PR #32): selected card boxart 165px (0.161 x 0.215), peek icons
-  46px (0.045 width-cap / 0.272 slot-height). Dominance ratio preserved ~3.6x.
+  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 165px (0.161 x
+  0.215), peek icons bumped proportionally 46px -> 75px (0.073 width-cap /
+  0.425 slot-height at glListH=0.69). Description font shrunk to ~16px (0.021)
+  and narrowed (cardDescW 0.39 -> 0.31) so it marquees on-device.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
@@ -19,11 +21,12 @@
     <cardLineW>0.625</cardLineW>
     <cardTitleFontSize>0.060</cardTitleFontSize>
     <cardMetaFontSize>0.026</cardMetaFontSize>
+    <cardDescFontSize>0.021</cardDescFontSize>
     <cardDescX>0.58</cardDescX>
-    <cardDescW>0.39</cardDescW>
-    <peekIconW>0.045</peekIconW>
-    <peekIconH>0.272</peekIconH>
-    <peekTextX>0.275</peekTextX>
+    <cardDescW>0.31</cardDescW>
+    <peekIconW>0.073</peekIconW>
+    <peekIconH>0.425</peekIconH>
+    <peekTextX>0.30</peekTextX>
     <peekTitleFontSize>0.026</peekTitleFontSize>
   </variables>
 </theme>
