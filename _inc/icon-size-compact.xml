@@ -10,9 +10,11 @@
   <formatVersion>7</formatVersion>
   <variables>
     <!-- rowIconH is row-slot-relative (slot ~128px tall at 4:3); 0.50
-         yields ~64px compact icons. See common.xml for sizing notes. -->
+         yields ~64px compact icons. See common.xml for sizing notes.
+         rowIconCenterX = rowIconX + rowIconW/2 = 0.06 + 0.03 = 0.09. -->
     <rowIconW>0.06</rowIconW>
     <rowIconH>0.50</rowIconH>
+    <rowIconCenterX>0.09</rowIconCenterX>
     <titleFontSize>0.026</titleFontSize>
     <metaFontSize>0.018</metaFontSize>
   </variables>
