@@ -87,11 +87,15 @@
     <!-- Pinned system icon. v0.11 round 3 (bug 14): positioned at the same
          (crossX, crossY) where the selected icon sits in the system view's
          carousel, so navigating from system view to gamelist view keeps the
-         icon at the same screen anchor. -->
+         icon at the same screen anchor.
+         v0.11 round 4 (bug 20): sized to match the SELECTED system-carousel
+         icon, which is sysIconMaxW/H scaled by logoScale=1.5 in system.xml.
+         Hardcoded to 0.18 x 0.24 (0.12 * 1.5, 0.16 * 1.5) so the icon visually
+         matches across the system->gamelist transition. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${crossY}</pos>
-      <maxSize>${sysIconMaxW} ${sysIconMaxH}</maxSize>
+      <maxSize>0.18 0.24</maxSize>
       <origin>0.5 0.5</origin>
       <zIndex>6</zIndex>
     </image>
@@ -214,13 +218,34 @@
           <zIndex>2</zIndex>
         </image>
 
-        <!-- 3. Inline video preview: MOVED OUT of itemTemplate in v0.11 round 3
-             (bug 13). When rendered per-row, every visible row's video element
-             ticks its <delay> in parallel and ES starts playing ALL their audio
-             tracks simultaneously after the delay. The single screen-positioned
-             <video extra="true"> element below the textlist binds {game:video}
-             to the currently selected game (CarouselGameListView::updateInfoPanel
-             rebinds on cursor change), so only one stream is ever active. -->
+        <!-- 3. Inline video preview. v0.11 round 4 (bug 18): MOVED BACK inside
+             itemTemplate. The round-3 extraction placed the video at a fixed
+             screen Y (0.533 = first visible slot center) which painted the
+             video on the TOP-MOST row regardless of cursor position. With the
+             video back inside the template, ES anchors it to the current
+             slot.
+             Visibility is driven by opacity (0 default; activate/deactivate
+             storyboards fade in/out), so playback is gated by ES's per-row
+             {game:video} resolution rather than the visible-flag pathway. If
+             on-device testing reveals audio leakage from opacity-0 videos,
+             revisit this in a future round. -->
+        <video name="tplVideo">
+          <path>{game:video}</path>
+          <pos>${rowIconX} 0.5</pos>
+          <size>${rowIconW} ${rowIconH}</size>
+          <origin>0 0.5</origin>
+          <delay>${videoDelay}</delay>
+          <showSnapshotNoVideo>false</showSnapshotNoVideo>
+          <visible>exists({game:video})</visible>
+          <opacity>0</opacity>
+          <zIndex>3</zIndex>
+          <storyboard event="activate">
+            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
+          </storyboard>
+          <storyboard event="deactivate">
+            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
+          </storyboard>
+        </video>
 
         <!-- 4. Title. Y position and opacity animate per subset; title's selected
              Y is constant 0.38 so the title's bottom edge sits just above the
@@ -306,10 +331,11 @@
 
         <!-- 7. Scrolling description on the RIGHT of the row, under the line.
              v0.11 round 3 (bug 17): occupies the space between rowDescX and
-             rowDescX+rowDescW. <container>true</container> requests marquee
-             scroll if the build supports it inside <itemTemplate>; if not,
-             ES wraps the description text to the bounding box and we accept
-             a static multi-line render rather than a scrolling marquee. -->
+             rowDescX+rowDescW.
+             v0.11 round 4 (bug 21): <container>true</container> didn't enable
+             marquee on this Knulli build. The actual mechanism is
+             <autoScrollSpeed> (used by v0.10's md_description). Default 200;
+             tunable via the Scroll Speed subset (_inc/scroll-speed-*.xml). -->
         <text name="tplDesc">
           <pos>${rowDescX} 0.62</pos>
           <size>${rowDescW} 0.30</size>
@@ -320,7 +346,7 @@
           <text>{game:desc}</text>
           <alignment>left</alignment>
           <verticalAlignment>center</verticalAlignment>
-          <container>true</container>
+          <autoScrollSpeed>200</autoScrollSpeed>
           <opacity>0</opacity>
           <storyboard event="activate">
             <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
@@ -332,29 +358,6 @@
 
       </itemTemplate>
     </textlist>
-
-    <!-- Single video preview for the currently selected game (bug 13). ES
-         rebinds {game:video} to the cursor's game on selection change
-         (CarouselGameListView::updateInfoPanel), so only ONE audio track
-         is ever active. Positioned to overlay the top (selected) row slot
-         in the textlist. textlist origin is (0.0, 0.45) with size (1.0,
-         0.50) and <lines>3</lines>; slot height = 0.50/3 ≈ 0.167; the
-         selected slot (top) centers at y ≈ 0.45 + 0.167/2 ≈ 0.533.
-         X uses rowIconX directly (textlist x=0, width=1.0 so slot-X equals
-         screen-X for this textlist). Approximate sizing covers the row icon
-         area: 0.10 wide x 0.13 tall — close enough to the rowIconW/rowIconH
-         slot-scaled footprint for the Boxart subset. <visible>exists> hides
-         the element entirely for games with no scraped video. -->
-    <video name="selectedVideo" extra="true">
-      <path>{game:video}</path>
-      <pos>${rowIconX} 0.533</pos>
-      <size>${rowIconW} 0.13</size>
-      <origin>0 0.5</origin>
-      <delay>${videoDelay}</delay>
-      <showSnapshotNoVideo>false</showSnapshotNoVideo>
-      <visible>exists({game:video})</visible>
-      <zIndex>7</zIndex>
-    </video>
 
   </view>
 </theme>

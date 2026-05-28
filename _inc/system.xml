@@ -84,6 +84,9 @@
          ABOVE all wave layers but still BELOW the carousel (zIndex 5+).
 
          Reuses art/halo.png + haloW/haloH from v0.10's preserved scaffold. -->
+    <!-- TODO: re-enable system halo after future visual-tuning session.
+         Currently disabled per user feedback (still too bright). PR #28
+         wired this; round-4 (bug 19) disabled it.
     <image name="staticBackgroundHalo">
       <path>./art/halo.png</path>
       <pos>${crossX} ${crossY}</pos>
@@ -93,6 +96,7 @@
       <opacity>0.6</opacity>
       <zIndex>4</zIndex>
     </image>
+    -->
 
     <!-- Horizontal carousel of system icons (PSP "category row"), raised to the y=0.291 XMB cross bar. -->
     <carousel name="systemcarousel">
