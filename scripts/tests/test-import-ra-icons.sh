@@ -11,13 +11,13 @@ IMPORT="${REPO_ROOT}/scripts/import-ra-icons.sh"
 SANDBOX="$(mktemp -d)"
 trap 'rm -rf "${SANDBOX}"' EXIT
 
-mkdir -p "${SANDBOX}/ra/xmb/automatic/png"
+mkdir -p "${SANDBOX}/ra/xmb/monochrome/png"
 mkdir -p "${SANDBOX}/out"
 
 # Fake RA sources — three real files, one row will MISS.
-printf 'present-1' > "${SANDBOX}/ra/xmb/automatic/png/Foo - One.png"
-printf 'present-2' > "${SANDBOX}/ra/xmb/automatic/png/Foo - Two.png"
-printf 'present-3' > "${SANDBOX}/ra/xmb/automatic/png/database.png"
+printf 'present-1' > "${SANDBOX}/ra/xmb/monochrome/png/Foo - One.png"
+printf 'present-2' > "${SANDBOX}/ra/xmb/monochrome/png/Foo - Two.png"
+printf 'present-3' > "${SANDBOX}/ra/xmb/monochrome/png/database.png"
 
 # Test TSV: tab-separated; comments and blank lines skipped.
 cat > "${SANDBOX}/mapping.tsv" <<TSV
@@ -31,7 +31,7 @@ ghost	Nonexistent Source
 TSV
 
 # Run the script with overrides for sandbox paths.
-output="$(RA_DIR="${SANDBOX}/ra/xmb/automatic/png" \
+output="$(RA_DIR="${SANDBOX}/ra/xmb/monochrome/png" \
           OUT_DIR="${SANDBOX}/out" \
           MAPPING_TSV="${SANDBOX}/mapping.tsv" \
           bash "${IMPORT}" 2>&1)"
@@ -48,7 +48,7 @@ check "MISS line surfaces ghost"      'echo "${output}" | grep -q "MISS:.*ghost"
 check "foo1 content copied verbatim"  '[[ "$(cat ${SANDBOX}/out/foo1.png)" == "present-1" ]]'
 
 # Re-run: must remain idempotent (no errors, files still present).
-output2="$(RA_DIR="${SANDBOX}/ra/xmb/automatic/png" \
+output2="$(RA_DIR="${SANDBOX}/ra/xmb/monochrome/png" \
            OUT_DIR="${SANDBOX}/out" \
            MAPPING_TSV="${SANDBOX}/mapping.tsv" \
            bash "${IMPORT}" 2>&1)"

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# import-ra-icons.sh — copy RetroArch `automatic` XMB icons into
+# import-ra-icons.sh — copy RetroArch `monochrome` XMB icons into
 # art/system-icons/ per the row mappings in scripts/ra-mapping.tsv.
 #
 # Env overrides (used by smoke test):
-#   RA_DIR       source dir; default ${HOME}/retroarch-assets/xmb/automatic/png
+#   RA_DIR       source dir; default ${HOME}/retroarch-assets/xmb/monochrome/png
 #   OUT_DIR      destination dir; default art/system-icons (repo-relative)
 #   MAPPING_TSV  mapping file; default scripts/ra-mapping.tsv (repo-relative)
 #
@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-RA_DIR="${RA_DIR:-${HOME}/retroarch-assets/xmb/automatic/png}"
+RA_DIR="${RA_DIR:-${HOME}/retroarch-assets/xmb/monochrome/png}"
 OUT_DIR="${OUT_DIR:-${REPO_ROOT}/art/system-icons}"
 MAPPING_TSV="${MAPPING_TSV:-${REPO_ROOT}/scripts/ra-mapping.tsv}"
 
