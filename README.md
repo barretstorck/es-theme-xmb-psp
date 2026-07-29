@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.10** — PSP-style variant only. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (battery widget and selected-icon halo were pulled from v0.10 pending individual redesign). Default colorset is January Blue.
+> Status: **v0.11 (partial)** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is restored** in the system view, subtler than v0.9.3 (0.28 footprint, 0.6 opacity). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
 
 ## Screenshots
 
@@ -26,7 +26,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Known limitations
 
-- Systems without a hand-tuned icon fall back to a generic `_default.png` placeholder. To add a specific icon for any system, drop `<system-shortname>.png` into `art/system-icons/` (this overrides the placeholder automatically on the next sync). Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
+- System icon coverage is mixed-source: 134 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), and ~56 less-common shortnames retain icons from the previous XMB Menu ES-DE set. Systems still without a specific icon fall back to a generic `_default.png` placeholder. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
 - The `gamecarousel` gamelist style shows each game's scraped `thumbnail` (box art). A game with no thumbnail scraped falls back to its name as a styled white caption. Scrape your library with box/thumbnail media for a full boxart column, or use the `detailed` text-list style.
 
 ## Install
@@ -59,7 +59,7 @@ Three configurable knobs, all under **UI Settings → Theme Configuration**:
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
-v0.10 ships clock-only in the status bar. The battery widget and the selected-icon halo from v0.9.3 were both pulled during v0.10's on-device hardening — to be revisited individually in a later release.
+The status bar is clock-only. The selected-icon halo, pulled during v0.10's on-device hardening, was restored in v0.11 with a subtler design (0.28 footprint, 0.6 opacity); only the battery widget remains pulled, pending redesign (issue #4).
 
 ## How the wave is built
 
