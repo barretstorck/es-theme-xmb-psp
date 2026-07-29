@@ -1,8 +1,9 @@
 # PSP XMB Authenticity Audit
 
 A standing reference catalog of every observable PSP XMB feature that this
-theme could plausibly approximate, scored against the current `v0.9.3`
-implementation. Used as a wishlist / decision tool — entries here may or
+theme could plausibly approximate, scored against `main` at the
+current v0.11 partial state (PR #27 monochrome icons, PR #28 system
+halo). Used as a wishlist / decision tool — entries here may or
 may not graduate into a versioned roadmap.
 
 **Inclusion rule:** An entry is listed in the active sections
@@ -18,9 +19,9 @@ are listed in `Deliberately omitted`.
 aspect ratios should inherit any change unless noted.
 
 **Companion docs:**
-- [`v0.10-roadmap.md`](v0.10-roadmap.md) — current versioned roadmap.
-  Entries G4, G5, G6, X1 in this audit are the audit-lens re-entries of
-  roadmap items 2, 3+5, 1, and 4 respectively.
+- [`v0.10-roadmap.md`](v0.10-roadmap.md) — **historical** (v0.10 has
+  shipped). Entries G4, G5, G6, X1 in this audit are the audit-lens
+  re-entries of roadmap items 2, 3+5, 1, and 4 respectively.
 - [`superpowers/specs/`](superpowers/specs/) — per-version design specs.
 
 **Primary visual references:**
@@ -63,7 +64,7 @@ Useful facts to screen wishlist items against:
 **Entry template:**
 
 - **PSP behaviour** — what the real PSP firmware does.
-- **Current theme** — what ships in `v0.9.3` today.
+- **Current theme** — what ships on `main` (v0.11 partial) today.
 - **Reference** — which provided PSP screenshot demonstrates it, when
   applicable.
 - **Feasibility** — `Ship-it` / `Partial workaround` / `Needs research`.
@@ -76,7 +77,7 @@ Useful facts to screen wishlist items against:
 
 ## System view (S)
 
-### S1. PSP line-art system iconography
+### S1. PSP filled-silhouette system iconography
 
 **PSP behaviour:** Category icons in the top row are a coherent set of
 single-weight line drawings — a wrench/toolbox for Settings, a filmstrip
@@ -84,66 +85,72 @@ for Video, a controller for Game, a globe for Network, etc. Each is
 drawn at the same line weight, fits inside a square footprint, and is
 read as a silhouette.
 
-**Current theme:** Knulli's per-system icon set (which the repo
-bundles in `art/system-icons/`) is mostly chunky controller / console
-silhouettes with mixed weights and styles. They read but they don't
-hang together visually the way the PSP set does.
+**Current theme:** Shipped in v0.11 (PR #27). `art/system-icons/`
+now carries 198 icons: 134 shortnames adopted from the RetroArch
+`monochrome` set (f170f40) plus 8 hand-authored port icons in the
+same filled-silhouette style via `scripts/gen-port-icons.py`
+(0afbb62), all with a pre-burned drop shadow (see S3). Roughly 56
+legacy Knulli icons remain for shortnames neither mapped nor
+hand-authored.
 
 **Reference:** PSP screenshots 1 (briefcase Settings icon) and 4 (game
 controller, filmstrip, globe).
 
-**Feasibility:** Ship-it. The bulk of the work is already done — see
-**S1a** below for the RetroArch `automatic` icon-set adoption (CC-BY
-4.0, ~78% drop-in coverage, exactly the PSP-XMB line-art aesthetic
-this entry was asking for).
+**Feasibility:** Shipped in v0.11 (PR #27) via the RetroArch
+`monochrome` set (CC-BY 4.0). The `automatic` line-art set was
+tried first (PR #22) and rolled back per #23 — `monochrome`'s
+filled silhouettes are the house style now.
 
-**Workaround sketch:** Adopt the RetroArch `automatic` XMB icon set
-via the S1a workflow. Forty-two shortnames remain uncovered:
-- **5 retro micros** in the `automatic` set's gap (CoCo, Acorn
-  Electron, Game & Watch, NEC PC-88, TI-99) — keep current Knulli
-  icons or hand-draw in the `automatic` outline style.
-- **37 homebrew / ports** with no RA equivalent (`abuse`,
-  `devilutionx`, `gzdoom`, `openbor`, `pico8`, `solarus`, `tyrian`,
-  `cgenius`, `fallout1-ce`, `fallout2-ce`, `superbroswar`, … —
-  full list in S1a). These are G10's territory (branded item icons)
-  more than S1's; hand-craft per-app art if the user wants them
-  themed, otherwise fall back to `_default.png` / Knulli's existing
-  icon.
+**Workaround sketch (as landed):** Adopted the RetroArch
+`monochrome` XMB icon set via the S1a workflow. Of the shortnames
+that had no RA equivalent, 8 popular ports were hand-authored in
+the filled-silhouette style (`scripts/gen-port-icons.py`, 0afbb62);
+the residual gap is ~29 unmatched homebrew / ports (full list in
+S1a). The 5 retro micros the old plan worried about (CoCo, Acorn
+Electron, Game & Watch, NEC PC-88, TI-99) ARE present in
+`monochrome`, so the earlier "do not backfill" caveat is void.
+Remaining stragglers fall back to `_default.png` / Knulli's
+existing icon; hand-craft per-app art only if the user wants them
+themed (G10's territory).
 
-**Effort:** Small (the S1a script does the rename + copy; CREDITS.md
-gets one entry). Optional Medium follow-up for the 5+37 stragglers
-if a unified set is desired.
+**Effort:** Spent. Optional follow-up for the ~29 residual
+stragglers if a fully unified set is desired.
 
 **Dependencies:** S1a (mechanical adoption); G5 (fallback icons can
-reuse the same `automatic` icons at smaller sizes); G10 (the 37
-homebrew/port entries overlap with G10's branded-item-icon
-territory).
+reuse the same `monochrome` icons at smaller sizes); G10 (the
+residual homebrew/port entries overlap with G10's
+branded-item-icon territory).
 
-**Evidence:** `art/system-icons/` listing; `_inc/system.xml:128-132`
-(per-system icon binding via `${system.theme}`); `libretro/retroarch-assets`
-→ `xmb/automatic/png/` (561-icon set, 256×256 white-on-transparent
-line-art).
+**Evidence:** `art/system-icons/` listing (198 files);
+`_inc/system.xml:164-170` (per-system icon binding via
+`${system.theme}`); `libretro/retroarch-assets` →
+`xmb/monochrome/png/` (256×256 white-on-transparent filled
+silhouettes); commits f170f40, 0afbb62.
 
 ---
 
-### S1a. RetroArch `automatic` icon-set adoption workflow
+### S1a. RetroArch `monochrome` icon-set adoption workflow
 
 **PSP behaviour:** N/A — this entry is the *delivery vehicle* for
-S1 (PSP-style line-art iconography) and partially for G10 (branded
-auto-collection icons).
+S1 (PSP-style filled-silhouette iconography) and partially for G10
+(branded auto-collection icons).
 
-**Current theme:** No RetroArch icons used. `scripts/populate-fallback-icons.sh`
-copies `_default.png` for any system not in `art/system-icons/`.
+**Current theme:** Shipped in v0.11 (PR #27). 134 RetroArch
+`monochrome` icons are in `art/system-icons/`;
+`scripts/ra-mapping.tsv` (191 lines) and
+`scripts/import-ra-icons.sh` landed on main via d520928. Note: the
+shipped TSV/script header still defaulted to `automatic` — being
+fixed in this same branch.
 
 **Reference:** None — this is an internal delivery-mechanism entry.
 
-**Feasibility:** Ship-it. License-compatible
+**Feasibility:** Shipped (v0.11). License-compatible
 (CC-BY 4.0 → CC-BY-NC-SA 2.0 is one-way OK; only requirement is
 CREDITS.md attribution).
 
-**Workaround sketch:**
+**Workaround sketch (steps 1-5 done; step 6 outstanding):**
 
-1. **Clone RetroArch assets** (one-time, into the repo as a
+1. **Clone RetroArch assets** — DONE (one-time, into the repo as a
    gitignored sibling so updates can be pulled):
    ```bash
    git clone --depth=1 \
@@ -151,9 +158,9 @@ CREDITS.md attribution).
      ~/retroarch-assets
    ```
 
-2. **Author a mapping TSV** at `scripts/ra-mapping.tsv`. Two
-   tab-separated columns: Knulli shortname, RetroArch
-   filename-without-extension. Examples:
+2. **Author a mapping TSV** at `scripts/ra-mapping.tsv` — DONE
+   (d520928; 134 mapped shortnames). Two tab-separated columns:
+   Knulli shortname, RetroArch filename-without-extension. Examples:
    ```
    snes	Nintendo - Super Nintendo Entertainment System
    nes	Nintendo - Nintendo Entertainment System
@@ -177,7 +184,9 @@ CREDITS.md attribution).
    Family aliases (multiple shortnames → same RA icon) are explicit
    per row.
 
-3. **Author a copy script** at `scripts/import-ra-icons.sh`:
+3. **Author a copy script** at `scripts/import-ra-icons.sh` — DONE
+   (d520928; note the `automatic` default path below is what
+   shipped — see Current theme):
    ```bash
    #!/usr/bin/env bash
    set -euo pipefail
@@ -192,50 +201,53 @@ CREDITS.md attribution).
    ```
    Idempotent. A `MISS` line surfaces mapping errors immediately.
 
-4. **A/B-test before swap.** First run, point `OUT_DIR` at
-   `art/system-icons-ra/` (parallel folder) so the existing Knulli
-   set stays available. Render via `scripts/render.sh` with both,
-   compare. Once happy, point at `art/system-icons/` for the real
-   swap.
+4. **A/B-test before swap** — DONE (the A/B on-device pass is what
+   rejected `automatic` (PR #22, #23) and selected `monochrome`;
+   the real swap landed as f170f40).
 
-5. **Update CREDITS.md** with this attribution block:
-   > **System icons** in `art/system-icons/` adapted from the
-   > RetroArch *automatic* XMB icon theme, © libretro contributors,
-   > licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-   > Source: https://github.com/libretro/retroarch-assets.
-   > Modifications: file renaming to Knulli `es_systems.cfg`
-   > shortnames; no visual edits.
+5. **Update CREDITS.md** — DONE (c07eca2, `CREDITS.md:57-66`). The
+   block originally proposed here cited the *automatic* set; the
+   shipped block credits the **`monochrome`** set
+   (`xmb/monochrome/png/`, CC-BY 4.0), covering the ~134 mapped
+   icons, the utility/auto-collection icons, and its role as design
+   reference for the 8 hand-authored port icons
+   (`scripts/gen-port-icons.py`).
 
-6. **Update README.md** "Known limitations" — the "fallback
-   placeholder" note becomes "drop-in-replaceable for any system
-   the user wants to customise."
+6. **Update README.md** "Known limitations" — OUTSTANDING — the
+   "fallback placeholder" note becomes "drop-in-replaceable for any
+   system the user wants to customise."
 
-**Effort:** Small. The TSV is the only hand-edited artifact (~148
-rows, ~10-15 min). The rest is mechanical.
+**Effort:** Spent (README step 6 remains, Trivial).
 
 **Dependencies:** S1 (this entry is its delivery). Couples
 indirectly with G5 and G10.
 
-**Style caveats:** The 5 retro micros that only exist in
-`monochrome` (CoCo, Electron, G&W, PC-88, TI-99) should NOT be
-backfilled from `monochrome` — its filled-silhouette style clashes
-with `automatic`'s line-art. Either keep current Knulli icons for
-these or hand-draw matching outlines.
+**Style caveats:** An earlier revision warned against backfilling
+the 5 retro micros from `monochrome` because its filled-silhouette
+style "clashes with `automatic`'s line-art". That caveat is now
+inverted: `monochrome` IS the house style, and those 5 micros
+(CoCo, Electron, G&W, PC-88, TI-99) shipped from it like every
+other mapped shortname.
 
-**Truly-unmatched homebrew / ports (37 entries):** `abuse`,
+**Truly-unmatched homebrew / ports:** 8 of the original 37 gaps
+were hand-authored in v0.11 in the filled-silhouette style via
+`scripts/gen-port-icons.py` (0afbb62): `gzdoom`, `prboom`,
+`eduke32`, `devilutionx`, `fallout1-ce`, `fallout2-ce`, `mrboom`,
+`openjazz`. Residual gap is ~29 ports (the enumeration below keeps
+a few extra names the original count tracked loosely): `abuse`,
 `bennugd`, `camplynx`, `cdogs`, `cgenius`, `commanderx16`,
-`corsixth`, `devilutionx`, `easyrpg`, `fallout1-ce`,
-`fallout2-ce`, `flash`, `fury`, `gamate`, `hcl`, `hurrican`,
-`laser310`, `lcdgames`, `moonlight`, `multivision`, `namco22`,
-`openbor`, `pdp1`, `pico8`, `plugnplay`, `pygame`, `reminiscence`,
-`samcoupe`, `sdlpop`, `socrates`, `solarus`, `superbroswar`,
-`systemsp`, `thextech`, `tyrian`, `zeldac`. These are G10's
-territory if the user wants branded icons; otherwise fall back to
-`_default.png`.
+`corsixth`, `easyrpg`, `flash`, `fury`, `gamate`, `hcl`,
+`hurrican`, `laser310`, `lcdgames`, `moonlight`, `multivision`,
+`namco22`, `openbor`, `pdp1`, `pico8`, `plugnplay`, `pygame`,
+`reminiscence`, `samcoupe`, `sdlpop`, `socrates`, `solarus`,
+`superbroswar`, `systemsp`, `thextech`, `tyrian`, `zeldac`. These
+are G10's territory if the user wants branded icons; otherwise
+fall back to `_default.png`.
 
 **Evidence:** `libretro/retroarch-assets` repo →
-`xmb/automatic/png/` (561-icon set, 256×256 white-on-transparent
-line-art) and `COPYING` (CC-BY 4.0 license).
+`xmb/monochrome/png/` (256×256 white-on-transparent filled
+silhouettes) and `COPYING` (CC-BY 4.0 license); commits d520928,
+f170f40, 0afbb62, c07eca2.
 
 ---
 
@@ -246,36 +258,39 @@ subtle soft drop shadow. Not a hard outline — a low-opacity
 downward-offset blurred copy that reads as depth against the moving
 background.
 
-**Current theme:** Flat icons. The selected icon gets a halo glow
-behind it (the gaussian `halo.png`), but unselected icons are
-completely flat against the wave, and the selected icon's shadow is
-masked by the halo's center brightness.
+**Current theme:** Shipped in v0.11 (PR #27). Every icon in
+`art/system-icons/*.png` carries a pre-burned drop shadow —
+4px-blur, 3px Y-offset, 35%-black — applied by
+`scripts/apply-shadow.py` (00124cf).
 
 **Reference:** Subtle but visible in PSP screenshots 1, 2, 4 — note
 the slight darkening to the lower-right of each icon's silhouette.
 
-**Feasibility:** Partial workaround — ES has no drop-shadow attribute;
-fake it with pre-rendered shadow art.
+**Feasibility:** Shipped — via the pre-rendered-art route (option 1
+below was taken; ES has no drop-shadow attribute, so the shadow is
+baked into the assets).
 
-**Workaround sketch:** Two options:
-1. **Pre-burn the shadow into every icon PNG.** Cheap, no XML change.
-   Couples to S1 — if we're redrawing the icon set anyway, the
-   shadow becomes part of the asset. Risk: the shadow looks wrong
-   against very-dark colorsets (October Crimson, November Slate).
-2. **Stacked element approach.** Define a second `<image
+**Workaround sketch:** Two options were considered:
+1. **Pre-burn the shadow into every icon PNG** (TAKEN). Cheap, no
+   XML change. Coupled to S1 — the set was redrawn anyway, so the
+   shadow became part of the asset. **Open verification item:** the
+   shadow may look wrong against very-dark colorsets (October
+   Crimson, November Slate) — not yet checked on-device.
+2. **Stacked element approach** (rejected). A second `<image
    name="logoShadow">` per icon, offset by a few pixels and dimmed.
    ES carousel doesn't natively support per-logo additional layers,
-   so this would only work for the *selected* slot via a screen-view
-   extra. Probably not worth the XML complexity.
+   so it would only have worked for the *selected* slot via a
+   screen-view extra. Not worth the XML complexity.
 
-Recommend option 1 if S1 is in scope; defer otherwise.
-
-**Effort:** Small (incidental to S1) / Medium (standalone if asset
-regeneration is needed across all 180 icons).
+**Effort:** Done (rode along with S1). ⚠️ `scripts/apply-shadow.py`
+is NOT idempotent — re-running it compounds shadows on
+already-shadowed PNGs. Only run it on freshly imported/authored
+shadowless icons.
 
 **Dependencies:** S1.
 
-**Evidence:** N/A — this is purely an art / asset decision.
+**Evidence:** `scripts/apply-shadow.py`; commit 00124cf
+(pre-burned shadow across `art/system-icons/`).
 
 ---
 
@@ -312,8 +327,8 @@ icon paths.
       ...
     </helpsystem>
 
-Author 6-10 small PNG glyphs (~32×32 px) at the same line-art weight
-as the system icon redraw. Verify exact attribute names against the
+Author 6-10 small PNG glyphs (~32×32 px) matching the shipped
+filled-silhouette icon style. Verify exact attribute names against the
 batocera-emulationstation `THEMES.md` helpsystem section, since some
 forks rename them.
 
@@ -392,20 +407,23 @@ enlarged slot. Use an `extra="true"` chevron pinned to
 independent of menu navigation. Wave on its own timeline; icon
 carousel on a separate one.
 
-**Current theme (v0.9.3):** Wave layers are declared as
-`extra="true"` images in `<view name="system">`. Their storyboards
-restart at `t=0` on every system change because the per-system
-`backgroundExtras` lifecycle calls `extra->onShow()` →
-`mStoryboardAnimator->reset()` on cursor change
-(`SystemView.cpp:852, 1534`; `GuiComponent.cpp:942`). Documented
-since v0.3 in the README as a known limitation.
+**Current theme:** Shipped in v0.10. `_inc/system.xml:16-73`
+declares `staticBackgroundWave` plus
+`staticBackgroundLayer{1,2,3}`, so the wave ticks on its own
+timeline and no longer restarts on system change. (The v0.9.3
+failure mode, for the record: wave layers were `extra="true"`
+images whose storyboards restarted at `t=0` on every system change
+because the per-system `backgroundExtras` lifecycle calls
+`extra->onShow()` → `mStoryboardAnimator->reset()` on cursor
+change — `SystemView.cpp:852, 1534`; `GuiComponent.cpp:942`.
+Documented since v0.3 in the README as a known limitation.)
 
 **Reference:** PSP / video A / video B / video C all show the wave
 animating without ever restarting during navigation.
 
-**Feasibility:** Ship-it.
+**Feasibility:** Shipped (v0.10).
 
-**Workaround sketch:** Use the undocumented `staticBackground*`
+**Workaround sketch (as landed):** Uses the undocumented `staticBackground*`
 name-prefix mechanism (`SystemView::getViewElements`,
 `SystemView.cpp:1045-1065`). Elements whose `name` starts with the
 literal string `"staticBackground"` are stored in a single
@@ -414,30 +432,29 @@ per-system). Their `update()` ticks every frame; their `onShow()`
 is only invoked on view-show, **not** on cursor change. The
 storyboard `reset()` cascade never fires.
 
-Rename in `_inc/system.xml`:
-- `waveBackground` → `staticBackgroundWave` (drop `extra="true"`)
-- (the three motion wave layers, brought inline here from
+Renames landed in `_inc/system.xml`:
+- `waveBackground` → `staticBackgroundWave` (dropped `extra="true"`)
+- (the three motion wave layers, brought inline from
   `_inc/wave-motion.xml`) → `staticBackgroundLayer{1,2,3}`
-- `selectedHalo` → `staticBackgroundHalo` (drop `extra="true"`,
-  drop both `<storyboard>` blocks — see X1 update below — and
-  bump `<zIndex>` to 10 so it renders strictly above the wave but
-  below the carousel icon).
+- `selectedHalo` → `staticBackgroundHalo` (dropped `extra="true"`,
+  dropped both `<storyboard>` blocks — see X1 update below). The
+  sketch originally called for `<zIndex>` 10; the actual landed
+  value is **4** (b8649c8 corrected 10 → 4, re-confirmed in the
+  v0.11 restoration 3d4a602) — above all wave layers, below the
+  carousel.
 
-In `_inc/wave-motion.xml`, change `<view name="system,detailed,gamecarousel">`
-to `<view name="detailed,gamecarousel">` — gamelist views are
+In `_inc/wave-motion.xml`, `<view name="system,detailed,gamecarousel">`
+became `<view name="detailed,gamecarousel">` — gamelist views are
 unaffected by the cursor-reset issue and keep their existing
 declarations.
 
-**Effort:** Small (~1 hour, mostly on-device verification — the
-Docker harness uses desktop GL21 while the device uses GLES2; one
-final TrimUI Brick render check is warranted before the v0.10
-ship.)
+**Effort:** Spent.
 
-**Dependencies:** none. Along with the rename, delete the halo's
-existing `<storyboard event="scroll">` blocks — they're dead code
-on this build (`CarouselComponent.cpp:267, 652` shows the `scroll`
-event fires only on the carousel's intrinsic logos, never on
-extras).
+**Dependencies:** none. The halo's old
+`<storyboard event="scroll">` blocks were deleted along with the
+rename — they were dead code on this build
+(`CarouselComponent.cpp:267, 652` shows the `scroll` event fires
+only on the carousel's intrinsic logos, never on extras).
 
 **Evidence:** `SystemView.cpp:889` (mStaticBackgrounds render),
 `:1045-1065` (name-prefix parse), `:852, 1534` (activateExtras →
@@ -720,10 +737,10 @@ to FileData → `{game:*}` resolution).
 ### G5. Selected-game halo + per-system fallback icons (coupled)
 
 **Audit-lens re-entry of v0.10 roadmap items 3 + 5.** See
-[v0.10-roadmap.md §3 and §5](v0.10-roadmap.md). The two items couple
-naturally because a no-thumbnail game gets a system-media fallback
-icon instead of a white text label, which means the white halo no
-longer obscures readable text.
+[v0.10-roadmap.md §3 and §5](v0.10-roadmap.md) (historical — v0.10
+shipped). The two items couple naturally because a no-thumbnail
+game gets a system-media fallback icon instead of a white text
+label, which means the white halo no longer obscures readable text.
 
 **PSP behaviour:** Selected sub-items get a soft glow behind them,
 regardless of whether the slot is showing a thumbnail or a generic
@@ -731,10 +748,14 @@ icon (Photos browser uses a generic camera/photo icon when an image
 is unprocessed). The glow is consistent.
 
 **Current theme:** Selected system in the system carousel gets a
-soft white halo (`art/halo.png`). The gamecarousel does NOT — a
-v0.9.3 round 4 attempt to add one was reverted because the carousel
-falls back to large white text when a game lacks a thumbnail, and
-the white halo behind the white text was unreadable.
+soft white halo (`art/halo.png`) — pulled during v0.10, then
+RESTORED in v0.11 (PR #28) as `staticBackgroundHalo`
+(`_inc/system.xml:87-95`), tuned to `haloW=0.28` / `opacity=0.6`
+(3396428). The gamecarousel still does NOT — a v0.9.3 round 4
+attempt to add one was reverted because the carousel falls back to
+large white text when a game lacks a thumbnail, and the white halo
+behind the white text was unreadable
+(`_inc/gamelist.xml:217-221` stub).
 
 **Reference:** PSP screenshots 1 and 3 — the selected `AVLS` row and
 the selected `PIC_0000` photo each have a subtle highlight bar /
@@ -743,25 +764,31 @@ glow behind them.
 **Feasibility:** Partial workaround — two coupled changes.
 
 **Workaround sketch:**
-1. **Per-system media fallback icons.** Author 5-8 media-type icons
-   (CD-ROM, cartridge, floppy, handheld-cart, computer-media,
-   generic-ROM, arcade-board, virtual). Mapping table from
+1. **Per-system media fallback icons.** Art DONE — 7 media-type
+   icons shipped in `art/system-media/` via
+   `scripts/gen-media-fallbacks.py` (b616057), but NOT yet wired
+   into any XML. Remaining work: the mapping table from
    `${system.theme}` → icon-name, materialized as a per-system
-   include file or a giant `<variables>` block in `common.xml`. The
-   chosen icon element renders only when `<visible>!exists({game:thumbnail})</visible>`,
-   replacing the white-text fallback.
-2. **Conditional halo in the gamecarousel.** Once the fallback is an
-   icon (not text), the existing system-halo design works. Re-add
-   the `<image name="selectedGameHalo">` at the selected slot
-   position, white gaussian, same `halo.png` source.
+   include file or a giant `<variables>` block in `common.xml`, and
+   the icon element rendering only when
+   `<visible>!exists({game:thumbnail})</visible>`, replacing the
+   white-text fallback.
+2. **Conditional halo in the gamecarousel.** Still open. Once the
+   fallback is an icon (not text), the system-halo design works.
+   Re-add the `<image name="selectedGameHalo">` at the selected
+   slot position, white gaussian, same `halo.png` source — using
+   the v0.11-tuned values (`haloW=0.28`, `opacity=0.6`), not the
+   original 0.40.
 
-**Effort:** Medium (art for icons + theme XML wiring).
+**Effort:** Small (XML wiring only — the art is done).
 
 **Dependencies:** S1 (icon design language matches);
 G6 (visibility-binding pattern is the same primitive).
 
 **Evidence:** v0.9.3 round 4 commit history;
-`CarouselComponent.cpp:730-767` (imageSource + text-fallback path).
+`CarouselComponent.cpp:730-767` (imageSource + text-fallback path);
+3d4a602 + 3396428 (system-halo restoration + tuning); b616057
+(media fallback art).
 
 ---
 
@@ -1005,10 +1032,12 @@ icons**, each with its own brand identity. The visual hierarchy is
 "category = silhouette, item = brand."
 
 **Current theme:** All system icons in `art/system-icons/` are
-white silhouettes (via Knulli's icon pack). The auto-collections
-(`auto-favorites`, `auto-lastplayed`, `auto-allgames`) use the
-same monochrome style as system icons. There's no "branded item"
-treatment for special entries.
+white silhouettes — now predominantly from the RetroArch
+`monochrome` set (v0.11, PR #27), with legacy Knulli icons only
+for unmapped stragglers. The auto-collections (`auto-favorites`,
+`auto-lastplayed`, `auto-allgames`) on main also come from
+`monochrome`, in the same style as the system icons. There's no
+"branded item" (full-colour) treatment for special entries.
 
 **Reference:** video C @ 0:00 (Network category sub-item: blue/
 purple PSN swirl icon next to monochrome Network globe — clear
@@ -1023,10 +1052,14 @@ Game/Network icons).
 **Workaround sketch:** Identify which ES "system" entries should
 get branded treatment versus silhouette treatment.
 
-**Partial source: RetroArch `automatic` set** (CC-BY 4.0, see S1a).
-The RA set ALREADY ships dedicated icons for the system-tier auto-
-collections we'd want branded, with a visual style that contrasts
-cleanly against the silhouette hardware icons:
+**Partial source: RetroArch `monochrome` set** (CC-BY 4.0, see
+S1a). The RA set ALREADY ships dedicated icons for the system-tier
+auto-collections we'd want branded. Note the original two-tier
+contrast argument no longer holds: with `monochrome` (not
+`automatic`) as the source, hardware icons and auto-collection
+icons are BOTH filled silhouettes — the outline-vs-filled hierarchy
+this entry hoped for doesn't exist on main. Any true PSP-style
+"brand" tier would need colour art on top:
 - `auto-favorites.png` ← RA `favorites.png` (filled outline heart)
 - `auto-lastplayed.png` ← RA `history.png` (clock + reverse arrow)
 - `auto-allgames.png` ← RA `database.png` (stacked discs)
@@ -1038,29 +1071,32 @@ cleanly against the silhouette hardware icons:
 - `library.png` ← RA `database.png`
 - `odcommander.png` ← RA `file.png`
 
-These are included in S1a's mapping TSV — they ride along when S1a
-ships. Visual hierarchy: hardware-system shortnames get the
-line-art outline icons; the items above get the filled, slightly
-more graphic icons. Subtle but consistent.
+These are in S1a's mapping TSV and shipped with it (d520928 /
+f170f40). They are consistent with the hardware icons, but — per
+the note above — not visually *distinct* from them the way the
+old `automatic` plan promised.
 
-**Homebrew / port games (the 37 unmatched from S1a):** Not
-provided by RA. For these, only hand-crafted per-app art applies.
-Examples that arguably warrant branded icons: `pico8`, `openbor`,
-`gzdoom`, `devilutionx`, `solarus`, `fallout1-ce`, `fallout2-ce`,
-`tyrian`. Lower priority than the auto-collections — defer until a
-v0.11+ art pass.
+**Homebrew / port games (the unmatched from S1a):** Not provided
+by RA; only hand-crafted per-app art applies. The v0.11 art pass
+happened: 8 ports were hand-authored in the filled-silhouette
+style (`gzdoom`, `prboom`, `eduke32`, `devilutionx`,
+`fallout1-ce`, `fallout2-ce`, `mrboom`, `openjazz` —
+`scripts/gen-port-icons.py`, 0afbb62). Those are silhouettes, not
+branded colour icons; the remaining ~29 (`pico8`, `openbor`,
+`solarus`, `tyrian`, …) and any true branded treatment stay open.
 
-**Effort:** Small (auto-collections ride along with S1a); Medium-
-Large if hand-crafting per-app art for the 37 unmatched.
+**Effort:** Small (auto-collections rode along with S1a — done);
+Medium-Large if hand-crafting branded per-app art for the
+remaining unmatched.
 
 **Dependencies:** S1a (the auto-collection mappings ride in the
 same TSV); S1 (overall icon-style direction).
 
-**Evidence:** `libretro/retroarch-assets` → `xmb/automatic/png/`
+**Evidence:** `libretro/retroarch-assets` → `xmb/monochrome/png/`
 contains `favorites.png`, `history.png`, `database.png`,
 `core.png`, `menu_drivers.png`, `images.png`, `movie.png`,
-`music.png`, `file.png` — all present and stylistically distinct
-from the hardware-system icons.
+`music.png`, `file.png` — all present, all in the same
+filled-silhouette style as the hardware-system icons.
 
 ---
 
@@ -1072,13 +1108,18 @@ from the hardware-system icons.
 unplugged or in a low-battery state), PSP shows the numeric
 percentage next to the icon.
 
-**Current theme:** Glyph only — the `<batteryIcon>` element
-auto-selects between 6 image states. No numeric.
+**Current theme:** No battery widget at all — the entire widget
+(glyph included) was pulled in v0.10 (8292b54). The assets survive
+(`art/battery/*`, `scripts/gen-battery-icons.py`); restoring the
+glyph is tracked as issue #4. This entry now DEPENDS on #4 landing
+the glyph first — there is currently nothing to put a numeric
+"next to".
 
 **Reference:** Not visible in the captured reference videos — this
 is a known PSP firmware feature, optional.
 
-**Feasibility:** Ship-it. Two supported paths.
+**Feasibility:** Ship-it once issue #4 restores the battery glyph.
+Two supported paths, both still valid.
 
 **Workaround sketch (recommended — native batteryText element):**
 
@@ -1121,11 +1162,11 @@ honors `ShowBattery=icon`.
 (`BindingManager.cpp:52-53`); `{global:battery}` is the `hasBattery`
 bool.
 
-**Effort:** Trivial.
+**Effort:** Trivial (after #4).
 
-**Dependencies:** none.
+**Dependencies:** issue #4 (battery-glyph restoration).
 
-**Evidence:** `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
+**Evidence:** 8292b54 (widget removal); `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
 (auto-extra registration), `:2147-2148` (createExtraComponent
 dispatch); `BindingManager.cpp:52-53` (battery binding
 registration).
@@ -1220,15 +1261,26 @@ shows a small triangle at the cut edge indicating "more text below"
 `<container>true</container>` in `_inc/gamelist.xml:152`, which
 enables ES's built-in scroll behaviour. The text *does* scroll on
 selection, but there's no visual cue that text is being cut at the
-container edge.
+container edge. This entry WAS implemented (4f003bc) and then
+deliberately reverted after on-device review (4fbc7ca): the
+chevrons were "too small to read at typical viewing distance", and
+the decision is to deviate from PSP style on this element. The
+assets survive orphaned (`art/ui/chevron-{up,down}.png`,
+`scripts/gen-chevrons.py`).
 
 **Reference:** Subtle in screenshot 1 — the description text wraps
 mid-word at the right edge, suggesting more text exists; PSP's
 firmware would normally show a triangle.
 
-**Feasibility:** Ship-it.
+**Feasibility:** **Design-rejected on-device** (this note is the
+follow-up audit update promised in 4fbc7ca). Technically it works
+exactly as sketched below; it was rejected on legibility, not
+feasibility. Any re-attempt must use substantially larger chevrons
+than the ~12×8 px sketch. Not to be confused with branch
+`feat/v0.11-chevron`, which is S5's selected-row pointer
+(issue #9) — unrelated to this entry.
 
-**Workaround sketch:** Two static `<image>` elements pinned at
+**Workaround sketch (as built, then reverted):** Two static `<image>` elements pinned at
 container top + bottom edges, sized ~12×8 px, with a downward /
 upward chevron PNG. Always visible — there is no
 `descriptionoverflow` / scroll-state binding:
@@ -1245,7 +1297,8 @@ same description container.
 
 **Dependencies:** none.
 
-**Evidence:** `_inc/gamelist.xml:146-154` (description container).
+**Evidence:** `_inc/gamelist.xml:146-154` (description container);
+4f003bc (implementation), 4fbc7ca (design revert).
 
 ---
 
@@ -1677,10 +1730,11 @@ features. Listed so future audits don't re-discover them.
 - Entries are independent unless dependencies are called out — the
   audit is a wishlist, not a sequence.
 - Recommended grouping:
-  - **Highest-impact / verified-ship-it cluster (target v0.10):**
-    S6 (continuous wave), ST1 (battery %),
-    X2 (description chevrons, always-on), X1 (halo storyboard
-    cleanup — was dead code, delete with S6).
+  - **Highest-impact / verified-ship-it cluster (was: target
+    v0.10):** S6 (continuous wave) + X1 (halo storyboard cleanup)
+    SHIPPED in v0.10; X2 (description chevrons) shipped then
+    design-rejected on-device (4fbc7ca); ST1 (battery %) now
+    blocked on issue #4 restoring the battery glyph.
   - **`<itemTemplate>` adoption cluster (target v0.10 or v0.11 — one
     coordinated XML rework unlocks G4, G7, G8, and the gamecarousel
     side of G3):** G4 (per-logo titles) + G7 (two-line selected
@@ -1691,24 +1745,18 @@ features. Listed so future audits don't re-discover them.
   - **Per-game polish cluster:** G2 (key-value metadata sidebar),
     G5 (per-system media fallback icons + coupled halo), G6 (hide-
     only adaptive layout).
-  - **Art-heavy cluster (now bootstrap-able from RetroArch):**
-    S1 + S1a (system iconography via RA `automatic` set — ~78%
-    coverage drop-in), G10 (auto-collection branded icons ride
-    along with S1a's TSV), S3 (drop shadow — incidental to S1),
-    S4 (helpsystem PSP glyphs — not in RA set, still hand-draw),
-    G1 (launch-image splash), S7 (static boot splash via
-    `splash.xml`).
+  - **Art-heavy cluster:** S1 + S1a + S3 SHIPPED in v0.11 via the
+    RA `monochrome` set (G10's auto-collection icons rode along
+    with S1a's TSV, though as silhouettes, not a branded tier).
+    Remaining: S4 (helpsystem PSP glyphs — not in RA set, still
+    hand-draw), G1 (launch-image splash), S7 (static boot splash
+    via `splash.xml`).
 - **Constraint to apply when screening new wishlist items:** ES
   emits only `activate`, `deactivate`, `scroll`, `open` storyboard
   events plus the unnamed default. Any new entry that relies on a
   different event (`event="boot"`, `event="select"`,
   `event="idle"`, etc.) fails immediately. Surface this in the
   preamble has been added.
-- Re-run this audit after any major version ships — the
-  "Deliberately omitted" list captures decisions that should stick;
-  the "Unsupportable in EmulationStation" list captures dead ends
-  that future spikes shouldn't re-discover; the active entries get
-  pruned as they ship or are deemed not-worth-it.
 - Re-run this audit after any major version ships — the
   "Deliberately omitted" list captures decisions that should stick;
   the "Unsupportable in EmulationStation" list captures dead ends
