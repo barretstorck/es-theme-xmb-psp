@@ -16,7 +16,8 @@
 | Asset | Source | Origin author / license |
 |---|---|---|
 | Wave background | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
-| System icons | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
+| System icons (majority, v0.11+) | RetroArch `monochrome` XMB set | RetroArch/libretro contributors — CC-BY 4.0 (modified: pre-burned drop shadows via `scripts/apply-shadow.py`; see "RetroArch `monochrome` icon set" section below) |
+| System icons (remainder) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 (see "Icon attribution (v0.4)" section below) |
 | UI chrome (selector, separators) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Sound effects | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
 | Font: Roboto Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed) | The Roboto Project Authors — SIL OFL 1.1 (see `fonts/OFL.txt`) |
@@ -25,7 +26,7 @@
 
 ## Not yet used (would re-add credit if included later)
 
-- **Physical media icons** — RetroArch XMB monochrome theme contributors. (Not currently in any view.)
+- **Physical media icons** — 7 media-type fallback icons now generated procedurally into `art/system-media/` (`scripts/gen-media-fallbacks.py`), but not yet wired into any view.
 - **Controller icons** — RobZombie9043. (Not currently in any view.)
 
 ## Icon attribution (v0.4)
@@ -61,7 +62,12 @@ XMB icon set:
 
 - Source: [libretro/retroarch-assets](https://github.com/libretro/retroarch-assets) → `xmb/monochrome/png/`
 - License: CC-BY 4.0
-- Used for: ~134 system-specific icons (see `scripts/ra-mapping.tsv`),
+- Used for: 134 system-specific icons (mapping manifest:
+  `scripts/ra-mapping.tsv`, imported via `scripts/import-ra-icons.sh`),
   utility/auto-collection icons, and as the design reference for 8
   hand-authored port icons (`scripts/gen-port-icons.py`).
+- Modifications (per CC-BY 4.0 attribution requirements): files renamed
+  to Knulli `es_systems.cfg` shortnames, and a drop shadow (4px blur,
+  3px Y offset, 35% black) pre-burned into every icon via
+  `scripts/apply-shadow.py`. No other visual edits.
 

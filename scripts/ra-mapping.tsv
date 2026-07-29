@@ -1,6 +1,6 @@
 # scripts/ra-mapping.tsv
 #
-# Maps Knulli system shortnames -> RetroArch `automatic` XMB icon filenames
+# Maps Knulli system shortnames -> RetroArch `monochrome` XMB icon filenames
 # (filename without the .png extension). Two tab-separated columns.
 # Used by scripts/import-ra-icons.sh.
 #
@@ -8,17 +8,17 @@
 # row pointing at the same RA source — the script copies the source under
 # each alias's filename.
 #
-# Every row verified against ~/retroarch-assets/xmb/automatic/png/ at
+# Every row verified against ~/retroarch-assets/xmb/monochrome/png/ at
 # authoring time. If you add a row, validate that the right-hand value
 # resolves to a real ${RA_DIR}/<ra-filename>.png — re-run the smoke test
 # scripts/tests/test-import-ra-icons.sh, and/or:
 #   while IFS=$'\t' read -r short ra; do
 #     [[ -z "${short}" || "${short}" == \#* ]] && continue
-#     [[ -f "${HOME}/retroarch-assets/xmb/automatic/png/${ra}.png" ]] \
+#     [[ -f "${HOME}/retroarch-assets/xmb/monochrome/png/${ra}.png" ]] \
 #       || echo "MISS: ${short} -> ${ra}"
 #   done < scripts/ra-mapping.tsv
 
-# --- Tier 1: hardware systems (RA `automatic` line-art outlines) ---
+# --- Tier 1: hardware systems (RA `monochrome` filled silhouettes) ---
 
 # Nintendo
 nes	Nintendo - Nintendo Entertainment System
