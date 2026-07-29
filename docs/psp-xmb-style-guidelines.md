@@ -5,9 +5,9 @@ structure on Material Design and Apple Human Interface Guidelines: principle
 + measurement, not principle alone. Every claim about a position, size,
 colour, or timing resolves either to a Sony-authored value, a value
 verifiable in one of the three reference videos, or a value the theme has
-empirically settled on across nine releases.
+empirically settled on across eleven releases (v0.1 → v0.11 partial).
 
-**Document status:** v0.9.3 baseline (May 2026). Re-check after any major
+**Document status:** v0.11-partial baseline (July 2026). Re-check after any major
 theme release. Cross-references to
 [`docs/psp-authenticity-audit.md`](psp-authenticity-audit.md) use the audit
 section codes (S, G, ST, A, X, U).
@@ -96,7 +96,7 @@ list of twelve month-color selectors). It does **not** specify:
 For each of those, the reference videos in
 [`/tmp/psp-xmb-videos/frames/`](#) (video B real PSP at 1920×1080, video C
 real PSP at 1280×720, video A PS2 XMB clone at 1280×720) and this theme's
-own nine-release iteration history are the working source of truth. Where
+own eleven-release iteration history are the working source of truth. Where
 a measurement is derived from a video frame this document cites the
 specific frame; where a measurement is settled by on-device testing it
 cites the relevant XML file.
@@ -310,7 +310,7 @@ shift when vertical real estate changes, principally at 1:1.
 
 | Region | y-range | x-range | Used by |
 |:---|:---:|:---:|:---|
-| Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock + battery glyph (top-right cluster) |
+| Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock only (top-right cluster; battery glyph pulled in v0.10, restoration tracked as #4) |
 | Cross top row | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
 | Sub-item column | `0.46 – 0.92` | `0.06 – 0.40` | Gamecarousel / textlist |
 | Right info panel | `0.10 – 0.92` | `0.40 – 0.98` | md_name, md_rating, md_video, md_description |
@@ -319,15 +319,15 @@ shift when vertical real estate changes, principally at 1:1.
 Reserved regions (do not place new content here):
 
 - **Top 0.10 vertical strip** — owned by the status bar. The clock at
-  `(0.78, 0.03)` (Battery: Show) or `(0.84, 0.03)` (Battery: Hide)
-  pins the right edge; battery glyph at `(0.94, 0.065)` when shown.
+  `(0.84, 0.03)`, size `(0.14, 0.06)`, pins the right edge at
+  `0.84 + 0.14 = 0.98`.
   Left-of-`x=0.75` of the top strip is technically free but
   conventionally empty — PSP doesn't put anything there either.
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
   (`<helpsystem>` at `(0.02, 0.94)`). Don't overlay content here.
 - **Cross anchor region `(crossX±0.10, crossY±0.10)`** — owned by the
-  selected category icon + its halo. The halo `<maxSize>` of `0.40`
-  square means the halo's footprint extends ~`±0.20` around the
+  selected category icon + its halo. The halo `<maxSize>` of `0.28`
+  square means the halo's footprint extends ~`±0.14` around the
   anchor in 4:3. Any element placed inside that radius competes
   visually with the selected icon's glow.
 
@@ -337,14 +337,22 @@ ES renders elements in `<zIndex>` order. The stack:
 
 | zIndex | Element | Reason |
 |:---:|:---|:---|
-| 0 | `waveBackground` (base tint layer) | Bottom canvas |
-| 1 | `waveLayer1` (top crest, slow) | Wave parallax — top |
-| 2 | `waveLayer2` (middle crest, medium) | Wave parallax — middle |
-| 3 | `waveLayer3` (bottom crest, fast) + `selectedHalo` (system view only) | Halo sits in this band so it's behind the carousel logo |
+| 0 | `staticBackgroundWave` (base tint layer) | Bottom canvas |
+| 1 | `staticBackgroundLayer1` (top crest, slow) | Wave parallax — top |
+| 2 | `staticBackgroundLayer2` (middle crest, medium) | Wave parallax — middle |
+| 3 | `staticBackgroundLayer3` (bottom crest, fast) | Wave parallax — bottom |
+| 4 | `staticBackgroundHalo` (system view only) | Above all wave layers, still behind the carousel logo |
 | 5 | `systemcarousel`, gamelist `textlist` / `gamecarousel`, `md_*` info panel | Foreground content |
 | 6 | `logo` (selected category icon in system view), `systemInfo` (count caption) | One above carousel, so the icon paints over the carousel's centered slot reliably |
 | 7 | `systemName` (extra caption) | Above systemInfo for the Hide subset |
 | 8 | `logo` (selected category icon in gamelist views) | One above the gamecarousel so the icon never gets hidden by a boxart that escapes its container — Knulli build quirk noted in `_inc/gamelist.xml:90-96` |
+
+The `staticBackground*` elements route through ES's
+`SystemView::mStaticBackgrounds` list; paint order within that group
+is a `stable_sort` by `zIndex`, ascending (`SystemView.cpp:1065`) —
+lower paints first / underneath. The gamelist views keep the older
+`waveBackground` / `waveLayer{1,2,3}` extra-element names at the same
+zIndex values (see §7.1).
 
 **Rule:** new elements default to `zIndex=5` (the foreground content
 layer). Bump to `6` only if you need to paint over the carousel
@@ -487,7 +495,7 @@ made the colorset feel over-saturated. The white halo reads as a
 universal "selection light" and stays out of the colorset's way.
 
 ```xml
-<image name="selectedHalo" extra="true">
+<image name="staticBackgroundHalo">
   <color>FFFFFF</color>  <!-- hardcoded; do not bind to ${accent} -->
   ...
 </image>
@@ -629,6 +637,11 @@ This theme follows that hierarchy:
   Served by RetroArch's `favorites.png` (heart), `history.png`
   (clock-arrow), `database.png` (stacked discs), etc. — graphically
   distinct from hardware systems, which is the whole point.
+- **Media-type fallback icons** (`art/system-media/`) — a third tier
+  of seven generic silhouettes (`_default`, `arcade-board`,
+  `cartridge`, `cd`, `computer`, `floppy`, `handheld-cart`) for
+  systems with no dedicated icon. Authored but **not yet wired** into
+  any view template.
 
 See audit S1, S1a, G10 for the migration trail.
 
@@ -659,6 +672,13 @@ If you author a new icon for `art/system-icons/`, target **256×256
 PNG with transparency**. The square canvas matches the RA convention;
 the actual rendered footprint is normalized via `<maxSize>`.
 
+All shipped `art/system-icons/*.png` carry a **pre-burned drop
+shadow** (4px Gaussian blur, 3px Y-offset, 35% black — audit S3),
+baked into the PNGs by `scripts/apply-shadow.py`. A new icon must be
+run through that script **exactly once** before committing. The
+script is **not idempotent** — re-running compounds shadows, so never
+rerun it over already-shadowed icons without resetting them first.
+
 ### 5.3 Per-slot rendering size
 
 Source bitmaps render at a normalized fraction of screen, varying by
@@ -668,7 +688,7 @@ slot type. **This is the rendered-size table**, cite when adjusting:
 |:---|:---|:---:|:---:|:---:|:---:|:---:|
 | System carousel icon (unselected) | `(sysCarouselLogoW, sysCarouselLogoH)` | `0.10 × 0.14` | `0.08 × 0.14` | `0.09 × 0.14` | `0.13 × 0.13` | `0.10 × 0.12` |
 | System view selected icon (`logoScale=1.5`) | `(sysIconMaxW, sysIconMaxH) × 1.5` | `0.18 × 0.24` | `0.15 × 0.255` | `0.165 × 0.255` | `0.24 × 0.24` | `0.18 × 0.21` |
-| Halo footprint (selected only) | `(haloW, haloH)` | `0.40 × 0.40` | `0.40 × 0.40` | `0.40 × 0.40` | `0.40 × 0.40` | `0.40 × 0.40` |
+| Halo footprint (selected only) | `(haloW, haloH)` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` |
 | Gamelist pinned system icon | `(glIconMaxW, glIconMaxH)` | `0.15 × 0.21` | `0.12 × 0.21` | `0.13 × 0.21` | `0.20 × 0.20` | `0.15 × 0.18` |
 | Gamecarousel selected boxart | `(gameCarLogoW, gameCarLogoH) × 1.5` | `0.525 × 0.42` | `0.495 × 0.585` | `0.495 × 0.57` | `0.54 × 0.51` | `0.525 × 0.48` |
 
@@ -716,7 +736,7 @@ time by `<iconColor>${helpAccent}</iconColor>` in
 
 ### 6.1 Category icons (system carousel)
 
-Top horizontal row. Defined in `_inc/system.xml:62-83`.
+Top horizontal row. Defined in `_inc/system.xml:98-119`.
 
 ```xml
 <carousel name="systemcarousel">
@@ -754,49 +774,48 @@ Top horizontal row. Defined in `_inc/system.xml:62-83`.
 
 **Selected logo z-order** sits above the carousel container so the
 selected icon paints over its slot reliably. The `<image name="logo">`
-element in `_inc/system.xml:128-132` has `<zIndex>6</zIndex>`; the
+element in `_inc/system.xml:164-168` has `<zIndex>6</zIndex>`; the
 carousel has `<zIndex>5</zIndex>`.
 
 ### 6.2 Selected-icon halo
 
 Soft white center-bright gaussian behind the selected category icon.
-Defined in `_inc/system.xml:37-59`.
+Defined in `_inc/system.xml:87-95`.
 
 ```xml
-<image name="selectedHalo" extra="true">
+<image name="staticBackgroundHalo">
   <path>./art/halo.png</path>
   <pos>${crossX} ${crossY}</pos>
   <origin>0.5 0.5</origin>
   <maxSize>${haloW} ${haloH}</maxSize>
   <color>FFFFFF</color>
-  <zIndex>3</zIndex>
-  <storyboard event="scroll">
-    <animation property="opacity" from="1" to="0" duration="120" mode="linear"/>
-  </storyboard>
-  <storyboard>
-    <animation property="opacity" from="0" to="1" duration="220" mode="linear"/>
-  </storyboard>
+  <opacity>0.6</opacity>
+  <zIndex>4</zIndex>
 </image>
 ```
 
+**History:** the halo was pulled in v0.10 and restored + re-tuned in
+v0.11 (PR #28). The `staticBackground*` name prefix routes it through
+`SystemView::mStaticBackgrounds` so it ticks every frame and paints
+as a group with the wave layers.
+
 **Key measurements:**
 
-- `haloW = haloH = 0.40` (normalized; same value all aspect ratios).
-  This is ~2.5× the unscaled icon's apparent width
+- `haloW = haloH = 0.28` (normalized; same value all aspect ratios).
+  This is ~1.56× the icon's apparent width
   (`sysIconMaxW × logoScale = 0.12 × 1.5 = 0.18` at 4:3). The icon
   obscures the bright center of the gaussian; the visible portion is
   the outer shoulder, which reads as a diffuse glow.
+- `opacity=0.6`. The PR #28 re-tune found the original `0.40`
+  footprint at full opacity read as a blown-out blob; the shipped
+  combination is the smaller `0.28` footprint at 60% opacity.
 - Color is always white (`FFFFFF`) — see §3.4.
-- `zIndex=3` sits the halo above the wave (`zIndex<=3`) but below
-  the carousel (`zIndex=5`) so the icon paints over the halo's
-  brightest pixel.
-- The two storyboards: `event="scroll"` fades the halo out in 120ms
-  when the carousel moves (so the halo doesn't appear stuck during
-  navigation); the no-event default storyboard fades it back in over
-  220ms once the carousel settles (eases in rather than snapping).
-  See audit X1 for the "halo storyboard cleanup" that's also tracked
-  as dead-code for v0.10 — `event="scroll"` does NOT fire on extras,
-  so this storyboard never actually runs.
+- `zIndex=4` sits the halo above all four wave layers (`zIndex 0-3`)
+  but below the carousel (`zIndex=5+`) so the icon paints over the
+  halo's brightest pixel. Within `mStaticBackgrounds`, paint order is
+  a `stable_sort` by `zIndex` (`SystemView.cpp:1065`) — see §2.4.
+- No storyboards. The v0.9-era scroll-fade/fade-in storyboards were
+  removed with the staticBackground migration (see §7.3).
 
 **Source asset:** `art/halo.png`, 256×256 square white-on-transparent
 center-bright gaussian. Re-render the gaussian if redesigning;
@@ -807,7 +826,7 @@ aspect.
 
 Below the selected category icon, displaying the system's `theme`
 shortname (e.g., "NES", "SNES", "PSX"). Defined in
-`_inc/system.xml:111-123`.
+`_inc/system.xml:147-159`.
 
 ```xml
 <text name="systemName" extra="true">
@@ -841,7 +860,7 @@ shortname (e.g., "NES", "SNES", "PSX"). Defined in
 
 When the user enables Game Count: Show, a second caption appears
 below the system name, cycling between the count text. Defined in
-`_inc/system.xml:89-99` (the carousel's `systemInfo` slot) and the
+`_inc/system.xml:125-135` (the carousel's `systemInfo` slot) and the
 gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ```xml
@@ -864,29 +883,26 @@ gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ### 6.5 Top-right status cluster
 
-The status bar holds the clock + battery glyph, both
-right-anchored. Defined in `_inc/common.xml:151-198`.
+The status bar is **clock-only** as of v0.10. Defined in
+`_inc/common.xml:153-161`.
 
-| Element | Pos (Battery: Show) | Pos (Battery: Hide) | Size | Notes |
-|:---|:---:|:---:|:---:|:---|
-| Clock | `(0.78, 0.03)` | `(0.84, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI) |
-| Battery glyph | `(0.94, 0.065)` | hidden | `<maxSize>(0.05, 0.04)</maxSize>` | `origin (0, 0.5)` — vertical-center on the clock baseline |
+| Element | Pos | Size | Notes |
+|:---|:---:|:---:|:---|
+| Clock | `(0.84, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI), `alignment=right` — right edge at `0.84 + 0.14 = 0.98` |
 
-The clock's right edge in Battery: Show is `0.78 + 0.14 = 0.92`,
-leaving a `0.02` gap before the battery glyph at `x=0.94`. That gap
-is the same proportional margin as PSP's top-right cluster (video
-C @ 0:15, "7/4 0:14 [batt]" — date-and-time separated from battery
-glyph by a small but visible gap).
+The battery glyph was pulled in v0.10: vertical-alignment and
+percentage-rendering bugs surfaced on-device and couldn't be
+resolved in that iteration. Restoration is tracked as issue #4;
+the `art/battery/battery-{empty,25,50,75,full,incharge}.png`
+assets and the batteryIcon syntax notes are retained in the tree
+for that attempt (ES picks the glyph automatically from
+`Utils::Platform::queryBatteryInformation().level` once a
+`batteryIcon` element is themed again).
 
 ES renders the clock from `Settings::ClockMode12` (per
 `ClockComponent.cpp:30-34`) — either `%I:%M %p` (12-hour) or
 `%H:%M` (24-hour). The theme cannot override the format string
 (audit U11).
-
-Battery glyph state is chosen by ES automatically based on
-`Utils::Platform::queryBatteryInformation().level`; the theme
-provides six PNG variants at `art/battery/battery-{empty,25,50,75,
-full,incharge}.png`.
 
 ### 6.6 Helpsystem strip
 
@@ -1057,6 +1073,13 @@ due to a Knulli build quirk — see file comments).
 | `waveLayer2` | `wave-layer-2.png` | `${accent}` | `0.85` | **20 000 ms** (20 s/cycle) | ~`y=0.50` |
 | `waveLayer3` | `wave-layer-3.png` | `${accent}` | `0.85` | **12 000 ms** (12 s/cycle) | ~`y=0.56` |
 
+Element names above are the gamelist-view / `wave-motion.xml` ones.
+The **system view** declares the same four layers directly in
+`_inc/system.xml` under the `staticBackground{Wave,Layer1,Layer2,
+Layer3}` names (the S6 continuity mechanism — see §2.4 and the
+known-limitation note below); geometry, tint, and timings are
+identical.
+
 All three layers are **2.00 screen-widths wide** (`<size>2.00 1.10</size>`)
 with horizontally-seamless patterns and animate `x` from `0.0` to
 `-1.0` with `repeat=forever` linear. The seamless wrap makes the
@@ -1072,10 +1095,12 @@ The base `waveBackground` (`<size>1.10 1.10</size>`) is 10%
 over-scanned so any rounding error or storyboard subpixel drift
 doesn't reveal a PNG edge.
 
-**Known limitation:** the wave animation restarts at `t=0` on every
-system carousel navigation in the current ES build (audit S6).
-Workaround via the `staticBackground*` name-prefix mechanism is
-planned for v0.10. Documented as a v0.3 known limitation in README.
+**Resolved limitation (audit S6):** through v0.9.x the wave restarted
+at `t=0` on every system carousel navigation. The `staticBackground*`
+name-prefix workaround **shipped in v0.10**: the system view's wave
+elements route through `SystemView::mStaticBackgrounds`, loaded once
+at view construction and never reset on cursor change, so the wave
+now persists continuously across navigation.
 
 ### 7.2 Carousel transition style
 
@@ -1088,29 +1113,19 @@ under Main Menu → UI Settings) overrides this.
 (~150ms with a soft cross-fade); ES's `slide` is much longer
 (~500-700ms) and reads as molasses. `instant` plus the carousel's
 own internal `fade` (`<defaultTransition>fade</defaultTransition>` in
-`_inc/system.xml:63`) gives a feel closer to PSP than either
+`_inc/system.xml:99`) gives a feel closer to PSP than either
 extreme.
 
 ### 7.3 Halo scroll fade
 
-Per `_inc/system.xml:53-58`:
-
-- `event="scroll"` storyboard: `opacity 1 → 0` over **120 ms** (faster
-  than the carousel's own ~300ms transition).
-- No-event default storyboard: `opacity 0 → 1` over **220 ms** (slower,
-  so it eases back in when scrolling settles, rather than snapping).
-
-Both linear mode. The cadence pairing — fast out, slow in — is a
-standard UI motion convention (sometimes called "exit
-quickly, enter politely"). Material Design's emphasis curves use the
-same shape.
-
-**Audit note X1:** `event="scroll"` is documented as dead code on
-extras in this ES build (`CarouselComponent.cpp:267, 652` shows
-`scroll` only fires on the carousel's intrinsic logos, never on
-`extra="true"` items). The storyboard is harmless but does nothing.
-Cleanup task is scheduled for v0.10 alongside the S6 wave-continuity
-fix.
+**Historical note.** Through v0.9.x the halo carried two storyboards
+(an `event="scroll"` 120ms fade-out and a 220ms default fade-in). The
+`event="scroll"` one was dead code on extras in this ES build (audit
+X1); both were removed with the `staticBackground*` migration when the
+halo was restored in v0.11 (PR #28). On main the halo has **no fade
+behaviour** — it renders at a constant `opacity=0.6` (§6.2). The old
+citation `_inc/system.xml:53-58` now lands in a wave-layer scroll
+storyboard, not the halo.
 
 ### 7.4 Description auto-scroll
 
@@ -1156,8 +1171,8 @@ relevant summary:
 | Boot wave-in / wordmark wipe | Splash render path doesn't tick storyboards (`Splash.cpp:254-330`) | Static splash via `splash.xml` (audit S7) |
 | Dynamic per-game layout reflow | `<pos>`/`<size>` are static floats, not bindable | `<visible>` hide-only (audit G6) |
 | **Live colorset preview during settings change** | No event-routing from menu-interaction to system-view extras; variables resolve at parse time | Fixed 12 colorsets, restart required (audit U3) |
-| Continuous wave during system change | Carousel's per-system extra lifecycle resets storyboard | Workaround via `staticBackground*` prefix (audit S6, v0.10) |
-| Selection-focus pulse on PSP first-level icons | No `event="settle"` / `event="focus"` in ES | Halo fade in/out only (§7.3) |
+| Continuous wave during system change | Carousel's per-system extra lifecycle resets storyboard | `staticBackground*` prefix workaround, shipped in v0.10 (audit S6) |
+| Selection-focus pulse on PSP first-level icons | No `event="settle"` / `event="focus"` in ES | Static halo only (§6.2; the v0.9-era fade storyboards are gone, §7.3) |
 | Inline expand-on-select for settings rows | Fixed slot heights in IList | Helpsystem strip update (PSP's row expansion replaced by global help-strip text change) |
 
 These are all audit U-entries (technically unsupportable). Don't
@@ -1169,13 +1184,12 @@ propose them as theme features.
 
 ES subsets let the user pick between mutually-exclusive variants at
 runtime (UI Settings → Theme Configuration). This theme exposes
-**six** subsets:
+**five** subsets:
 
 | Subset | Variants | Default | Purpose |
 |:---|:---:|:---:|:---|
 | `colorset` (PSP Color) | 12 monthly palettes | January Blue | Color scheme |
 | `gamecount` (Game Count) | Hide / Show | Hide | Whether to show "X GAMES" count caption |
-| `battery` (Battery) | Show / Hide | Show | Whether to reserve top-right slot for battery glyph |
 | `videoDelay` (Video Delay) | 5s / Instant / 2s / 10s | 5 seconds | Snapshot → video timing |
 | `videoAudio` (Video Audio) | Off / On | Off | Audio mute on preview video |
 | `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Description auto-scroll cadence |
@@ -1185,7 +1199,7 @@ keep subset variants surgical. A subset variant should change at
 most 3-5 properties. Larger variants belong in `common.xml` (single
 default) or split into multiple subsets.
 
-A seventh subset, `gamelistView` (Gamelist View Style: detailed /
+A sixth subset, `gamelistView` (Gamelist View Style: detailed /
 gamecarousel / automatic), is built into ES rather than defined here;
 the theme supports both styles via the shared
 `<view name="detailed,gamecarousel">` block plus per-style
@@ -1235,9 +1249,9 @@ evidence:
 | **`maxLogoCount=3` for gamecarousel (not 1 or 5).** | v0.9.3 round 4 | 1 hides peer context; 5 over-crowds the column. 3 matches PSP's typical 3-visible sub-item layout. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
-| **Selected-icon halo on system carousel only, not gamecarousel.** | v0.9.3 round 4 | Adding the halo behind a text-fallback white title made it unreadable. Re-add only when audit G5 (per-system fallback icons) ships first. |
+| **Selected-icon halo on system carousel only, not gamecarousel.** | v0.9.3 round 4 | Adding the halo behind a text-fallback white title made it unreadable. Re-add only when audit G5 (per-system fallback icons) ships first. (The system-view halo itself was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
 | **`textPrimary = FFFFFF` always.** | v0.1 | Readable on every colorset's wave. Other primaries fail contrast on at least one of the 12. |
-| **Battery glyph + clock + (nothing) cluster in top-right.** | v0.9 | PSP's status-bar pattern. Wifi-strength indicator is unsupportable (audit U12); date next to clock is unsupportable (audit U11). |
+| **Battery glyph + clock + (nothing) cluster in top-right.** | v0.9 — **battery glyph pulled in v0.10**, restoration tracked as #4 | PSP's status-bar pattern. Wifi-strength indicator is unsupportable (audit U12); date next to clock is unsupportable (audit U11). Status bar is clock-only on main (§6.5). |
 | **The wave never opts out.** | v0.3 | The wave IS the theme. No `<subset name="wave">` for "wave off" because the result would be a static colored background, which isn't what PSP-XMB-theme means. |
 | **Cross anchor on `(crossX, crossY)`, not on absolute pixel offsets.** | v0.6 | Pixel offsets break on non-4:3. Anchor + per-ratio override is the working pattern. |
 | **`defaultTransition="instant"` at theme root.** | v0.6 | ES auto-transition falls back to slide otherwise; PSP feel is instant. |
@@ -1309,7 +1323,7 @@ v3-001 (15-second intervals: frame N → (N-1)·15s).
 
 - [`docs/psp-authenticity-audit.md`](psp-authenticity-audit.md) — full
   catalog of PSP XMB features with feasibility analysis.
-- [`docs/v0.10-roadmap.md`](v0.10-roadmap.md) — current versioned
+- [`docs/v0.10-roadmap.md`](v0.10-roadmap.md) — historical (v0.10)
   roadmap.
 - [`docs/superpowers/specs/`](superpowers/specs/) — per-version
   design specs (single-source-of-truth for decisions).
@@ -1325,6 +1339,7 @@ v3-001 (15-second intervals: frame N → (N-1)·15s).
 
 ---
 
-*End of guidelines. Last revised against theme v0.9.3. Re-evaluate
-after the v0.10 ship cluster lands (audit S6, X1, X2, ST1 — see
-roadmap).*
+*End of guidelines. Last revised against theme v0.11-partial (July
+2026). The v0.10 ship cluster has landed: S6 and X1 shipped, X2 was
+design-rejected, ST1 remains blocked on #4. Re-evaluate after the
+v0.11 gamelist redesign (PR #32) lands.*
