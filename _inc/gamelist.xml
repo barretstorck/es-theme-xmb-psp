@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - gamelist views (v0.7).
-  A shared <view name="detailed,gamecarousel"> block holds the wave, pinned
-  system icon + caption, and the right info panel (title / rating / video /
-  description). Each gamelist style then adds only its game column: the
-  'detailed' view a text list, the 'gamecarousel' view a boxart carousel.
-  The top-right clock is provided globally by the screen view in common.xml.
+  v0.11 gamelist redesign (v6 layout): PSP-card, selected-dominates format.
+
+  PATH B (pinned card + extras). The overflow spike (.dev/v6-spike-overflow.png)
+  proved an itemTemplate child CAN overflow its slot, so Path A's mechanism
+  works. BUT the textlist cannot pin the cursor to the middle slot:
+  TextListComponent's updateCameraOffset() centers the cursor only for INTERIOR
+  rows and clamps to 0 at the list start, so the default landing (cursor on the
+  first game) renders the selected row at the TOP slot, never centered. This
+  Knulli ES build does NOT consume the <centerSelection> theme property in
+  TextListComponent (only ImageGridComponent does — verified in source). So a
+  pure-itemTemplate Path A can't deliver the mockup's centered card.
+
+  Path B decouples the dominant card from the cursor slot. The big card
+  (boxart, title, line, metadata, scrolling description, video) is rendered as
+  extra="true" elements at a FIXED screen anchor (crossX, cardY=0.59) binding
+  {game:*}. ES's ISimpleGameListView::updateThemeExtrasBindings() rebinds those
+  placeholders to the SELECTED game on every cursor change (proven in
+  .dev/v6-spike-pathb.png — the extras showed Contra's boxart/name while the
+  textlist still listed all rows). The textlist itself only renders the small
+  PEEK icons (and, in Friendly mode, small dim titles). The selected row's own
+  peek icon is hidden on activate so it doesn't double up with the big card.
+
+  Spike outcomes (see .dev/spike-results.txt + .dev/v6-spike-*.png):
+   - itemTemplate child larger than its slot overflows (not clipped to slot).
+   - extra="true" elements binding {game:thumbnail}/{game:name}/{game:desc}
+     rebind to the selected game on cursor change.
+   - property="position" does NOT animate; property="x"/"y" DO.
+   - Variable substitution in storyboard from/to WORKS.
+
+  See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
 
-  <!-- ============================================================
-       Shared by both gamelist styles: continuity + right info panel
-       ============================================================ -->
   <view name="detailed,gamecarousel">
 
     <!-- Wave background. extra="true" required to render. -->
@@ -27,15 +48,10 @@
     </image>
 
     <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
-         declared only inside a separate include file do not animate on the
-         detailed/gamecarousel views on this Knulli ES build. The three
-         waveLayer declarations below are therefore duplicated verbatim from
-         _inc/wave-motion.xml so they sit directly in this view block and
-         animate. If you tune any wave property (storyboard duration,
-         opacity, color, size, path), update BOTH files to keep them in
-         sync. Do not delete these as "redundant" - that re-breaks the
-         gamelist wave animation. -->
-    <!-- Wave layer 1: top crest, slowest scroll -->
+         declared only inside _inc/wave-motion.xml do not animate on
+         gamelist views on this Knulli ES build. The three waveLayer
+         declarations below are duplicated verbatim from
+         _inc/wave-motion.xml so they sit directly in the view block. -->
     <image name="waveLayer1" extra="true">
       <path>./art/wave/wave-layer-1.png</path>
       <pos>0.0 0.5</pos>
@@ -50,8 +66,6 @@
                    repeat="forever"/>
       </storyboard>
     </image>
-
-    <!-- Wave layer 2: middle crest, medium scroll -->
     <image name="waveLayer2" extra="true">
       <path>./art/wave/wave-layer-2.png</path>
       <pos>0.0 0.5</pos>
@@ -66,8 +80,6 @@
                    repeat="forever"/>
       </storyboard>
     </image>
-
-    <!-- Wave layer 3: bottom crest, fastest scroll -->
     <image name="waveLayer3" extra="true">
       <path>./art/wave/wave-layer-3.png</path>
       <pos>0.0 0.5</pos>
@@ -83,151 +95,258 @@
       </storyboard>
     </image>
 
-    <!-- Selected system icon, pinned to the cross anchor so it lines up
-         with the system view's selected carousel logo. zIndex 8 keeps the
-         icon above the gamecarousel (zIndex 5): on this Knulli build
-         carousel items can escape their container bounds, so the raised
-         zIndex is the no-peek guard. -->
+    <!-- Pinned system icon. v0.11 v7 (PR #32 on-device tweaks): LOWERED to
+         (crossX, glLogoY=0.18) and SHRUNK to a 0.13-square maxSize per the
+         approved v7 mockup (proposed-v7-ondevice-tweaks.png). 0.13 width =
+         ~133px at 4:3; 0.173 height keeps the box square (133px tall). The
+         caption (glCaptionY) follows it down to stay tight below. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
-      <pos>${crossX} ${crossY}</pos>
+      <pos>${crossX} ${glLogoY}</pos>
+      <maxSize>0.13 0.173</maxSize>
       <origin>0.5 0.5</origin>
-      <maxSize>${glIconMaxW} ${glIconMaxH}</maxSize>
-      <zIndex>8</zIndex>
+      <zIndex>6</zIndex>
     </image>
 
-    <!-- System-name caption: short name (${system.theme}), uppercase,
-         pinned under the icon. extra="true" required to render. -->
-    <text name="systemName" extra="true">
-      <pos>${crossX} ${captionY}</pos>
+    <!-- System-name caption, tight below the pinned icon (v6: glCaptionY). -->
+    <text name="md_systemName" extra="true">
+      <pos>${crossX} ${glCaptionY}</pos>
       <origin>0.5 0</origin>
-      <size>0.5 0.055</size>
+      <size>0.5 0.06</size>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>0.034</fontSize>
+      <fontSize>0.040</fontSize>
       <color>${textSecondary}</color>
-      <backgroundColor>00000000</backgroundColor>
+      <text>${system.theme}</text>
       <alignment>center</alignment>
       <forceUppercase>true</forceUppercase>
-      <text>${system.theme}</text>
       <zIndex>6</zIndex>
     </text>
 
-    <!-- Right info panel: title, rating, screenshot-then-video, description. -->
-    <text name="md_name">
-      <pos>${panelX} 0.10</pos>
-      <size>${panelW} 0.06</size>
-      <fontPath>${fontBold}</fontPath>
-      <fontSize>0.035</fontSize>
-      <color>${textPrimary}</color>
-      <alignment>center</alignment>
-      <zIndex>5</zIndex>
-    </text>
+    <!-- ============================================================
+         BIG SELECTED CARD (Path B fixed-position extras).
+         All bind {game:*}; ES rebinds them to the selected game on
+         cursor change. Anchored at the textlist's MIDDLE slot
+         (crossX, cardY) so when the cursor is centered the card sits
+         over the middle peek; when the cursor is at the list edge the
+         card still floats at cardY as the dominant element.
+         ============================================================ -->
 
-    <rating name="md_rating">
-      <pos>${mdRatingX} 0.17</pos>
-      <size>0.18 0.04</size>
-      <color>${accent}</color>
-      <zIndex>5</zIndex>
-    </rating>
-
-    <!-- Shows the game's snapshot still during the 5s delay and whenever
-         the game has no preview video, then plays the video. -->
-    <video name="md_video">
-      <pos>${mdVideoX} ${mdVideoY}</pos>
-      <size>${mdVideoW} ${mdVideoH}</size>
+    <!-- Selected boxart, 240px (Boxart) / 165px (Compact), bisected by the
+         line at cardY. maxSize preserves aspect for non-square scraped art. -->
+    <image name="cardBoxart" extra="true">
+      <path>{game:thumbnail}</path>
+      <pos>${crossX} ${cardY}</pos>
+      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
       <origin>0.5 0.5</origin>
-      <delay>5</delay>
-      <showSnapshotNoVideo>true</showSnapshotNoVideo>
-      <showSnapshotDelay>true</showSnapshotDelay>
-      <zIndex>5</zIndex>
+      <zIndex>8</zIndex>
+    </image>
+
+    <!-- Media fallback when the selected game has no thumbnail. -->
+    <image name="cardFallback" extra="true">
+      <path>${mediaFallbackPath}</path>
+      <pos>${crossX} ${cardY}</pos>
+      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <visible>!exists({game:thumbnail})</visible>
+      <zIndex>8</zIndex>
+    </image>
+
+    <!-- Inline video preview for the selected game. Single element tracking
+         selection via {game:video} rebinding (v6: kept as a single extra so
+         only ONE video plays at a time — does not regress the round-4
+         single-video-tracking behaviour). Audio-leak-on-hidden remains a
+         known on-device issue; not regressed here. -->
+    <video name="cardVideo" extra="true">
+      <path>{game:video}</path>
+      <pos>${crossX} ${cardY}</pos>
+      <!-- v7 device-behaviour fix: was <size> which force-stretched the video
+           to the square boxart envelope, squishing non-square (e.g. 4:3 / 16:9)
+           videos. <maxSize> preserves the video's native aspect ratio,
+           letterboxing it inside the cardBoxartW x cardBoxartH envelope instead
+           of distorting it. NOTE: needs on-device verification — the harness has
+           no scraped video so this element does not render in static captures. -->
+      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <delay>${videoDelay}</delay>
+      <showSnapshotNoVideo>false</showSnapshotNoVideo>
+      <visible>exists({game:video})</visible>
+      <zIndex>9</zIndex>
     </video>
 
-    <!-- Scrolling description text. -->
-    <text name="md_description">
-      <pos>${panelX} ${panelDescY}</pos>
-      <size>${panelW} ${panelDescH}</size>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.028</fontSize>
-      <color>${textSecondary}</color>
-      <container>true</container>
-      <zIndex>5</zIndex>
-    </text>
-
-  </view>
-
-  <!-- ============================================================
-       'detailed' style: text-list game column
-       ============================================================ -->
-  <view name="detailed">
-    <!-- Game list - the vertical arm of the cross, centered under the
-         system icon (box centered on crossX, center-aligned text). -->
-    <textlist name="gamelist">
-      <pos>${gameColX} ${gameColTextY}</pos>
-      <size>${gameColW} ${gameColH}</size>
+    <!-- Big title, right of the boxart, sitting just above the line. -->
+    <text name="cardTitle" extra="true">
+      <pos>${cardTextX} ${cardTitleY}</pos>
+      <size>${cardTextW} 0.16</size>
+      <origin>0 1</origin>
       <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.032</fontSize>
-      <horizontalMargin>0.01</horizontalMargin>
-      <alignment>center</alignment>
-      <primaryColor>${textSecondary}</primaryColor>
-      <secondaryColor>${textSecondary}</secondaryColor>
-      <selectorColor>${selectorGlow}</selectorColor>
-      <selectedColor>${textPrimary}</selectedColor>
-      <lineSpacing>1.4</lineSpacing>
-      <zIndex>5</zIndex>
-    </textlist>
-  </view>
-
-  <!-- ============================================================
-       'gamecarousel' style: boxart carousel game column
-       ============================================================ -->
-  <view name="gamecarousel">
-    <!-- Boxart game column: a vertical carousel centered under the system
-         icon at crossX, the vertical arm of the XMB cross.
-         KNULLI BUILD QUIRKS:
-           - logoSize is CONTAINER-relative, not screen-relative.
-             0.35x0.37 of this 0.32x0.42 container -> ~0.112x0.155 screen
-             fraction; xlogoScale 1.35 -> ~0.15x0.21, matching the system
-             icon's maxSize.
-           - Carousel items do NOT clip to the container bounds, so the
-             carousel is positioned entirely below the icon+caption
-             (mechanism 2): top y=0.486 clears the caption bottom (~0.456),
-             which is what keeps any game image from peeking behind the
-             system icon.
-         pos, size, logoSize, logoScale, maxLogoCount all tuned on-device. -->
-    <gamecarousel name="gamecarousel">
-      <type>vertical</type>
-      <imageSource>thumbnail</imageSource>
-      <pos>${gameColX} ${gameColCarY}</pos>
-      <size>${gameColW} ${gameColH}</size>
-      <origin>0 0</origin>
-      <color>00000000</color>
-      <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
-      <logoScale>${gameCarLogoScale}</logoScale>
-      <logoAlignment>center</logoAlignment>
-      <!-- v0.9.3 round 4: maxLogoCount=3 restored (multi-visible XMB
-           layout). ES centers selected; minLogoOpacity=0.3 makes
-           unselected items significantly dimmer so the selected
-           dominates. Combined with logoScale=1.5 and the halo
-           element below, the selected boxart is unmistakably the
-           focal point. -->
-      <maxLogoCount>3</maxLogoCount>
-      <minLogoOpacity>0.3</minLogoOpacity>
-      <zIndex>5</zIndex>
-    </gamecarousel>
-
-    <!-- (v0.9.3 round 4 added a selectedGameHalo element here but
-         deferred to v0.10: a white halo behind a text-fallback game
-         title made the title unreadable, and a per-state visibility
-         rule needs a design pass. See docs/v0.10-roadmap.md.) -->
-    <!-- Per-game text label (the text fallback when no thumbnail is scraped,
-         and the name overlay for all items). Styles the built-in
-         'gamecarouselLogoText' slot: white, RobotoCondensed-Light. -->
-    <text name="gamecarouselLogoText">
+      <fontSize>${cardTitleFontSize}</fontSize>
       <color>${textPrimary}</color>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.030</fontSize>
-      <zIndex>5</zIndex>
+      <text>{game:name}</text>
+      <alignment>left</alignment>
+      <verticalAlignment>bottom</verticalAlignment>
+      <zIndex>8</zIndex>
     </text>
-  </view>
 
+    <!-- Horizontal line, bisecting the boxart vertically at cardY. -->
+    <image name="cardLine" extra="true">
+      <path>./art/line-1px.png</path>
+      <pos>${cardTextX} ${cardY}</pos>
+      <size>${cardLineW} ${cardLineH}</size>
+      <origin>0 0.5</origin>
+      <color>${textPrimary}</color>
+      <zIndex>8</zIndex>
+    </image>
+
+    <!-- Metadata below the line, LEFT: genre + stars. {game:lastplayed}
+         intentionally omitted (epoch leak on this build). -->
+    <text name="cardMetadata" extra="true">
+      <pos>${cardTextX} ${cardMetaY}</pos>
+      <size>${cardMetaW} 0.10</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>${cardMetaFontSize}</fontSize>
+      <color>${textSecondary}</color>
+      <text>{game:genre} · {game:stars}</text>
+      <alignment>left</alignment>
+      <verticalAlignment>top</verticalAlignment>
+      <zIndex>8</zIndex>
+    </text>
+
+    <!-- Scrolling description, RIGHT of the metadata, under the line.
+         v7 device-behaviour fix: smaller font (cardDescFontSize ~18px) plus a
+         NARROWER cardDescW (0.28 @ 4:3) so typical descriptions overflow the
+         box and the <autoScrollSpeed> marquee actually triggers on-device.
+         <autoScrollSpeed> drives the marquee (NOT <container> on this build);
+         tunable via the Scroll Speed subset. NOTE: marquee MOTION cannot be
+         verified in a static render — only the config + first frame are. -->
+    <text name="cardDesc" extra="true">
+      <pos>${cardDescX} ${cardMetaY}</pos>
+      <size>${cardDescW} 0.10</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>${cardDescFontSize}</fontSize>
+      <color>${textSecondary}</color>
+      <text>{game:desc}</text>
+      <alignment>left</alignment>
+      <verticalAlignment>top</verticalAlignment>
+      <autoScrollSpeed>200</autoScrollSpeed>
+      <zIndex>8</zIndex>
+    </text>
+
+    <!-- Suppress ES's built-in metadata elements (md_*). The card above
+         replaces the default right info panel, so the default rendering of
+         md_name / md_rating / md_video / md_image / md_description would
+         otherwise paint in unstyled locations. -->
+    <text name="md_name"><visible>false</visible></text>
+    <text name="md_description"><visible>false</visible></text>
+    <text name="md_developer"><visible>false</visible></text>
+    <text name="md_publisher"><visible>false</visible></text>
+    <text name="md_genre"><visible>false</visible></text>
+    <text name="md_players"><visible>false</visible></text>
+    <text name="md_lbl_rating"><visible>false</visible></text>
+    <text name="md_lbl_releasedate"><visible>false</visible></text>
+    <text name="md_lbl_developer"><visible>false</visible></text>
+    <text name="md_lbl_publisher"><visible>false</visible></text>
+    <text name="md_lbl_genre"><visible>false</visible></text>
+    <text name="md_lbl_players"><visible>false</visible></text>
+    <text name="md_lbl_lastplayed"><visible>false</visible></text>
+    <text name="md_lbl_playcount"><visible>false</visible></text>
+    <text name="md_releasedate"><visible>false</visible></text>
+    <text name="md_lastplayed"><visible>false</visible></text>
+    <text name="md_playcount"><visible>false</visible></text>
+    <datetime name="md_releasedate"><visible>false</visible></datetime>
+    <datetime name="md_lastplayed"><visible>false</visible></datetime>
+    <rating name="md_rating"><visible>false</visible></rating>
+    <image name="md_image"><visible>false</visible></image>
+    <image name="md_thumbnail"><visible>false</visible></image>
+    <image name="md_marquee"><visible>false</visible></image>
+    <video name="md_video"><visible>false</visible></video>
+
+    <!-- ============================================================
+         PEEK LIST. The textlist provides only the small prev/next peek
+         icons (Boxart) plus a small dim title (Friendly). 3 slots whose
+         centers land at glRowY top/mid/bottom (0.37 / 0.59 / 0.81). The
+         middle slot sits under the big card; the selected row's own peek
+         icon/title fade out on activate so they don't double up with the
+         card.
+         ============================================================ -->
+    <textlist name="gamelist">
+      <pos>0.0 ${glListTop}</pos>
+      <size>1.0 ${glListH}</size>
+      <!-- <lines>3</lines> allocates three equal vertical slots inside
+           <size>; without it ES collapses slots to ~0px when fontSize is
+           tiny (set tiny below to suppress default text). See
+           TextListComponent.h:611. -->
+      <lines>3</lines>
+      <lineSpacing>1.0</lineSpacing>
+      <fontSize>0.0001</fontSize>
+      <primaryColor>00000000</primaryColor>
+      <secondaryColor>00000000</secondaryColor>
+      <selectedColor>00000000</selectedColor>
+      <selectorColor>00000000</selectorColor>
+      <selectorImagePath></selectorImagePath>
+      <zIndex>5</zIndex>
+
+      <itemTemplate>
+
+        <!-- Peek boxart (65px Boxart / 46px Compact). Opacity 1 by default;
+             on the selected row it fades to 0 so the big card replaces it. -->
+        <image name="tplPeekIcon">
+          <path>{game:thumbnail}</path>
+          <pos>${crossX} 0.5</pos>
+          <maxSize>${peekIconW} ${peekIconH}</maxSize>
+          <origin>0.5 0.5</origin>
+          <zIndex>2</zIndex>
+          <opacity>1</opacity>
+          <storyboard event="activate">
+            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
+          </storyboard>
+          <storyboard event="deactivate">
+            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
+          </storyboard>
+        </image>
+
+        <!-- Peek media fallback when no thumbnail. Same activate fade. -->
+        <image name="tplPeekFallback">
+          <path>${mediaFallbackPath}</path>
+          <pos>${crossX} 0.5</pos>
+          <maxSize>${peekIconW} ${peekIconH}</maxSize>
+          <origin>0.5 0.5</origin>
+          <visible>!exists({game:thumbnail})</visible>
+          <zIndex>2</zIndex>
+          <opacity>1</opacity>
+          <storyboard event="activate">
+            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
+          </storyboard>
+          <storyboard event="deactivate">
+            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
+          </storyboard>
+        </image>
+
+        <!-- Peek title (Friendly only). titleUnselectedOpacity is 1 in the
+             Friendly subset, 0 in Strict (icon-only). Hidden on the selected
+             row (the big card title takes over). -->
+        <text name="tplPeekTitle">
+          <pos>${peekTextX} 0.5</pos>
+          <size>0.70 0.30</size>
+          <origin>0 0.5</origin>
+          <fontPath>${fontLight}</fontPath>
+          <fontSize>${peekTitleFontSize}</fontSize>
+          <color>${textSecondary}</color>
+          <text>{game:name}</text>
+          <alignment>left</alignment>
+          <verticalAlignment>center</verticalAlignment>
+          <opacity>${titleUnselectedOpacity}</opacity>
+          <storyboard event="activate">
+            <animation property="opacity" from="${titleUnselectedOpacity}" to="0" duration="150" mode="linear"/>
+          </storyboard>
+          <storyboard event="deactivate">
+            <animation property="opacity" from="0" to="${titleUnselectedOpacity}" duration="150" mode="linear"/>
+          </storyboard>
+        </text>
+
+      </itemTemplate>
+    </textlist>
+
+  </view>
 </theme>

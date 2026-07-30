@@ -37,6 +37,16 @@
     <captionY>0.401</captionY>
     <countY>0.456</countY>
 
+    <!-- v0.11 v7 gamelist redesign (PR #32 on-device tweaks). The gamelist
+         header sits HIGHER than the system view's cross anchor. v7 lowered and
+         shrank the icon (glLogoY 0.14->0.18, maxSize 0.18->0.13 square) and
+         moved the caption down to stay tight below it (glCaptionY ~0.27).
+         These are gamelist-only and deliberately do NOT touch crossY/captionY
+         (which the system view still uses). See
+         docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png. -->
+    <glLogoY>0.18</glLogoY>
+    <glCaptionY>0.24</glCaptionY>
+
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
          Per-ratio overrides live in _inc/aspect-{8x7,3x2,16x9,1x1}.xml,
@@ -68,48 +78,101 @@
     <haloW>0.28</haloW>
     <haloH>0.28</haloH>
 
-    <!-- Gamelist (shared by detailed + gamecarousel): pinned icon + vertical arm -->
-    <glIconMaxW>0.15</glIconMaxW>
-    <glIconMaxH>0.21</glIconMaxH>
+    <!-- Row-halo size (slot-relative, used by the gamelist itemTemplate
+         tplHalo). Sized so the gaussian shoulder reads as a diffuse
+         glow around the row icon without clipping vertically against
+         the row-slot. -->
+    <rowHaloW>0.25</rowHaloW>
+    <rowHaloH>1.30</rowHaloH>
+
+    <!-- Gamelist: shared geometry vars. Per-row variables for the v0.11
+         card layout are defined below in the v0.11 block; legacy gamecarousel
+         /info-panel/glIcon vars were removed in the v0.11 redesign. -->
     <gameColX>0.08</gameColX>
     <gameColW>0.32</gameColW>
     <gameColTextY>0.50</gameColTextY>
-    <!-- gameColCarY positions the gamecarousel container so the
-         CENTERED selected boxart has slot[-1] (the unselected item
-         above the selected) just below the caption — not in the
-         empty space between caption and selected. v0.9.3 round 4
-         restored maxLogoCount=3 (multi-visible XMB-style) with
-         dimmed unselected (minLogoOpacity=0.3) and larger selected
-         (logoScale=1.5) plus halo for visual dominance.
-         Math: slot[-1] top edge = caption_bottom + small_gap. Solving
-         for gameColCarY = caption_bottom + gap - logoH×container_h/2
-         + (container_h - slot_h) / 2 - slot_h; for 4:3 defaults this
-         lands around 0.46. -->
-    <gameColCarY>0.46</gameColCarY>
     <gameColH>0.42</gameColH>
 
-    <!-- Gamecarousel container-relative boxart sizing.
-         Note: ES's vertical carousel slot height is 1/maxLogoCount of the
-         container (CarouselComponent.cpp:394). With maxLogoCount=3 each
-         slot is 0.333 container-units; gameCarLogoH must stay <= 0.333
-         to avoid logo overlap. 0.28 leaves ~0.053 of vertical gap per
-         slot (visible padding between thumbnails). v0.9.3 reduced from
-         0.37, which was 11% over slot height and produced visible
-         overlap of neighbouring boxart on-device. -->
-    <gameCarLogoW>0.35</gameCarLogoW>
-    <gameCarLogoH>0.28</gameCarLogoH>
-    <gameCarLogoScale>1.5</gameCarLogoScale>
+    <!-- v0.11 PR redesign: PSP-card row format variables.
+         See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.
+         IMPORTANT: itemTemplate <pos>/<size>/<maxSize> values are scaled
+         by the textlist row-slot's pixel size, not the screen. Slot
+         pixel size = (textlist.w * screenW) x (textlist.h / lines *
+         screenH). At 4:3 that is roughly 1024 x 128 px, so a value
+         like maxSize="0.10 0.13" only yields a 102x17 px icon. Pick
+         the y component large enough relative to the slot's short
+         pixel-axis (rowIconH=0.80 ~= 100px of a 128px-tall slot). -->
+    <!-- ====================================================================
+         v6 LAYOUT GEOMETRY (Path B: fixed card extras + textlist peeks).
+         All BIG-CARD vars are SCREEN-relative (the card elements are
+         extra="true", not inside the textlist). The PEEK vars split into a
+         SCREEN-relative width cap (peekIconW) and a SLOT-relative height
+         (peekIconH) because the peek icons live in the textlist itemTemplate.
+         ==================================================================== -->
 
-    <!-- Right info panel -->
-    <panelX>0.43</panelX>
-    <panelW>0.55</panelW>
-    <panelDescY>0.60</panelDescY>
-    <panelDescH>0.32</panelDescH>
-    <mdRatingX>0.615</mdRatingX>
-    <mdVideoX>0.705</mdVideoX>
-    <mdVideoY>0.39</mdVideoY>
-    <mdVideoW>0.50</mdVideoW>
-    <mdVideoH>0.34</mdVideoH>
+    <!-- Card vertical anchor: the textlist's middle slot center. v7 widened the
+         uniform row spacing 0.22 -> 0.23 so the now-bigger 90px peeks keep a
+         ~12px gap to the 240px selected card. Row centers are 0.36 / 0.59 /
+         0.82; the card sits at 0.59. -->
+    <cardY>0.59</cardY>
+
+    <!-- Textlist geometry so its 3 slot centers land at 0.36 / 0.59 / 0.82
+         (uniform 0.23 spacing). slotH = 0.23, glListTop = 0.36 - slotH/2 =
+         0.36 - 0.115 = 0.245; glListH = 3 * 0.23 = 0.69. -->
+    <glListTop>0.245</glListTop>
+    <glListH>0.69</glListH>
+
+    <!-- Selected boxart: 240px square at 4:3 = 0.234 (W of 1024) x 0.3125
+         (H of 768). maxSize preserves aspect, so for a square boxart the
+         binding dimension is whichever yields 240px (both do). Overridden
+         smaller by the Compact subset. -->
+    <cardBoxartW>0.234</cardBoxartW>
+    <cardBoxartH>0.3125</cardBoxartH>
+
+    <!-- Big-card text column begins just right of the boxart (boxart right
+         edge = crossX + cardBoxartW/2 = 0.24 + 0.117 = 0.357; + gap). -->
+    <cardTextX>0.385</cardTextX>
+    <cardTextW>0.585</cardTextW>
+    <cardTitleY>0.585</cardTitleY>
+    <cardTitleFontSize>0.075</cardTitleFontSize>
+
+    <!-- Horizontal line: from cardTextX to the right margin, bisecting the
+         boxart at cardY. 2px tall (line-1px.png stretched). -->
+    <cardLineW>0.585</cardLineW>
+    <cardLineH>0.004</cardLineH>
+
+    <!-- Metadata (left) + scrolling description (right), below the line.
+         v7: cardMetaFontSize is the metadata size; the description has its own
+         smaller font (cardDescFontSize ~18px) so it marquees rather than wraps,
+         and cardDescW is narrowed so typical descriptions overflow and scroll
+         on-device. -->
+    <cardMetaY>0.61</cardMetaY>
+    <cardMetaW>0.22</cardMetaW>
+    <cardMetaFontSize>0.030</cardMetaFontSize>
+    <cardDescFontSize>0.023</cardDescFontSize>
+    <cardDescX>0.62</cardDescX>
+    <cardDescW>0.28</cardDescW>
+
+    <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
+         peekIconW = 90/1024 = 0.088 (screen width cap); peekIconH = 90/176.6 =
+         0.51 (slot height; slot ~176.6px tall at 4:3 = glListH*768/3 with
+         glListH=0.69). Overridden smaller by the Compact subset. peekTextX
+         positions the Friendly peek title right of the peek icon (peek right
+         edge = crossX + peekIconW/2). -->
+    <peekIconW>0.088</peekIconW>
+    <peekIconH>0.51</peekIconH>
+    <peekTextX>0.31</peekTextX>
+    <peekTitleFontSize>0.030</peekTitleFontSize>
+
+    <!-- Title Visibility subset controls ONLY the peek title's opacity:
+         Strict (PSP-Faithful) = 0 (icon-only peeks); Friendly = 1. -->
+    <titleUnselectedOpacity>0</titleUnselectedOpacity>
+
+    <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,
+         matching the values written by _inc/video-delay-*.xml subsets).
+         Default 5 matches the pre-v0.11 default; the four user-facing subsets
+         (Instant/2s/5s/10s) override this via the videoDelay variable. -->
+    <videoDelay>5</videoDelay>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">

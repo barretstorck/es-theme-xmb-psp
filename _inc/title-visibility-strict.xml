@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Title Visibility: PSP-Faithful" (Strict; default).
+  Peek (prev/next) rows show only the icon — title hidden (opacity 0). The
+  selected game's title always shows on the big card regardless of this setting.
+  Selected via UI Settings > Theme Configuration > Title Visibility > PSP-Faithful.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <titleUnselectedOpacity>0</titleUnselectedOpacity>
+  </variables>
+</theme>
