@@ -1,9 +1,12 @@
 # PSP XMB Authenticity Audit
 
 A standing reference catalog of every observable PSP XMB feature that this
-theme could plausibly approximate, scored against `main` at the
-current v0.11 partial state (PR #27 monochrome icons, PR #28 system
-halo). Used as a wishlist / decision tool — entries here may or
+theme could plausibly approximate, scored against the v0.11 baseline
+**including the gamelist redesign (PR #32)** — single PSP-card row
+gamelist, right info panel removed, iconSize / titleVisibility /
+videoDelay subsets, per-system media fallbacks wired — on top of the
+earlier v0.11 work (PR #27 monochrome icons, PR #28 system halo).
+Used as a wishlist / decision tool — entries here may or
 may not graduate into a versioned roadmap.
 
 **Inclusion rule:** An entry is listed in the active sections
@@ -55,16 +58,16 @@ Useful facts to screen wishlist items against:
   (`<image name="logo">`) get only `COLOR | ALIGNMENT | VISIBLE`.
   Wrap or use a template to unlock advanced attributes like
   `reflexion`, `flipY`, full storyboards.
-- **Pre-existing theme bug (out of scope for this audit, worth
-  fixing separately):** the theme uses `<horizontalAlignment>`,
-  which is a typo. The correct attribute is `<alignment>` (per
-  `TextComponent.cpp:585`). Logs show ~80 parse warnings per
-  render.
+- **Resolved theme bug:** older revisions used
+  `<horizontalAlignment>` (a typo for `<alignment>`, per
+  `TextComponent.cpp:585`), producing ~80 parse warnings per render.
+  Fixed — no `<horizontalAlignment>` remains in the tree as of the
+  v0.11 gamelist redesign. Use `<alignment>` in new elements.
 
 **Entry template:**
 
 - **PSP behaviour** — what the real PSP firmware does.
-- **Current theme** — what ships on `main` (v0.11 partial) today.
+- **Current theme** — what ships at the v0.11 baseline (incl. PR #32) today.
 - **Reference** — which provided PSP screenshot demonstrates it, when
   applicable.
 - **Feasibility** — `Ship-it` / `Partial workaround` / `Needs research`.
@@ -352,8 +355,9 @@ Distinct from item scale or halo — it's a chevron-shaped UI glyph.
 
 **Current theme:** No directional pointer chrome on selected
 sub-items. The system carousel uses `logoScale=1.5` + halo to mark
-selection; the gamecarousel uses `logoScale=1.5` + dimmed
-neighbours. Neither shows a chevron.
+selection; the v0.11 card-list gamelist marks selection by expanding
+the selected row into the dominant card (the peek icon fades out and
+the big boxart + title take over). Neither shows a chevron.
 
 **Reference:** video A @ 2:30 (Theme/Color selected with `◀` left of
 the wrench icon); video A @ 3:30 (Display/Video Output Mode); video
@@ -362,20 +366,19 @@ video B @ 7:00 (Ora legale).
 
 **Feasibility:** Ship-it.
 
-**Workaround sketch:** For the gamecarousel selected slot, add a
-small `<image>` element positioned to the left of the centred
-selected slot, source `art/ui/chevron-left.png`. Pin to the same
-y-coordinate as the slot's vertical center. Optional storyboard:
-fade-in 100ms on selection-settle for parity with the halo's
-fade-in cadence.
+**Workaround sketch (updated for the v0.11 card list):** Add a small
+`extra="true"` `<image>` pinned left of the selected card's boxart —
+e.g. at `(crossX - cardBoxartW/2 - gap, cardY)` — source
+`art/ui/chevron-left.png`. Because the card is a fixed-anchor extra
+(always at `cardY`), the chevron needs no per-row logic. Optional
+100ms fade storyboard for parity with the peek-fade cadence.
 
 For the system carousel, the chevron doesn't fit as cleanly — PSP's
 top-level XMB cross doesn't show the chevron either (it appears
 only on vertical sub-item rows). Skip it for the horizontal
-carousel; apply only to the vertical gamecarousel (and potentially
-the `detailed`-style textlist's selected row, where ES already
-provides a `<selectorImage>` slot — bind that to the chevron art
-instead of the current gradient).
+carousel. The peek textlist's `<selectorImagePath>` slot is another
+possible host (currently set empty), with the width-stretch
+constraint below.
 
 **Effort:** Small (XML + one PNG glyph).
 
@@ -392,10 +395,10 @@ the LEFT edge of a wide transparent canvas — the image stretches
 horizontally otherwise. `selectorColor` tints the image (recolor
 single white chevron per colorset).
 
-For the gamecarousel there's no equivalent `selectorImagePath` —
-its selection-indicator mechanism is the centred + logoScale-
-enlarged slot. Use an `extra="true"` chevron pinned to
-`crossX` / selected-slot Y instead.
+The `extra="true"` chevron pinned at `crossX`-offset / `cardY` (the
+primary sketch above) avoids the selector-image width-stretch
+constraint entirely and matches how the v0.11 card itself is
+anchored.
 
 **Evidence:** `TextListComponent.h:778-789`; `THEMES.md:1027-1035`.
 
@@ -510,9 +513,11 @@ key art + tagline) before the game launches. The Daxter screen is the
 canonical example — Ready At Dawn logo bottom-left, key art covering
 most of the screen, large game logo.
 
-**Current theme:** Nothing custom — the game launches via Knulli's
-default launch sequence (which on TrimUI Brick is a brief black
-"launching…" screen).
+**Current theme:** Nothing custom — pressing ✕ on a selected card in
+the v0.11 card-list gamelist launches via Knulli's default launch
+sequence (which on TrimUI Brick is a brief black "launching…"
+screen). The gamelist redesign did not touch launch behaviour; this
+entry is unaffected by PR #32 and **still open**.
 
 **Reference:** PSP screenshot 2 (Daxter title with Ready At Dawn
 logo + corner video).
@@ -547,293 +552,237 @@ ES `THEMES.md` storyboard events section.
 
 ### G2. Metadata key-value sidebar
 
+**Status: SUPERSEDED by the v0.11 gamelist redesign (PR #32,
+issue #12), partially delivered.** The right info panel this entry
+wanted to extend no longer exists, so a "sidebar" of key-value rows
+is moot. What the redesign actually ships is a single metadata line
+on the expanded card: `{game:genre} · {game:stars}` (`cardMetadata`,
+`_inc/gamelist.xml:202-213`) — genre plus Unicode star glyphs. No
+labelled key-value block; no year / players / region rows.
+
 **PSP behaviour:** When a media item is selected (photo, music,
 video, game), metadata is rendered as labelled key-value pairs next
 to the thumbnail: filename, date, time, format/region. Short white
 labels left, values right, one pair per line. Compact.
 
-**Current theme:** Right info panel shows: game name (large bold,
-centered), rating (5 stars), video preview, scrolling description.
-No genre/year/players/region rendering, even though ES scrapes those
-into the metadata.
+**Current theme:** The selected card renders title above the
+horizontal rule and `{game:genre} · {game:stars}` below it (with
+the marquee description to the right). `{game:lastplayed}` was
+deliberately omitted (epoch leak on this build). Empty genre is not
+guarded — a genre-less game renders a bare `· ★★★` line.
 
 **Reference:** PSP screenshot 3 (PIC_0000 / `12/3/2021 18:39` / BMP
 tag — exact key-value rendering).
 
-**Feasibility:** Partial workaround — ES supports `<text>` elements
-bound to `{game:releasedate}`, `{game:genre}`, `{game:players}` (and
-others depending on ES build). Region tag requires either a
-ROM-filename parse (not feasible in theme XML) or a custom scraped
-field.
+**Feasibility:** The residual idea — labelled `Year` / `Players`
+rows — would now have to live on the card, not in a panel. Possible
+(same `{game:*}` text bindings), but competes with the card's
+deliberately sparse PSP look; treat as a new proposal, not this
+entry.
 
-**Workaround sketch:** Insert a small key-value block in the info
-panel above the description, between the rating row and the video.
-Three rows at minimum: `Year · {game:releasedate}`, `Genre ·
-{game:genre}`, `Players · {game:players}`. Label in
-`${textSecondary}`, value in `${textPrimary}`, mid-dot separator.
-Optional fourth row for `Region` if scraped data is reliable
-(probably skip for v1).
+**Effort:** Spent (as redesigned).
 
-Layout-wise these rows live between y=0.20 and y=0.36 in the right
-panel, which currently has only the rating. The video element at
-`mdVideoY=0.39` is the constraint — the new rows go above it, the
-rating still leads.
+**Dependencies:** none remaining (the old G6 coupling dissolved with
+the panel).
 
-**Effort:** Small.
-
-**Dependencies:** G6 (adaptive layout: empty metadata rows should
-hide so the layout doesn't reserve dead space; bindings need
-`<visible>exists({game:releasedate})</visible>`-style guards).
-
-**Evidence:** `_inc/gamelist.xml:115-154` (info panel layout);
-`THEMES_BINDINGS.md` `{game:*}` bindings list.
+**Evidence:** `_inc/gamelist.xml:202-213` (`cardMetadata`);
+`THEMES_BINDINGS.md` `{game:*}` bindings list; PR #32.
 
 ---
 
-### G3. Box-art reflection beneath selected gamecarousel image
+### G3. Box-art reflection beneath selected boxart
+
+**Status: SUPERSEDED by the v0.11 gamelist redesign (PR #32,
+issue #13) — NOT shipped.** The gamecarousel this entry targeted is
+gone, and the shipped card list contains **no** `<reflexion>` on any
+element (verified: zero occurrences in `_inc/gamelist.xml` or
+anywhere in `_inc/`). If a reflection is still wanted, it is a new
+one-line proposal against `cardBoxart` (see sketch below), not a
+pending item of the old design.
 
 **PSP behaviour:** Selected media (boxart, photo, video thumbnail)
 has a soft mirrored reflection directly beneath it, fading to
 transparent. Adds a "floating on glass" feel to the centered
 selected item.
 
-**Current theme:** Selected boxart has the halo (white gaussian)
-behind it; no reflection.
+**Current theme:** The selected card's boxart (`cardBoxart`, an
+`extra="true"` image at `(crossX, cardY)`) renders with no
+reflection. Note the card's horizontal rule bisects the boxart at
+its vertical midpoint — a reflection extending below the boxart
+would land in the metadata/description band, which is likely why
+the redesign omitted it.
 
 **Reference:** PSP screenshot 2 (Daxter title bottom-left has a soft
 reflection trailing the logo down).
 
-**Feasibility:** Ship-it. The native primitive is `<reflexion>`
-(yes, that spelling), which renders the PSP-style faded mirror
-automatically — better than `flipY` because it includes the alpha
-gradient.
+**Feasibility (if revived):** Ship-it mechanically. `cardBoxart` is
+already `extra="true"`, so it gets `ThemeFlags::ALL` and honors
+`<reflexion>0.7 0.0</reflexion>` (first=top alpha, second=bottom
+alpha) as a one-line addition. The design conflict with the
+metadata band below the rule is the real question.
 
-**Workaround sketch:**
+**Effort:** Trivial (XML) + design decision.
 
-```xml
-<image name="boxArt" extra="true">
-  <path>{game:thumbnail}</path>
-  <pos>0.5 0.5</pos>
-  <maxSize>0.2 0.2</maxSize>
-  <origin>0.5 0.5</origin>
-  <reflexion>0.7 0.0</reflexion>
-  <!-- first=top alpha, second=bottom alpha -->
-</image>
-```
-
-Or, when moving the gamecarousel to an `<itemTemplate>`
-(see G4), use the same `<reflexion>` inside the template's
-`<image>` child. This is the cleanest path because it combines
-per-slot box-art rendering with the PSP-style mirror.
-
-**Effort:** Small (no new art needed — ES generates the mirror
-from the source image).
-
-**Dependencies:** Couples cleanly with G4 (`<itemTemplate>`
-adoption). If G4 ships first, G3 is a one-line addition to the
-template.
-
-**Limitations:** `<reflexion>` extends the painted area downward
-beyond the image rectangle. Slot height needs ~30-40% extra below
-the icon, or the reflection clips. Plain `<image name="logo">`
-styled directly through the carousel does NOT honor `reflexion`
-(carousel logos get only `COLOR | ALIGNMENT | VISIBLE` flags per
-`CarouselComponent.cpp:740`) — must wrap in `extra="true"` or
-`<itemTemplate>` to unlock it.
+**Dependencies:** none (the old G4-itemTemplate coupling dissolved).
 
 **Evidence:** `ImageComponent.cpp:820-825` (`reflexion`
 `NORMALIZED_PAIR`); `ThemeData.cpp:2205` (extras get
-`ThemeFlags::ALL`); `THEMES.md:820-825`.
+`ThemeFlags::ALL`); `THEMES.md:820-825`; grep of `_inc/` confirming
+no `reflexion` usage post-PR #32.
 
 ---
 
-### G4. Per-logo titles in gamecarousel
+### G4. Per-row titles in the game list
+
+**Status: SHIPPED in the v0.11 gamelist redesign (PR #32,
+issue #14), gated behind a subset.** The card list's peek rows carry
+a per-row title element (`tplPeekTitle`, bound to `{game:name}`,
+`_inc/gamelist.xml:329-346`) rendered beside every row's icon via
+the textlist `<itemTemplate>`. Its opacity is
+`${titleUnselectedOpacity}`: **1** under Title Visibility = "With
+Titles" (Friendly) — every visible row shows icon + title, the PSP
+behaviour this entry asked for — and **0** under the default
+"PSP-Faithful" (Strict), which deliberately shows icon-only rows.
+The selected game's title always shows on the expanded card
+regardless of the subset.
 
 **Audit-lens re-entry of v0.10 roadmap item 2.** See [v0.10-roadmap.md
-§2](v0.10-roadmap.md) for the deferred-item framing.
+§2](v0.10-roadmap.md) for the historical deferred-item framing (the
+roadmap's gamecarousel-itemTemplate route was superseded; the
+mechanism that shipped is the *textlist* itemTemplate).
 
 **PSP behaviour:** Every visible item in PSP's vertical sub-item list
 has its label rendered alongside the icon — selected and unselected
 alike.
 
-**Current theme:** Built-in `gamecarouselLogoText` only renders as a
-*fallback* when a game has no thumbnail.
+**Current theme:** As above. Unselected peek titles render dim
+(`${textSecondary}`, `peekTitleFontSize` 0.030/0.026) and fade out
+on the selected row (`event="activate"` storyboard) so they don't
+double up with the card title.
 
 **Reference:** PSP screenshots 1 + 4; video B @ 0:30; video C @ 0:00.
 
-**Feasibility:** Ship-it. `<itemTemplate>` is supported in
-`<gamecarousel>` with per-slot binding resolution.
+**Feasibility:** Shipped.
 
-**Workaround sketch:**
+**Effort:** Spent.
 
-```xml
-<gamecarousel name="gamecarousel">
-  <type>vertical</type>
-  <imageSource>thumbnail</imageSource>
-  <pos>${gameColX} ${gameColCarY}</pos>
-  <size>${gameColW} ${gameColH}</size>
-  <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
-  <logoScale>${gameCarLogoScale}</logoScale>
-  <maxLogoCount>5</maxLogoCount>
-  <minLogoOpacity>0.6</minLogoOpacity>
-  <itemTemplate>
-    <image name="tplIcon">
-      <pos>0.0 0.0</pos>
-      <maxSize>0.4 0.4</maxSize>
-      <origin>0 0.5</origin>
-      <path>{game:thumbnail}</path>
-      <!-- For G3 reflection, add <reflexion>0.7 0.0</reflexion> here -->
-    </image>
-    <text name="tplLabel">
-      <pos>0.45 0.0</pos>
-      <size>0.55 0.4</size>
-      <origin>0 0.5</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.030</fontSize>
-      <color>${textPrimary}</color>
-      <text>{game:name}</text>
-      <alignment>left</alignment>
-      <verticalAlignment>center</verticalAlignment>
-    </text>
-  </itemTemplate>
-</gamecarousel>
-```
+**Dependencies:** none remaining.
 
-`{game:name}`, `{game:thumbnail}`, `{game:desc}`, `{game:genre}` all
-resolve PER-SLOT inside the template — confirmed in a multi-game
-render showing ALPHA-GAME, BRAVO-QUEST, CHARLIE-SAGA, DELTA-FORCE,
-ECHO-TALES each with their own label.
-
-**Limitations:**
-- Adopting `<itemTemplate>` replaces the carousel's intrinsic
-  `<image name="logo">` and `<text name="gamecarouselLogoText">`
-  slots. Lose the built-in text fallback for no-thumbnail games —
-  add a fallback `<text>` inside the template instead, or pair
-  with G5 (per-system media fallback icons).
-- Template coordinates are slot-relative (not container-relative,
-  not screen-relative). The slot is `logoSize.x × logoSize.y`
-  before the `logoScale` boost.
-- `logoScale` and `minLogoOpacity` still work (template root is
-  scaled / opacity-modulated). For per-state styling of template
-  children, use `<storyboard event="activate">` and
-  `<storyboard event="deactivate">` (see G7+G8 for working
-  example).
-
-**Effort:** Medium (one-time XML rework of the gamecarousel block;
-G7 and G8 ride along).
-
-**Dependencies:** Couples with G3, G7, G8, G5. The `<itemTemplate>`
-adoption unlocks all four at once — recommend shipping as a single
-v0.10 task.
-
-**Evidence:** `ThemeData.cpp:30` (`sSupportedItemTemplate`
-includes `gamecarousel`); `CarouselComponent.cpp:697-711, 770`
-(template per-entry instantiation + per-entry `updateBindings`);
-`BindingManager.cpp:447-480` (`GridTemplateBinding` falls through
-to FileData → `{game:*}` resolution).
+**Evidence:** `_inc/gamelist.xml:329-346` (`tplPeekTitle` +
+activate/deactivate storyboards);
+`_inc/title-visibility-{strict,friendly}.xml`
+(`titleUnselectedOpacity` 0/1); `theme.xml:140-143` (subset
+declaration); `TextListComponent.h:274-340` (per-row binding
+resolution).
 
 ---
 
 ### G5. Selected-game halo + per-system fallback icons (coupled)
 
+**Status (v0.11 redesign, PR #32 / issue #15): SPLIT.**
+- **Media fallbacks: SHIPPED and wired.** `theme.xml:39-114`
+  conditionally includes one of 75 per-system files in
+  `_inc/media-fallback/` (matching `${system.theme}`;
+  `_default.xml` loads first as the catch-all — nested variable
+  indirection was spiked and failed on this build), each setting
+  `${mediaFallbackPath}` to one of the 7 silhouettes in
+  `art/system-media/`. Games without a scraped thumbnail render it
+  via `cardFallback` (expanded card) and `tplPeekFallback` (peek
+  rows), both guarded by
+  `<visible>!exists({game:thumbnail})</visible>`.
+- **Gamelist halo: NOT shipped — superseded.** The shipped
+  `_inc/gamelist.xml` contains **no halo element** (no `tplHalo`,
+  no `selectedGameHalo`; the peek textlist's selector is fully
+  transparent). The redesign's selection signal is the expanded
+  card itself — the selected row's peek icon fades out and the
+  ~2.7×-larger card boxart + oversized title take over — which
+  makes a glow redundant. Leftover: `rowHaloW` / `rowHaloH` in
+  `_inc/common.xml:85-86` still reference a `tplHalo` consumer
+  that does not exist (cleanup candidate). The style guidelines §10
+  record "no gamelist halo" as settled.
+
 **Audit-lens re-entry of v0.10 roadmap items 3 + 5.** See
 [v0.10-roadmap.md §3 and §5](v0.10-roadmap.md) (historical — v0.10
-shipped). The two items couple naturally because a no-thumbnail
-game gets a system-media fallback icon instead of a white text
-label, which means the white halo no longer obscures readable text.
+shipped). The original coupling — fallback icons must replace the
+white-text fallback before a white halo is readable — was satisfied
+by the fallback half, but the redesign then removed the halo's
+*motivation* rather than adding the halo.
 
 **PSP behaviour:** Selected sub-items get a soft glow behind them,
 regardless of whether the slot is showing a thumbnail or a generic
-icon (Photos browser uses a generic camera/photo icon when an image
-is unprocessed). The glow is consistent.
+icon. The glow is consistent.
 
-**Current theme:** Selected system in the system carousel gets a
-soft white halo (`art/halo.png`) — pulled during v0.10, then
-RESTORED in v0.11 (PR #28) as `staticBackgroundHalo`
-(`_inc/system.xml:87-95`), tuned to `haloW=0.28` / `opacity=0.6`
-(3396428). The gamecarousel still does NOT — a v0.9.3 round 4
-attempt to add one was reverted because the carousel falls back to
-large white text when a game lacks a thumbnail, and the white halo
-behind the white text was unreadable
-(`_inc/gamelist.xml:217-221` stub).
+**Current theme:** System carousel keeps its soft white halo
+(`staticBackgroundHalo`, restored + re-tuned in PR #28,
+`haloW=0.28` / `opacity=0.6`). The gamelist has none, per the
+settled decision above.
 
 **Reference:** PSP screenshots 1 and 3 — the selected `AVLS` row and
 the selected `PIC_0000` photo each have a subtle highlight bar /
 glow behind them.
 
-**Feasibility:** Partial workaround — two coupled changes.
+**Feasibility:** Fallback half shipped; halo half superseded (would
+now be a deliberate design re-litigation, not an outstanding task).
 
-**Workaround sketch:**
-1. **Per-system media fallback icons.** Art DONE — 7 media-type
-   icons shipped in `art/system-media/` via
-   `scripts/gen-media-fallbacks.py` (b616057), but NOT yet wired
-   into any XML. Remaining work: the mapping table from
-   `${system.theme}` → icon-name, materialized as a per-system
-   include file or a giant `<variables>` block in `common.xml`, and
-   the icon element rendering only when
-   `<visible>!exists({game:thumbnail})</visible>`, replacing the
-   white-text fallback.
-2. **Conditional halo in the gamecarousel.** Still open. Once the
-   fallback is an icon (not text), the system-halo design works.
-   Re-add the `<image name="selectedGameHalo">` at the selected
-   slot position, white gaussian, same `halo.png` source — using
-   the v0.11-tuned values (`haloW=0.28`, `opacity=0.6`), not the
-   original 0.40.
+**Effort:** Spent (fallbacks); n/a (halo).
 
-**Effort:** Small (XML wiring only — the art is done).
+**Dependencies:** S1 (icon design language — satisfied).
 
-**Dependencies:** S1 (icon design language matches);
-G6 (visibility-binding pattern is the same primitive).
-
-**Evidence:** v0.9.3 round 4 commit history;
-`CarouselComponent.cpp:730-767` (imageSource + text-fallback path);
-3d4a602 + 3396428 (system-halo restoration + tuning); b616057
-(media fallback art).
+**Evidence:** `theme.xml:39-114` (per-system includes);
+`_inc/media-fallback/` (75 files + `_default.xml`);
+`art/system-media/` (7 glyphs, b616057);
+`_inc/gamelist.xml:145-152, 310-324` (`cardFallback`,
+`tplPeekFallback`); absence of any halo element in
+`_inc/gamelist.xml` (verified by grep); 3d4a602 + 3396428
+(system-halo restoration + tuning).
 
 ---
 
 ### G6. Adaptive layout on metadata absence
 
+**Status: LARGELY SUPERSEDED by the v0.11 gamelist redesign (PR #32,
+issue #16); the hide-only pattern shipped where it still applies.**
+The "dead reserved zones" that motivated this entry were properties
+of the removed info panel (empty description band, empty video box).
+The card list has no reserved panel regions, and the elements that
+can be empty carry `exists()` guards:
+- `cardVideo` — `<visible>exists({game:video})</visible>` (no empty
+  video box; the boxart simply stays).
+- `cardFallback` / `tplPeekFallback` —
+  `<visible>!exists({game:thumbnail})</visible>` (silhouette swaps
+  in for the missing thumbnail).
+
+Not guarded: `cardMetadata` and `cardDesc` render unconditionally —
+a game with no genre shows a bare `· ★★★` line, and an empty
+description just renders nothing visible. Cosmetic residual, not a
+reserved-zone problem.
+
 **Audit-lens re-entry of v0.10 roadmap item 1.** See
-[v0.10-roadmap.md §1](v0.10-roadmap.md) for the existing
-deferred-item analysis.
+[v0.10-roadmap.md §1](v0.10-roadmap.md) for the historical analysis.
 
 **PSP behaviour:** Empty metadata fields don't leave blank space.
 Items adapt — if a photo has no caption, the metadata block shrinks;
 if there's no preview, the thumbnail expands. No "dead reserved
 zone" visible.
 
-**Current theme:** All info-panel elements render at fixed
-positions whether or not the game has metadata. A game with no
-description leaves the lower-right ~30% of the panel empty; a game
-with no scraped video leaves the upper-right ~25% empty.
+**Current theme:** As above — hide-only guards on video and
+thumbnail-fallback; true PSP-style REFLOW remains unsupportable
+(`<pos>` / `<size>` are parse-time floats, see U2).
 
 **Reference:** PSP screenshots 1 (settings rows have no images;
 text expands) and 3 (photo browser shows compact metadata block).
 
-**Feasibility:** Partial workaround — `<visible>exists({game:*})</visible>`
-bindings can HIDE empty elements, but `<pos>` / `<size>` are not
-bindable to expressions (verified in
-`docs/v0.10-roadmap.md` evidence: `THEMES.md:1398`,
-`ThemeData.cpp:1083`), so remaining elements can't REFLOW to fill
-the gap.
+**Feasibility:** Delivered to the extent ES allows (hide-only);
+reflow is U2's dead end.
 
-**Workaround sketch:** Hide-only. Add `<visible>` bindings on
-`md_video`, `md_description`, `md_image`. Empty elements vanish;
-remaining elements stay in place. Better than the current "render an
-empty container" state, even if it's not full PSP-style reflow.
+**Effort:** Spent. Optional follow-up: `exists({game:genre})` guard
+on `cardMetadata` to suppress the bare-dot case.
 
-Alternative: ship 3-4 view variants (`detailed-full`,
-`detailed-no-video`, `detailed-text-only`) and let the user pick via
-a theme subset. Honest but rigid. See v0.10-roadmap item 1
-discussion for the full tradeoff analysis.
+**Dependencies:** none remaining.
 
-**Effort:** Medium.
-
-**Dependencies:** G2 (the new key-value rows from G2 each need the
-same `<visible>exists(...)</visible>` guards).
-
-**Evidence:** `docs/v0.10-roadmap.md` §1; `THEMES_BINDINGS.md:264-302`.
+**Evidence:** `_inc/gamelist.xml:150, 172, 315` (the three
+`exists()` guards); U2 (reflow unsupportable);
+`THEMES_BINDINGS.md:264-302`.
 
 ---
 
@@ -854,13 +803,12 @@ second-line slot is reused for either prose description (settings)
 or labelled metadata (status items).
 
 This is distinct from a side-panel description (which the audit's
-G2 covers) — it's the row itself expanding to two lines when
-selected.
+G2 covered) — it's the row itself expanding when selected.
 
-**Current theme:** Right info panel shows the game description in a
-*separate* panel to the right of the list (gamelist `detailed` and
-`gamecarousel` views). The selected row in the textlist is a single
-line — no inline expand.
+**Current theme:** Delivered by the redesign (see Status above): the
+selected row visually expands into title-above-the-rule +
+metadata/description-below-the-rule; unselected rows stay one line
+(icon, or icon + dim title).
 
 **Reference:** video A @ 1:30 ("Ajustes de Sistema / Ajusta la
 configuración…"); video B @ 4:30 ("Pannello visore / ma PSP™
