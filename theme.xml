@@ -17,16 +17,14 @@
        The correct order is:
          1. common.xml  - sets default variable values
          2. colorset    - overrides colorset variables (waveTint, accent, etc.)
-         3. view files  - consume the now-resolved variable values
+         3. mode subsets - iconSize / titleVisibility / videoDelay defaults
+         4. aspect-*.xml - per-ratio fit corrections (must beat mode subsets)
+         5. view files  - consume the now-resolved variable values
        The colorset subset MUST come after common.xml and before the view
        includes. Gamecount can go anywhere since it only affects element
        visibility, not color variables. -->
 
   <include>./_inc/common.xml</include>
-  <include if="${screen.ratio} == '8/7'">./_inc/aspect-8x7.xml</include>
-  <include if="${screen.ratio} == '3/2'">./_inc/aspect-3x2.xml</include>
-  <include if="${screen.ratio} == '16/9'">./_inc/aspect-16x9.xml</include>
-  <include if="${screen.ratio} == '1/1'">./_inc/aspect-1x1.xml</include>
 
   <!-- v0.11 redesign: per-system media-fallback. Sets ${mediaFallbackPath}
        so the gamelist itemTemplate's <tplFallbackIcon> image resolves to a
@@ -151,6 +149,17 @@
     <include name="2 seconds">./_inc/video-delay-2s.xml</include>
     <include name="10 seconds">./_inc/video-delay-10s.xml</include>
   </subset>
+
+  <!-- Aspect-ratio overrides load AFTER the mode subsets: both may set the
+       same card variables (e.g. cardMetaFontSize), and per-ratio fit
+       corrections must beat per-mode defaults. Before v0.11.1 these sat
+       directly after common.xml, so icon-size-*.xml silently clobbered
+       any per-ratio card override. Still before the view includes -
+       variables resolve at element-parse time. -->
+  <include if="${screen.ratio} == '8/7'">./_inc/aspect-8x7.xml</include>
+  <include if="${screen.ratio} == '3/2'">./_inc/aspect-3x2.xml</include>
+  <include if="${screen.ratio} == '16/9'">./_inc/aspect-16x9.xml</include>
+  <include if="${screen.ratio} == '1/1'">./_inc/aspect-1x1.xml</include>
 
   <include>./_inc/system.xml</include>
   <include>./_inc/gamelist.xml</include>

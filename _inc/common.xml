@@ -147,6 +147,7 @@
          and cardDescW is narrowed so typical descriptions overflow and scroll
          on-device. -->
     <cardMetaY>0.61</cardMetaY>
+    <cardMetaW>0.22</cardMetaW>
     <cardMetaFontSize>0.030</cardMetaFontSize>
     <cardDescFontSize>0.023</cardDescFontSize>
     <cardDescX>0.62</cardDescX>
