@@ -201,7 +201,7 @@
          intentionally omitted (epoch leak on this build). -->
     <text name="cardMetadata" extra="true">
       <pos>${cardTextX} ${cardMetaY}</pos>
-      <size>0.22 0.10</size>
+      <size>${cardMetaW} 0.10</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>

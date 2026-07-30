@@ -28,5 +28,11 @@
     <gameColX>0.06</gameColX>
     <gameColTextY>0.47</gameColTextY>
     <gameColH>0.46</gameColH>
+
+    <!-- Card metadata font: at 720x720 the width-normalized cardMetaW box
+         shrinks to 158px while the height-normalized font stays ~21.6px,
+         wrapping the genre+stars line. 0.023 x 720 = 16.6px keeps the
+         same box-to-font proportion as 4:3 (225px : 23px). -->
+    <cardMetaFontSize>0.023</cardMetaFontSize>
   </variables>
 </theme>

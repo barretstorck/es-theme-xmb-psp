@@ -17,5 +17,12 @@
     <!-- Carousel slot spacing (constant 165 px across ratios) -->
     <sysCarouselSizeW>1.60</sysCarouselSizeW>     <!-- K=1.62 × logoW=0.09 × 11 -->
     <sysCarouselPosX>-0.56</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.24 - 0.80 -->
+
+    <!-- Card metadata: at 720x480 the genre+stars line ellipsizes just
+         short of the stars in a 0.22-wide box. Widen the box only —
+         cardDescX stays per-mode (the iconSize subset owns it), and the
+         line still ends short of the Boxart-mode desc at 0.62. -->
+    <cardMetaW>0.24</cardMetaW>
+    <cardMetaFontSize>0.027</cardMetaFontSize>
   </variables>
 </theme>
