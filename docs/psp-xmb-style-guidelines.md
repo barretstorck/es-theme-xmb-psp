@@ -823,8 +823,14 @@ carousel has `<zIndex>5</zIndex>`.
 
 ### 6.2 Selected-icon halo
 
+**Status: DISABLED on main.** The element below is commented out in
+`_inc/system.xml` — PR #32's round-4 on-device tuning judged even the
+PR #28 re-tune too bright. Re-enable (with a further tune) is tracked
+in issue #34; the measurements below are the last-shipped values and
+the starting point for that session.
+
 Soft white center-bright gaussian behind the selected category icon.
-Defined in `_inc/system.xml:87-95`.
+Defined (commented out) in `_inc/system.xml:87-99`.
 
 ```xml
 <image name="staticBackgroundHalo">
@@ -1168,8 +1174,9 @@ extreme.
 (an `event="scroll"` 120ms fade-out and a 220ms default fade-in). The
 `event="scroll"` one was dead code on extras in this ES build (audit
 X1); both were removed with the `staticBackground*` migration when the
-halo was restored in v0.11 (PR #28). On main the halo has **no fade
-behaviour** — it renders at a constant `opacity=0.6` (§6.2). The old
+halo was restored in v0.11 (PR #28). When enabled the halo has **no
+fade behaviour** — a constant `opacity=0.6` (§6.2; currently disabled
+entirely, issue #34). The old
 citation `_inc/system.xml:53-58` now lands in a wave-layer scroll
 storyboard, not the halo.
 

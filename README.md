@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.11** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is restored** in the system view, subtler than v0.9.3 (0.28 footprint, 0.6 opacity). **PSP-card gamelist**: each game is a collapsed row that expands on selection — a horizontal rule bisects the icon, title above, `genre · ★★★★` metadata below — with per-system media-type fallback icons for games without scraped boxart, and two orthogonal toggles (Icon Size, Title Visibility). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
+> Status: **v0.11** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is currently disabled** (re-tuned in PR #28, then pulled again during PR #32's on-device rounds as still too bright — re-enable tracked in issue #34). **PSP-card gamelist**: each game is a collapsed row that expands on selection — a horizontal rule bisects the icon, title above, `genre · ★★★★` metadata below — with per-system media-type fallback icons for games without scraped boxart, and two orthogonal toggles (Icon Size, Title Visibility). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
 
 ## Screenshots
 
@@ -64,7 +64,7 @@ The old Gamelist View Style knob (`detailed` / `gamecarousel`) was removed in v0
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
-The status bar is clock-only. The selected-icon halo, pulled during v0.10's on-device hardening, was restored in v0.11 with a subtler design (0.28 footprint, 0.6 opacity); only the battery widget remains pulled, pending redesign (issue #4).
+The status bar is clock-only. The selected-icon halo remains pulled: restored and re-tuned during v0.11 (PR #28, 0.28 footprint / 0.6 opacity), it was disabled again in PR #32's on-device tuning as still too bright — re-enable is tracked in issue #34. The battery widget also remains pulled, pending redesign (issue #4).
 
 ## How the wave is built
 
