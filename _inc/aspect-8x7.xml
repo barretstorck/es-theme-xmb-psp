@@ -14,8 +14,13 @@
     <!-- Icon squareness (P1): screen is 1024w x 896h, so H fractions
          shrink relative to 4:3 to keep icons square in screen pixels. -->
     <sysIconMaxH>0.14</sysIconMaxH>
-    <glIconMaxH>0.18</glIconMaxH>
     <sysCarouselLogoH>0.12</sysCarouselLogoH>
-    <gameCarLogoH>0.32</gameCarLogoH>
+
+    <!-- Card metadata font renormalized (P1 reasoning): 8:7 shares 4:3's
+         1024px width but is taller, so the height-normalized 0.030 font
+         inflates to ~27px inside the same-width cardMetaW box and the
+         genre+stars line collides with cardDesc. 0.026 x 896 = 23px,
+         matching the 4:3 pixel size exactly. -->
+    <cardMetaFontSize>0.026</cardMetaFontSize>
   </variables>
 </theme>

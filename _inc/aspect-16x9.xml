@@ -18,13 +18,6 @@
     <!-- Icon squareness (P1) -->
     <sysIconMaxW>0.10</sysIconMaxW>
     <sysIconMaxH>0.17</sysIconMaxH>
-    <glIconMaxW>0.12</glIconMaxW>
     <sysCarouselLogoW>0.08</sysCarouselLogoW>
-    <gameCarLogoW>0.33</gameCarLogoW>
-    <gameCarLogoH>0.39</gameCarLogoH>
-
-    <!-- Right info panel fits (P3): use the extra horizontal room -->
-    <panelX>0.40</panelX>
-    <panelW>0.58</panelW>
   </variables>
 </theme>

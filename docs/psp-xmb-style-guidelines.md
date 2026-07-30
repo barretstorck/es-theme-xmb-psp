@@ -5,9 +5,12 @@ structure on Material Design and Apple Human Interface Guidelines: principle
 + measurement, not principle alone. Every claim about a position, size,
 colour, or timing resolves either to a Sony-authored value, a value
 verifiable in one of the three reference videos, or a value the theme has
-empirically settled on across eleven releases (v0.1 → v0.11 partial).
+empirically settled on across eleven releases (v0.1 → v0.11).
 
-**Document status:** v0.11-partial baseline (July 2026). Re-check after any major
+**Document status:** v0.11 final baseline (July 2026), including the
+gamelist redesign (PR #32): the old detailed-textlist and gamecarousel
+gamelist styles and their shared right info panel are replaced by a
+single PSP-card row list. Re-check after any major
 theme release. Cross-references to
 [`docs/psp-authenticity-audit.md`](psp-authenticity-audit.md) use the audit
 section codes (S, G, ST, A, X, U).
@@ -55,10 +58,9 @@ yourself — those derivations are recorded here.
    - 6.4 [Game count caption (optional)](#64-game-count-caption-optional)
    - 6.5 [Top-right status cluster](#65-top-right-status-cluster)
    - 6.6 [Helpsystem strip](#66-helpsystem-strip)
-   - 6.7 [Gamelist — detailed (text list)](#67-gamelist--detailed-text-list)
-   - 6.8 [Gamelist — gamecarousel (boxart column)](#68-gamelist--gamecarousel-boxart-column)
-   - 6.9 [Info panel (title / rating / video / description)](#69-info-panel-title--rating--video--description)
-   - 6.10 [Menu chrome](#610-menu-chrome)
+   - 6.7 [Gamelist — PSP card list](#67-gamelist--psp-card-list)
+   - 6.8 [Expanded-card metadata (info panel removed)](#68-expanded-card-metadata-info-panel-removed)
+   - 6.9 [Menu chrome](#69-menu-chrome)
 7. [Motion](#7-motion)
    - 7.1 [Wave animation](#71-wave-animation)
    - 7.2 [Carousel transition style](#72-carousel-transition-style)
@@ -134,8 +136,8 @@ enough that you only notice the motion when looking for it.
 **2. Glassy.** Every solid element reads as semi-translucent or has a
 soft luminous edge. The wave appears refractive. The selected icon
 appears to be lit from behind, not from above (the halo is a back-light,
-not a frame). The right-side info panel does not have an opaque
-background.
+not a frame). The expanded game card renders directly on the wave —
+no opaque panel background anywhere.
 
 **3. Dimensional.** The cross is the depth metaphor: horizontal axis is
 "breadth of categories," vertical axis is "depth into a category." The
@@ -159,7 +161,7 @@ this means horizontal and vertical units are not equal in pixels.
 A "square" element with `<size>0.10 0.10</size>` on a 1280×720 screen
 renders as a 128×72-pixel rectangle.
 
-This theme works around that by defining 26 named geometry variables
+This theme works around that by defining named geometry variables
 in `_inc/common.xml` and overriding them per aspect ratio in
 `_inc/aspect-{8x7,3x2,16x9,1x1}.xml`. The override files are loaded
 conditionally by `theme.xml`:
@@ -176,14 +178,30 @@ Four principles govern when a value should differ per aspect ratio:
   16:9 the same fractions would yield 154×115px (visibly squat), so
   16:9 overrides both halves to `0.10 0.17`.
 - **P2 — Cross balance.** The cross anchor `(crossX, crossY)` shifts
-  per ratio so the right-side info panel doesn't push the cross off the
-  left edge. Wider screens (16:9): `crossX=0.20`. Narrower (1:1):
-  `crossX=0.22`. Default (4:3, 3:2, 8:7): `crossX=0.24`.
-- **P3 — Info-panel fit.** Wider screens get a wider info panel. 4:3 →
-  `panelW=0.55`. 16:9 → `panelW=0.58`. 1:1 → `panelW=0.56`.
-- **P4 — Video aspect.** The `<video>` element's `(W, H)` fractions
-  must produce a 4:3 video box in pixels — `W/H = (4/3) × (screenH/screenW)`.
-  At 1:1 that's `(4/3) × (1/1) = 4/3` → `mdVideoW=0.44, mdVideoH=0.33`.
+  per ratio so the icon column and the card's text column share the
+  width sensibly. Wider screens (16:9): `crossX=0.20`. Narrower (1:1):
+  `crossX=0.22`. Default (4:3, 3:2, 8:7): `crossX=0.24`. In the v0.11
+  card list, `crossX` is also the horizontal anchor of the pinned
+  system icon, the peek icons, and the selected card's boxart.
+- **P3 — Card text fit.** The old info-panel version of this principle
+  RETIRED in v0.11 (panel removed, `panel*` / `md*` variables deleted).
+  Its successor: the card's text line must fit between `cardTextX` and
+  `cardDescX` at every ratio. `cardMetaFontSize` is height-normalized,
+  so on ratios taller-per-width than 4:3 it inflates relative to the
+  width-normalized `cardMetaW` box — `aspect-8x7.xml` / `aspect-1x1.xml`
+  renormalize the font (23px-at-4:3 equivalent) and `aspect-3x2.xml`
+  widens the box + trims the font. Card *geometry* (`cardBoxart*`,
+  `peek*`, `glList*`, vertical anchors) stays aspect-uniform.
+  Precedence note: `aspect-*.xml` loads AFTER the mode subsets in
+  `theme.xml` — both may set the same card variables, and ratio fit
+  corrections must win (before v0.11.1 they were silently clobbered
+  by `icon-size-*.xml`).
+- **P4 — Video aspect.** Largely superseded in v0.11: the selected
+  card's `cardVideo` element uses `<maxSize>` (not `<size>`), which
+  letterboxes the video inside the `cardBoxartW × cardBoxartH`
+  envelope while preserving its native aspect ratio — no per-ratio
+  W/H arithmetic needed. The principle still applies to any future
+  `<video>` element that uses `<size>`.
 
 The full per-ratio override table is in §2.2 (cross anchor) and §5.3
 (icon sizes). The reasoning trail is in
@@ -246,12 +264,13 @@ exactly on the anchor.
   slide horizontally through the anchor point; the icon at the anchor
   is the selected one.
 
-- **Vertical axis (sub-item column).** For the gamelist views,
-  sub-items render in a vertical carousel or textlist whose
-  horizontal center sits at `crossX` (well, technically `gameColX`,
-  which is slightly to the left of `crossX` — see §2.2). The selected
-  sub-item centers on its own y-coordinate (`gameColTextY` for textlist,
-  the centred slot for `gamecarousel`).
+- **Vertical axis (sub-item column).** In the gamelist view (v0.11
+  card list), the game rows' icons stack vertically at `crossX`: the
+  pinned system icon at `(crossX, glLogoY=0.18)`, then three peek-row
+  slots whose centers land at y `0.36 / 0.59 / 0.82`. The selected
+  game's expanded card anchors its boxart at `(crossX, cardY=0.59)` —
+  the middle slot — so the cross's vertical arm reads as
+  icon-over-icon down the `crossX` column (see §6.7).
 
 - **Caption.** Directly below the selected category icon sits the
   system-name caption at `(crossX, captionY)`. `captionY` (`0.401` in
@@ -277,33 +296,34 @@ aspect ratio. **This table is the canonical lookup.** Cite
 | `crossY` | `0.291` | `0.291` | `0.291` | `0.27` | `0.291` |
 | `captionY` | `0.401` | `0.401` | `0.401` | `0.38` | `0.401` |
 | `countY` | `0.456` | `0.456` | `0.456` | `0.456` | `0.456` |
-| `gameColX` | `0.08` | `0.06` | `0.08` | `0.06` | `0.08` |
-| `gameColW` | `0.32` | `0.32` | `0.32` | `0.32` | `0.32` |
-| `gameColTextY` | `0.50` | `0.50` | `0.50` | `0.47` | `0.50` |
-| `gameColCarY` | `0.46` | `0.46` | `0.46` | `0.33` | `0.46` |
-| `gameColH` | `0.42` | `0.42` | `0.42` | `0.46` | `0.42` |
-| `panelX` | `0.43` | `0.40` | `0.42` | `0.40` | `0.43` |
-| `panelW` | `0.55` | `0.58` | `0.56` | `0.56` | `0.55` |
-| `panelDescY` | `0.60` | `0.60` | `0.60` | `0.58` | `0.60` |
-| `panelDescH` | `0.32` | `0.32` | `0.32` | `0.36` | `0.32` |
-| `mdRatingX` | `0.615` | `0.615` | `0.615` | `0.59` | `0.615` |
-| `mdVideoX` | `0.705` | `0.705` | `0.705` | `0.68` | `0.705` |
-| `mdVideoY` | `0.39` | `0.39` | `0.39` | `0.37` | `0.39` |
-| `mdVideoW` | `0.50` | `0.50` | `0.50` | `0.44` | `0.50` |
-| `mdVideoH` | `0.34` | `0.34` | `0.34` | `0.33` | `0.34` |
+
+The v0.11 gamelist redesign (PR #32) deleted the old gamelist / info
+panel geometry rows (`gameColCarY`, `panelX`, `panelW`, `panelDescY`,
+`panelDescH`, `mdRatingX`, `mdVideo*`). The card-list geometry
+variables that replaced them (`glLogoY=0.18`, `glCaptionY=0.24`,
+`glListTop=0.245`, `glListH=0.69`, `cardY=0.59`, plus the `card*` /
+`peek*` set in §6.7) are **aspect-uniform in geometry** — defined once
+in `_inc/common.xml` (with `card*`/`peek*` values swapped by the Icon
+Size subset). The card follows the aspect through `crossX`, plus
+**text-fit corrections only**: `cardMetaW` / `cardMetaFontSize` get
+`aspect-*.xml` overrides at 3:2, 1:1 and 8:7 (see P3 in §1.3) so the
+genre + stars line neither wraps nor collides with `cardDesc`.
+
+**Orphan warning:** `gameColX`, `gameColW`, `gameColTextY`, `gameColH`
+are still declared in `_inc/common.xml:91-94` (and `gameColX` /
+`gameColTextY` / `gameColH` still get 1:1 / 16:9 overrides), but
+**no view consumes them** since the redesign — they are cleanup
+candidates, not layout knobs.
 
 **Anchor points (fixed across aspect ratios — do not override per-ratio
-without strong reason):** `countY`, `gameColW`, `panelDescY`,
-`mdVideoY`, `mdVideoH`. These are anchors because they're tied either
-to the help-strip top edge or to the visual rhythm of the right
-panel, both of which are preserved across ratios.
+without strong reason):** `countY` (tied to the caption stack) and all
+the card-list variables (aspect-uniform by design — see above).
 
-**Width-coupled per-ratio overrides:** anything in the `panel*`,
-`gameCol*`, `crossX` rows — these track the available horizontal
-real estate after the cross is positioned.
+**Width-coupled per-ratio overrides:** `crossX` — it tracks the
+available horizontal real estate; everything in the card list hangs
+off it.
 
-**Height-coupled per-ratio overrides:** anything in the `*H` rows
-plus `crossY`, `captionY`, `gameColTextY`, `gameColCarY` — these
+**Height-coupled per-ratio overrides:** `crossY`, `captionY` — these
 shift when vertical real estate changes, principally at 1:1.
 
 ### 2.3 Safe zones and reserved regions
@@ -311,10 +331,16 @@ shift when vertical real estate changes, principally at 1:1.
 | Region | y-range | x-range | Used by |
 |:---|:---:|:---:|:---|
 | Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock only (top-right cluster; battery glyph pulled in v0.10, restoration tracked as #4) |
-| Cross top row | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
-| Sub-item column | `0.46 – 0.92` | `0.06 – 0.40` | Gamecarousel / textlist |
-| Right info panel | `0.10 – 0.92` | `0.40 – 0.98` | md_name, md_rating, md_video, md_description |
+| Cross top row (system view) | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
+| Gamelist header | `0.09 – 0.30` | `crossX ± 0.07` | Pinned system icon at `(crossX, glLogoY=0.18)`, `maxSize 0.13 0.173`; system-name caption from `glCaptionY=0.24` |
+| Peek list (icon column) | `0.245 – 0.935` | container full width; icons at `crossX` | `textlist name="gamelist"` — 3 slots (`glListTop=0.245`, `glListH=0.69`), row centers at y `0.36 / 0.59 / 0.82`; Friendly-mode peek titles from `peekTextX=0.31` |
+| Selected card | `~0.43 – 0.75` (boxart, Boxart size) | boxart at `crossX`; text column `0.385 – 0.97` | `cardBoxart`/`cardFallback`/`cardVideo` at `(crossX, cardY=0.59)`; `cardTitle` above the line, `cardLine` at `cardY`, `cardMetadata` + `cardDesc` from `cardMetaY=0.61` |
 | Bottom help strip | `0.94 – 1.00` | `0.02 – 0.98` | Helpsystem buttons |
+
+(Card geometry uses the default Boxart values; Compact shrinks the
+boxart/peek footprints — see §6.7. The selected-card band overlaps the
+peek list by design: the middle peek slot fades out on selection so
+the card replaces it.)
 
 Reserved regions (do not place new content here):
 
@@ -342,10 +368,15 @@ ES renders elements in `<zIndex>` order. The stack:
 | 2 | `staticBackgroundLayer2` (middle crest, medium) | Wave parallax — middle |
 | 3 | `staticBackgroundLayer3` (bottom crest, fast) | Wave parallax — bottom |
 | 4 | `staticBackgroundHalo` (system view only) | Above all wave layers, still behind the carousel logo |
-| 5 | `systemcarousel`, gamelist `textlist` / `gamecarousel`, `md_*` info panel | Foreground content |
-| 6 | `logo` (selected category icon in system view), `systemInfo` (count caption) | One above carousel, so the icon paints over the carousel's centered slot reliably |
-| 7 | `systemName` (extra caption) | Above systemInfo for the Hide subset |
-| 8 | `logo` (selected category icon in gamelist views) | One above the gamecarousel so the icon never gets hidden by a boxart that escapes its container — Knulli build quirk noted in `_inc/gamelist.xml:90-96` |
+| 5 | `systemcarousel` (system view); gamelist peek `textlist` | Foreground content |
+| 6 | `logo` (selected category icon, both views), `systemInfo` (count caption), gamelist `md_systemName` caption | One above carousel/list, so the icon paints over the centered slot reliably |
+| 7 | `systemName` (system-view extra caption) | Above systemInfo for the Hide subset |
+| 8 | Selected-card extras (`cardBoxart`, `cardFallback`, `cardTitle`, `cardLine`, `cardMetadata`, `cardDesc`) | The expanded card must paint over the peek list it replaces |
+| 9 | `cardVideo` | Video paints over the boxart it succeeds after `${videoDelay}` |
+
+(Peek itemTemplate children — `tplPeekIcon`, `tplPeekFallback`,
+`tplPeekTitle` — carry `zIndex=2`, but that is slot-internal ordering
+inside the textlist, which itself sits at `zIndex=5`.)
 
 The `staticBackground*` elements route through ES's
 `SystemView::mStaticBackgrounds` list; paint order within that group
@@ -370,10 +401,10 @@ element should reference one of these, not a hardcoded hex.
 | Token | Default (January Blue) | Used by |
 |:---|:---:|:---|
 | `${waveTint}` | `1E3A8A` | Base wave color; menu panel `${waveTint}F0` |
-| `${accent}` | `3B82F6` | Wave layers 1-3 tint; ratings stars |
-| `${textPrimary}` | `FFFFFF` | All readable copy: system name, game title, scrolling description, clock |
-| `${textSecondary}` | `B0C4DE` | Sub-labels, unselected list items, helpsystem text |
-| `${selectorGlow}` | `60A5FA` | Textlist selector glow (when used) |
+| `${accent}` | `3B82F6` | Wave layers 1-3 tint; menu selection bar |
+| `${textPrimary}` | `FFFFFF` | All primary copy: card title (`cardTitle`), the card's horizontal rule (`cardLine`), clock, helpsystem text |
+| `${textSecondary}` | `B0C4DE` | System-name caption, card metadata + description, Friendly-mode peek titles |
+| `${selectorGlow}` | `60A5FA` | Currently unconsumed — the v0.11 peek textlist sets its selector fully transparent. Kept in the colorset contract for future selection chrome. |
 | `${helpAccent}` | `93C5FD` | Helpsystem icon tint |
 
 Defined at `_inc/common.xml:13-19`; overridden per-colorset by the
@@ -391,8 +422,9 @@ twelve files in `colors/`.
   `${accent}`) sit on top of the `${waveTint}` base; that contrast
   is what gives the wave its visible crest.
 - `selectorGlow` is reserved for textlist selectors and any future
-  selection-pulse elements; halo `<color>` remains hardcoded white
-  (see §3.4, §6.2).
+  selection-pulse elements (no live consumer since the v0.11 card
+  list — its textlist selector is transparent); halo `<color>`
+  remains hardcoded white (see §3.4, §6.2).
 
 ### 3.2 The twelve monthly colorsets
 
@@ -534,11 +566,15 @@ the system-name caption (which uses `textSecondary`) on each.
 This theme uses **Roboto Condensed** in three weights:
 
 - `RobotoCondensed-Light.ttf` (`fontLight` token) — system-name
-  caption, count caption, gamecarousel logo text, description body.
+  caption, count caption, card metadata + description, Friendly-mode
+  peek titles.
 - `RobotoCondensed-Regular.ttf` (`fontRegular` token) — clock,
-  helpsystem, gamelist textlist rows.
-- `RobotoCondensed-Bold.ttf` (`fontBold` token) — info-panel
-  `md_name` (the selected game's title).
+  helpsystem, the expanded card's title (`cardTitle`).
+- `RobotoCondensed-Bold.ttf` (`fontBold` token) — currently
+  **unreferenced**: its last consumer (the info-panel `md_name`) was
+  removed in the v0.11 gamelist redesign; the card title uses
+  `fontRegular` at a much larger size instead. The token and file
+  are retained for future use.
 
 Defined at `_inc/common.xml:21-23`. License: Open Font License (see
 `fonts/OFL.txt`).
@@ -554,20 +590,22 @@ All `<fontSize>` values are normalized to screen height (0.0-1.0):
 
 | Element | Token | Size | Approx px @ 768px | Use |
 |:---|:---:|:---:|:---:|:---|
-| Info-panel `md_name` (game title) | `fontBold` | `0.035` | 27 | Largest copy. Centered. |
+| Card title (`cardTitle`) | `fontRegular` | `0.075` Boxart / `0.060` Compact (`cardTitleFontSize`) | 58 / 46 | Largest copy — the expanded card's game name, left-aligned above the rule. Set per Icon Size subset. |
 | Clock | `fontRegular` | `0.042` | 32 | Largest copy in the status bar. Right-aligned. |
-| System-name caption | `fontLight` | `0.034` | 26 | Below the selected category icon. |
+| Gamelist system caption (`md_systemName`) | `fontLight` | `0.040` | 31 | Under the pinned system icon in the gamelist header. |
+| System-name caption (system view) | `fontLight` | `0.034` | 26 | Below the selected category icon. |
 | Count caption | `fontLight` | `0.034` | 26 | When Game Count: Show. |
-| Textlist row (`detailed`) | `fontRegular` | `0.032` | 25 | Sub-items in the textlist. |
-| Gamecarousel logo text | `fontLight` | `0.030` | 23 | Fallback when no thumbnail. |
-| Description body | `fontLight` | `0.028` | 22 | The scrolling text container. |
+| Card metadata (`cardMetadata`) | `fontLight` | `0.030` / `0.026` (`cardMetaFontSize`) | 23 / 20 | `{game:genre} · {game:stars}` under the rule. |
+| Peek title (`tplPeekTitle`, Friendly only) | `fontLight` | `0.030` / `0.026` (`peekTitleFontSize`) | 23 / 20 | Dim title beside unselected peek icons. |
 | Helpsystem | `fontRegular` | `0.025` | 19 | Bottom-strip button labels. |
+| Card description (`cardDesc`) | `fontLight` | `0.023` / `0.021` (`cardDescFontSize`) | 18 / 16 | Marquee description right of the metadata. Deliberately small + narrow so it overflows and auto-scrolls. |
 
-The cluster of sizes between `0.025` and `0.035` is deliberate:
-within that 10-pixel band on a 768-line display, all text reads as
-"PSP-scale UI text." Outside that band (larger or smaller) the
-interface stops feeling PSP-like — too small reads as desktop UI;
-too large reads as television.
+The cluster of secondary sizes between `0.023` and `0.040` reads as
+"PSP-scale UI text" on a 768-line display. The card title (`0.075` /
+`0.060`) sits **deliberately outside** that band: the v0.11 redesign's
+selected-dominates layout uses title size as the primary selection
+signal, per the redesign spec
+(`docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md`).
 
 **Don't introduce a font size outside this scale** without justifying
 it in a versioned spec (`docs/superpowers/specs/`).
@@ -576,18 +614,17 @@ it in a versioned spec (`docs/superpowers/specs/`).
 
 | Element | Alignment | Why |
 |:---|:---:|:---|
-| System-name caption | `center` | Under the centered category icon. |
-| Game title (info panel) | `center` | Anchors the right panel; symmetric. |
-| Description | `left` (implicit) | Long-form body text reads left-justified. |
-| Textlist rows | `center` | PSP-XMB sub-items are centered under the cross (see audit S5 for the cross-axis pointer that hangs off the left edge of selected rows; not yet implemented). |
+| System-name captions (both views) | `center` | Under the centered category / pinned system icon. |
+| Card title (`cardTitle`) | `left`, bottom-anchored | The card's text column starts at `cardTextX`; the title sits flush on the horizontal rule. |
+| Card metadata + description | `left`, top-anchored | Hang below the rule from the same left edge as the title. |
+| Peek titles (Friendly) | `left`, vertically centered | Read as labels beside the peek icons, PSP sub-item style. |
 | Clock | `right` | Right-anchored status bar. |
 | Helpsystem | `left` (default) | Left-anchored cluster at bottom-left. |
-| Rating | `left` (default) | Anchored to `mdRatingX` left edge. |
 
-Note: the existing theme uses `<horizontalAlignment>` in some places
-where `<alignment>` is correct. See audit "Cross-cutting constraints"
-— this generates ~80 parse warnings on every render but is non-fatal.
-Fixing this is a documented separate task.
+Note: an older revision of the theme used `<horizontalAlignment>`
+(a typo for `<alignment>`) in some places, generating ~80 parse
+warnings per render. That has been fixed — no `<horizontalAlignment>`
+remains in the tree. Use `<alignment>` in new elements.
 
 ### 4.4 Why not the PSP's font
 
@@ -639,9 +676,14 @@ This theme follows that hierarchy:
   distinct from hardware systems, which is the whole point.
 - **Media-type fallback icons** (`art/system-media/`) — a third tier
   of seven generic silhouettes (`_default`, `arcade-board`,
-  `cartridge`, `cd`, `computer`, `floppy`, `handheld-cart`) for
-  systems with no dedicated icon. Authored but **not yet wired** into
-  any view template.
+  `cartridge`, `cd`, `computer`, `floppy`, `handheld-cart`), **wired
+  in v0.11 (PR #32)**: `theme.xml` conditionally includes one of the
+  75 per-system files in `_inc/media-fallback/` (matching
+  `${system.theme}`; `_default.xml` loads first as the catch-all),
+  each setting `${mediaFallbackPath}`. Games with no scraped
+  thumbnail render that silhouette via the gamelist's `cardFallback`
+  and `tplPeekFallback` elements
+  (`<visible>!exists({game:thumbnail})</visible>`).
 
 See audit S1, S1a, G10 for the migration trail.
 
@@ -689,13 +731,15 @@ slot type. **This is the rendered-size table**, cite when adjusting:
 | System carousel icon (unselected) | `(sysCarouselLogoW, sysCarouselLogoH)` | `0.10 × 0.14` | `0.08 × 0.14` | `0.09 × 0.14` | `0.13 × 0.13` | `0.10 × 0.12` |
 | System view selected icon (`logoScale=1.5`) | `(sysIconMaxW, sysIconMaxH) × 1.5` | `0.18 × 0.24` | `0.15 × 0.255` | `0.165 × 0.255` | `0.24 × 0.24` | `0.18 × 0.21` |
 | Halo footprint (selected only) | `(haloW, haloH)` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` |
-| Gamelist pinned system icon | `(glIconMaxW, glIconMaxH)` | `0.15 × 0.21` | `0.12 × 0.21` | `0.13 × 0.21` | `0.20 × 0.20` | `0.15 × 0.18` |
-| Gamecarousel selected boxart | `(gameCarLogoW, gameCarLogoH) × 1.5` | `0.525 × 0.42` | `0.495 × 0.585` | `0.495 × 0.57` | `0.54 × 0.51` | `0.525 × 0.48` |
+| Gamelist pinned system icon | (hardcoded `maxSize`, aspect-uniform) | `0.13 × 0.173` | same | same | same | same |
+| Selected-card boxart | `(cardBoxartW, cardBoxartH)` — Icon Size subset, aspect-uniform | Boxart `0.234 × 0.3125` (~240px @ 4:3) / Compact `0.161 × 0.215` (~165px) | same | same | same | same |
+| Peek icon | `(peekIconW, peekIconH)` — Icon Size subset; `peekIconW` is screen-relative width, `peekIconH` is **row-slot-relative** height | Boxart `0.088 × 0.51` (~90px) / Compact `0.073 × 0.425` (~75px) | same | same | same | same |
 
-`logoScale=1.5` is the **selected/unselected multiplier**. Don't
-adjust it without re-tuning every dependent slot — see the v0.9.3
-round-4 commits where the gamecarousel's `gameCarLogoH` was reduced
-from 0.37 to 0.28 because slot overflow exceeded 100% on-device.
+`logoScale=1.5` is the system carousel's **selected/unselected
+multiplier**. Don't adjust it without re-tuning the carousel slots.
+The card list has no `logoScale` — its selected/peek size contrast
+comes from the fixed card-vs-peek variable pairs above (~2.7×
+selected-to-peek in Boxart).
 
 **Aspect-ratio rule (P1):** an icon's rendered footprint should be
 approximately square in pixels. To check: `width_norm × screen_w_px
@@ -854,7 +898,7 @@ shortname (e.g., "NES", "SNES", "PSX"). Defined in
   sub-item).
 - Color `${textSecondary}` for "this is the category context, not
   the selected item." `textPrimary` is reserved for the selected
-  game's title in the info panel.
+  game's title on the expanded card.
 
 ### 6.4 Game count caption (optional)
 
@@ -924,121 +968,123 @@ Bottom-left button hints. Defined in `_inc/common.xml:131-137`.
 - Glyphs are ES built-ins; future PSP-style glyph migration is audit
   S4 (see §5.4).
 
-### 6.7 Gamelist — detailed (text list)
+### 6.7 Gamelist — PSP card list
 
-Defined in `_inc/gamelist.xml:161-178`.
+The v0.11 redesign (PR #32) replaced the two previous gamelist
+styles (`detailed` textlist + right info panel; `gamecarousel`
+boxart column) with a **single PSP-card row format**, defined in
+`_inc/gamelist.xml`. The `<view name="detailed,gamecarousel">` block
+styles both ES view-style names identically, so ES's built-in
+"Gamelist view style" setting no longer changes the layout; the
+theme's old `gameListView` subset (detailed / gamecarousel /
+automatic) is gone.
 
-```xml
-<textlist name="gamelist">
-  <pos>${gameColX} ${gameColTextY}</pos>
-  <size>${gameColW} ${gameColH}</size>
-  <fontPath>${fontRegular}</fontPath>
-  <fontSize>0.032</fontSize>
-  <alignment>center</alignment>
-  <primaryColor>${textSecondary}</primaryColor>
-  <secondaryColor>${textSecondary}</secondaryColor>
-  <selectorColor>${selectorGlow}</selectorColor>
-  <selectedColor>${textPrimary}</selectedColor>
-  <lineSpacing>1.4</lineSpacing>
-  <zIndex>5</zIndex>
-</textlist>
-```
+**Structure (Path B: fixed card + peek textlist).** Two cooperating
+halves:
 
-- `pos = (gameColX, gameColTextY)` = `(0.08, 0.50)` in 4:3.
-  Container top-edge at y=0.50; bottom at y=0.92. The textlist is
-  centered horizontally inside its `gameColW=0.32` box at `gameColX`.
-- Unselected rows: `${textSecondary}` (dimmer).
-- Selected row: `${textPrimary}` (full white).
-- Selector glow: `${selectorGlow}` (accent-family tint).
-- `lineSpacing=1.4` — fits ~9 rows in the 0.42-tall container.
+1. **Peek list** — `<textlist name="gamelist">` at
+   `(0.0, glListTop=0.245)`, size `(1.0, glListH=0.69)`, forced to
+   `<lines>3</lines>` (three equal slots; row centers at y
+   `0.36 / 0.59 / 0.82`). Its native text is suppressed
+   (`fontSize=0.0001`, all colors transparent, no selector image);
+   each row instead renders an `<itemTemplate>` with:
+   - `tplPeekIcon` — the game's thumbnail at `(crossX, 0.5)`,
+     `maxSize ${peekIconW} ${peekIconH}` (see §5.3);
+   - `tplPeekFallback` — the system's media-type silhouette
+     (`${mediaFallbackPath}`) when `!exists({game:thumbnail})`;
+   - `tplPeekTitle` — a dim `${textSecondary}` title at
+     `(peekTextX=0.31, 0.5)`, opacity `${titleUnselectedOpacity}`
+     (0 in PSP-Faithful/Strict → icon-only rows; 1 in With
+     Titles/Friendly).
+2. **Selected card** — `extra="true"` elements at a fixed screen
+   anchor `(crossX, cardY=0.59)` binding `{game:*}`; ES rebinds
+   them to the selected game on every cursor change. Elements:
+   `cardBoxart` (+ `cardFallback`), `cardVideo`, `cardTitle`,
+   `cardLine`, `cardMetadata`, `cardDesc` (all `zIndex 8-9`, §2.4).
 
-The textlist is centered (`alignment=center`) under the system icon's
-column, matching the PSP cross's center-aligned vertical arm.
+**States.**
 
-Future `<itemTemplate>` work (audit G4 + G7 + G8) replaces the
-single-line center-aligned textlist with a per-row template
-containing title + right-aligned value + selected-row description
-fade-in. Not yet shipped.
+- *Collapsed row (unselected):* icon only (Strict, default) or
+  icon + dim title (Friendly).
+- *Selected row (expanded card):* the row's own peek icon/title fade
+  out over 150ms (`event="activate"` opacity storyboards) and the
+  big card takes over: a **horizontal rule (`cardLine`) bisects the
+  boxart vertically at `cardY`**, the game title sits above the rule
+  (bottom-anchored at `cardTitleY=0.585`), and the metadata line
+  `{game:genre} · {game:stars}` plus the marquee description sit
+  below it (from `cardMetaY=0.61`). `event="deactivate"` reverses
+  the fade. There is **no selection halo** on the card — size
+  dominance is the selection signal (see §10 and audit G5).
 
-### 6.8 Gamelist — gamecarousel (boxart column)
+**Why a fixed-anchor card instead of an in-row expansion:** this
+Knulli ES build's `TextListComponent` centers the cursor only for
+interior rows (clamps at list edges) and ignores `<centerSelection>`,
+so a pure-itemTemplate expanded row could not stay centered. The
+fixed extras always render at `cardY` regardless of cursor position.
+Full trail in the `_inc/gamelist.xml` header comment and the
+redesign spec
+(`docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md`).
 
-Defined in `_inc/gamelist.xml:197-216`.
+**Variables** (defaults in `_inc/common.xml`'s v0.11 block; the
+`card*` / `peek*` set is overridden wholesale by the Icon Size
+subset files `_inc/icon-size-{boxart,compact}.xml`):
 
-```xml
-<gamecarousel name="gamecarousel">
-  <type>vertical</type>
-  <imageSource>thumbnail</imageSource>
-  <pos>${gameColX} ${gameColCarY}</pos>
-  <size>${gameColW} ${gameColH}</size>
-  <logoSize>${gameCarLogoW} ${gameCarLogoH}</logoSize>
-  <logoScale>${gameCarLogoScale}</logoScale>
-  <maxLogoCount>3</maxLogoCount>
-  <minLogoOpacity>0.3</minLogoOpacity>
-  <zIndex>5</zIndex>
-</gamecarousel>
-```
-
-- `pos = (gameColX, gameColCarY)` = `(0.08, 0.46)` in 4:3.
-  `gameColCarY = 0.46` positions the container so the slot
-  immediately above the centered selected slot doesn't peek into the
-  caption area (see `_inc/common.xml:77-87` comment for the
-  derivation math).
-- `maxLogoCount=3` — three slots visible: unselected-above, selected
-  (centered + scaled), unselected-below.
-- `minLogoOpacity=0.3` — unselected slots dim to 30% opacity. The
-  selected slot's `logoScale=1.5` and full opacity make it
-  unmistakably the focal point.
-- `imageSource=thumbnail` — uses the game's scraped thumbnail. Games
-  without a thumbnail fall back to the styled text shown by the
-  `gamecarouselLogoText` text element (defined immediately after
-  the carousel block).
-- `logoSize` units are CONTAINER-relative, not screen-relative
-  (ES quirk per `CarouselComponent.cpp`). `gameCarLogoH` must be ≤
-  `1/maxLogoCount` = `0.333` to avoid slot overflow — that's why
-  the 4:3 default is `0.28`, leaving ~`0.053` of vertical gap per
-  slot.
-
-A v0.9.3 round 4 attempt to add a halo behind the selected boxart
-was reverted (audit G5): the halo plus a text-fallback white title
-made the title unreadable. Re-introduction requires per-system
-fallback icons replacing the text fallback first (audit G5 is the
-coupled spec).
-
-### 6.9 Info panel (title / rating / video / description)
-
-Right-side metadata panel. Defined in `_inc/gamelist.xml:115-154`.
-
-Five elements stack vertically in the `panelX..panelX+panelW`
-horizontal band:
-
-| Element | y position | y size | Source |
+| Variable | Boxart (default) | Compact | Meaning |
 |:---|:---:|:---:|:---|
-| `md_name` (title) | `0.10` | `0.06` | `${game:name}` |
-| `md_rating` | `0.17` | `0.04` | `${game:rating}` |
-| (gap for metadata key-value rows — audit G2, not yet shipped) | `0.20-0.36` | `0.16` | (G2) |
-| `md_video` | `mdVideoY = 0.39` | `mdVideoH = 0.34` | `${game:video}` (or snapshot during delay) |
-| `md_description` | `panelDescY = 0.60` | `panelDescH = 0.32` | `${game:desc}` |
+| `cardBoxartW × cardBoxartH` | `0.234 × 0.3125` | `0.161 × 0.215` | Selected boxart / video envelope (~240px / ~165px @ 4:3) |
+| `cardTextX` / `cardTextW` | `0.385` / `0.585` | `0.345` / `0.625` | Card text column left edge / width |
+| `cardLineW` (`cardLineH=0.004`) | `0.585` | `0.625` | Horizontal rule from `cardTextX`, tinted `${textPrimary}` |
+| `cardTitleFontSize` | `0.075` | `0.060` | Title above the rule |
+| `cardMetaFontSize` | `0.030` | `0.026` | Genre · stars line |
+| `cardDescFontSize`, `cardDescX`, `cardDescW` | `0.023`, `0.62`, `0.28` | `0.021`, `0.58`, `0.31` | Marquee description box |
+| `peekIconW × peekIconH` | `0.088 × 0.51` | `0.073 × 0.425` | Peek icon (screen-w × slot-h — see gotcha below) |
+| `peekTextX`, `peekTitleFontSize` | `0.31`, `0.030` | `0.30`, `0.026` | Friendly peek title |
+| `titleUnselectedOpacity` | `0` (Strict) | — | `1` in Friendly; set by the Title Visibility subset, not Icon Size |
+| `cardY`, `cardTitleY`, `cardMetaY` | `0.59`, `0.585`, `0.61` | same | Card vertical anchors (subset-independent) |
+| `glLogoY`, `glCaptionY`, `glListTop`, `glListH` | `0.18`, `0.24`, `0.245`, `0.69` | same | Header + peek-list frame |
 
-**Title (`md_name`).** Centered. Largest weight font (`fontBold`),
-size `0.035` (slightly smaller than the clock at `0.042` — the
-clock sits in the status bar, where a larger size doesn't compete
-with body content).
+**Per-aspect tuning:** geometry none — only `crossX` shifts per ratio
+(§2.2). Text fit: `cardMetaW` / `cardMetaFontSize` are overridden in
+`aspect-3x2.xml` (0.24 / 0.027), `aspect-1x1.xml` (font 0.023) and
+`aspect-8x7.xml` (font 0.026) so the metadata line stays on one line
+clear of `cardDesc`; see P3 in §1.3 for the pixel reasoning and the
+subset-vs-aspect include-order precedence this depends on.
 
-**Rating (`md_rating`).** Five stars. Color `${accent}` (tinted to
-the colorset). Position at `mdRatingX = 0.615` (4:3).
+**Coordinate gotcha (documented in `_inc/common.xml`):** itemTemplate
+`<pos>` / `<size>` / `<maxSize>` scale by the **row-slot's pixel
+dimensions**, not the screen. At 4:3 a slot is ~1024×177px, which is
+why `peekIconH=0.51` (slot-relative height) pairs with
+`peekIconW=0.088` (screen-relative width cap). The big-card extras,
+by contrast, are ordinary screen-relative elements.
 
-**Video (`md_video`).** Shows the scraped snapshot for `<delay>`
-seconds, then plays the preview video. Centered at `(mdVideoX,
-mdVideoY) = (0.705, 0.39)` with `<origin>0.5 0.5</origin>` (so the
-position values are the box's center, not its top-left). Box is
-`(mdVideoW, mdVideoH) = (0.50, 0.34)` in 4:3 — a 4:3-aspect video
-window per §1.3 P4.
+**Orphaned leftovers to be aware of:** `rowHaloW` / `rowHaloH` in
+`_inc/common.xml:85-86` reference a `tplHalo` element that does not
+exist in the shipped `_inc/gamelist.xml`; the `gameCol*` variables
+are likewise unconsumed (§2.2). Neither affects rendering.
 
-**Description (`md_description`).** Scrolls (`<container>true</container>`)
-with cadence controlled by the `scrollSpeed` subset. Font
-`fontLight` size `0.028`, color `${textSecondary}`.
+### 6.8 Expanded-card metadata (info panel removed)
 
-### 6.10 Menu chrome
+**The right info panel is removed** — a settled v0.11 decision
+(PR #32; see §10). The old panel's four elements (`md_name`,
+`md_rating`, `md_video`, `md_description`) no longer render as a
+side panel; `_inc/gamelist.xml:240-263` explicitly hides **every**
+built-in `md_*` metadata element (`<visible>false</visible>`) so ES
+doesn't paint them at unstyled default positions. Their information
+moved onto the expanded card:
+
+| Old panel element | v0.11 card equivalent |
+|:---|:---|
+| `md_name` (centered bold title) | `cardTitle` — left-aligned `fontRegular` at `0.075`/`0.060`, bottom-anchored on the rule |
+| `md_rating` (star rating bar) | Unicode star glyphs via `{game:stars}` inside `cardMetadata` (`{game:genre} · {game:stars}`, `${textSecondary}`) |
+| `md_video` (panel video box) | `cardVideo` — plays inside the boxart envelope at `(crossX, cardY)` after `${videoDelay}` seconds; `<visible>exists({game:video})</visible>`, `<showSnapshotNoVideo>false</showSnapshotNoVideo>` |
+| `md_description` (scrolling `<container>`) | `cardDesc` — a small marquee text box right of the metadata, driven by `<autoScrollSpeed>` (see §7.4) |
+
+Not carried over: `{game:lastplayed}` (epoch-leak on this build —
+deliberately omitted, per the `_inc/gamelist.xml` comment above
+`cardMetadata`), and the never-shipped G2 key-value rows
+(year / players / region), which the audit now marks superseded.
+
+### 6.9 Menu chrome
 
 ES's settings menu inherits the active colorset. Defined in
 `_inc/menu.xml`.
@@ -1063,7 +1109,7 @@ right-side sidebar option-picker style is unsupportable (audit U13).
 
 Three semi-transparent crest layers slide left at different rates,
 parallax-stacked over a static base tint. Defined in
-`_inc/wave-motion.xml` (duplicated into `_inc/gamelist.xml:39-84`
+`_inc/wave-motion.xml` (duplicated into `_inc/gamelist.xml:41-96`
 due to a Knulli build quirk — see file comments).
 
 | Layer | Source | Color | Opacity | Cycle duration | Crest y |
@@ -1129,36 +1175,49 @@ storyboard, not the halo.
 
 ### 7.4 Description auto-scroll
 
-The `md_description` container scrolls long text vertically.
-`autoScrollSpeed` controls cadence (ms per line):
+The old `md_description` `<container>` is gone (§6.8). The v0.11
+description element is `cardDesc` — a deliberately small, narrow
+text box (`cardDescFontSize` ~18px, `cardDescW=0.28` @ 4:3 Boxart)
+whose content overflows and **marquees** via `<autoScrollSpeed>`
+(the `<container>` mechanism is not what drives scrolling on this
+build). The shipped value is `autoScrollSpeed=200` hardcoded in
+`_inc/gamelist.xml:232`. Marquee *motion* cannot be verified in a
+static render — only the config.
 
-| Subset | `autoScrollSpeed` | Use case |
-|:---|:---:|:---|
-| Normal (default) | `150` | ES's stock default |
-| Slow | `300` | Easier reading |
-| Fast | `75` | Skim mode |
-
-Per `_inc/scroll-speed-*.xml`. User-selectable via UI Settings → Theme
-Configuration → Scroll Speed.
+**Known drift (Scroll Speed subset is currently a no-op):** the
+`scrollSpeed` subset files (`_inc/scroll-speed-*.xml` — Normal `150`
+/ Slow `300` / Fast `75`) still target a `<text name="tplDesc">`
+element, which does not exist in the shipped card list (the element
+was renamed `cardDesc` in the final Path B layout). Until the subset
+files are retargeted to `cardDesc`, the effective cadence is the
+hardcoded `200` regardless of the user's Scroll Speed selection.
 
 ### 7.5 Video preview delay
 
-`md_video` defaults to showing the snapshot for 5 seconds, then
-transitioning to the scraped preview video. Configurable:
+The selected card's `cardVideo` shows the boxart (not a snapshot —
+`<showSnapshotNoVideo>false</showSnapshotNoVideo>`) until
+`<delay>${videoDelay}</delay>` elapses, then plays the scraped
+preview video letterboxed inside the boxart envelope. `${videoDelay}`
+is in **seconds** and is set by the user-facing Video Delay subset,
+whose variant files just set the variable:
 
-| Subset | `<delay>` | Behavior |
+| Subset | `${videoDelay}` (seconds) | Behavior |
 |:---|:---:|:---|
-| 5 seconds (default) | `5` | Snapshot for 5s, then video |
+| 5 seconds (default) | `5` | Boxart for 5s, then video |
 | Instant | `0` | Video starts immediately |
-| 2 seconds | `2` | Brief snapshot |
-| 10 seconds | `10` | Long snapshot phase |
+| 2 seconds | `2` | Brief boxart phase |
+| 10 seconds | `10` | Long boxart phase |
 
-Per `_inc/video-delay-*.xml`.
+Per `_inc/video-delay-*.xml`. **Parse-order rule:** because the
+subset now works by variable substitution (not by writing into a
+named element), the `videoDelay` subset is declared in `theme.xml`
+**before** the gamelist include — variables resolve at parse time.
 
-Audio is force-off by default (`video-audio-off.xml` →
-`<audio>false</audio>`); the user can enable via UI Settings →
-Theme Configuration → Video Audio → On, but ES's global
-"Enable video preview audio" setting must also be on for actual sound.
+**Known drift (Video Audio subset):** `_inc/video-audio-{off,on}.xml`
+still write `<audio>` onto the legacy `md_video` element, which the
+redesign hides (§6.8). The live `cardVideo` element carries no
+`<audio>` override, so it follows ES's global "Enable video preview
+audio" setting alone until the subset files are retargeted.
 
 ### 7.6 What we cannot animate
 
@@ -1184,26 +1243,31 @@ propose them as theme features.
 
 ES subsets let the user pick between mutually-exclusive variants at
 runtime (UI Settings → Theme Configuration). This theme exposes
-**five** subsets:
+**seven** subsets:
 
 | Subset | Variants | Default | Purpose |
 |:---|:---:|:---:|:---|
 | `colorset` (PSP Color) | 12 monthly palettes | January Blue | Color scheme |
+| `iconSize` (Icon Size) | Boxart / Compact | Boxart | Card + peek icon scale (swaps the whole `card*`/`peek*` variable set — §6.7) |
+| `titleVisibility` (Title Visibility) | PSP-Faithful / With Titles | PSP-Faithful | Whether unselected peek rows show a dim title (`titleUnselectedOpacity` 0/1) |
+| `videoDelay` (Video Delay) | 5 seconds / Instant / 2 seconds / 10 seconds | 5 seconds | Boxart → video timing in **seconds** (`${videoDelay}` variable; declared before the gamelist include — §7.5) |
 | `gamecount` (Game Count) | Hide / Show | Hide | Whether to show "X GAMES" count caption |
-| `videoDelay` (Video Delay) | 5s / Instant / 2s / 10s | 5 seconds | Snapshot → video timing |
-| `videoAudio` (Video Audio) | Off / On | Off | Audio mute on preview video |
-| `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Description auto-scroll cadence |
+| `videoAudio` (Video Audio) | Off / On | Off | Audio mute on preview video (⚠️ currently targets the hidden legacy `md_video` — §7.5) |
+| `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Description marquee cadence (⚠️ currently a no-op — targets the removed `tplDesc`, §7.4) |
 
-Each subset variant lives in a small XML file in `_inc/`. **Rule:**
-keep subset variants surgical. A subset variant should change at
-most 3-5 properties. Larger variants belong in `common.xml` (single
-default) or split into multiple subsets.
+Each subset variant lives in a small XML file in `_inc/` (colorsets
+in `colors/`). **Rule:** keep subset variants surgical — either a
+`<variables>` block (iconSize, titleVisibility, videoDelay,
+colorset) or a couple of property overrides on named elements
+(gamecount, videoAudio, scrollSpeed). Larger variants belong in
+`common.xml` (single default) or split into multiple subsets.
 
-A sixth subset, `gamelistView` (Gamelist View Style: detailed /
-gamecarousel / automatic), is built into ES rather than defined here;
-the theme supports both styles via the shared
-`<view name="detailed,gamecarousel">` block plus per-style
-specializations.
+The old `gameListView` subset (Gamelist View Style: detailed /
+gamecarousel / automatic) was **removed in v0.11** — both ES
+view-style names now resolve to the same PSP-card layout (§6.7), so
+the choice had nothing left to select between. Subsets that set
+variables consumed by `_inc/gamelist.xml` MUST be declared before
+its `<include>` in `theme.xml` (parse-time variable resolution).
 
 ---
 
@@ -1246,10 +1310,11 @@ evidence:
 | **`logoScale=1.5` (not 2.0 or 1.2).** | v0.6 | 1.2 doesn't signal selection; 2.0 is aggressive and crowds neighbors. 1.5 reads as PSP-correct. |
 | **Roboto Condensed (not Noto Condensed, not Inter Tight, not the original PSP font).** | v0.5 | Licensed for redistribution; reads as PSP-style; three weights match the type scale. |
 | **12 monthly colorsets with Tailwind-family palettes (not the PS3-extracted hex codes).** | v0.7 | Direct PS3 codes desaturate when scaled to 1024×768+; Tailwind family colors hold saturation. The hue rotation differs from PS3 (see §3.2 table). |
-| **`maxLogoCount=3` for gamecarousel (not 1 or 5).** | v0.9.3 round 4 | 1 hides peer context; 5 over-crowds the column. 3 matches PSP's typical 3-visible sub-item layout. |
+| **Single PSP-card gamelist; right info panel removed.** | v0.11 (PR #32) | The detailed-textlist and gamecarousel styles (and the `gameListView` subset) are replaced by one card-row format: collapsed rows are icon (or icon + title), the selected row expands into the dominant card (title / rule / genre · stars / marquee description / video). Metadata lives on the card, not in a side panel. Don't re-introduce a second gamelist style or a right panel. |
+| **Three visible game rows.** | v0.9.3 round 4 (`maxLogoCount=3`), carried into v0.11 (`<lines>3</lines>` peek list) | 1 hides peer context; 5 over-crowds the column. 3 matches PSP's typical 3-visible sub-item layout. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
-| **Selected-icon halo on system carousel only, not gamecarousel.** | v0.9.3 round 4 | Adding the halo behind a text-fallback white title made it unreadable. Re-add only when audit G5 (per-system fallback icons) ships first. (The system-view halo itself was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
+| **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
 | **`textPrimary = FFFFFF` always.** | v0.1 | Readable on every colorset's wave. Other primaries fail contrast on at least one of the 12. |
 | **Battery glyph + clock + (nothing) cluster in top-right.** | v0.9 — **battery glyph pulled in v0.10**, restoration tracked as #4 | PSP's status-bar pattern. Wifi-strength indicator is unsupportable (audit U12); date next to clock is unsupportable (audit U11). Status bar is clock-only on main (§6.5). |
 | **The wave never opts out.** | v0.3 | The wave IS the theme. No `<subset name="wave">` for "wave off" because the result would be a static colored background, which isn't what PSP-XMB-theme means. |
@@ -1339,7 +1404,10 @@ v3-001 (15-second intervals: frame N → (N-1)·15s).
 
 ---
 
-*End of guidelines. Last revised against theme v0.11-partial (July
-2026). The v0.10 ship cluster has landed: S6 and X1 shipped, X2 was
-design-rejected, ST1 remains blocked on #4. Re-evaluate after the
-v0.11 gamelist redesign (PR #32) lands.*
+*End of guidelines. Last revised against theme v0.11 final (July
+2026), including the gamelist redesign (PR #32): single PSP-card row
+list, right info panel removed, iconSize / titleVisibility subsets
+added, media fallbacks wired, videoDelay converted to a variable.
+S6 and X1 shipped in v0.10; X2 was design-rejected; ST1 remains
+blocked on #4. No specific re-evaluation point is scheduled — re-check
+after the next major theme release.*

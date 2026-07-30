@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Video Delay: Instant".
-  Sets the gamelist video element's <delay> to 0 so the preview video
-  starts immediately on game selection, with no intervening still
-  screenshot phase.
+  Sets ${videoDelay}=0 so the preview video on the selected gamelist row
+  starts immediately, with no intervening still-screenshot phase.
   Selected via UI Settings > Theme Configuration > Video Delay > Instant.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="detailed,gamecarousel">
-    <video name="md_video">
-      <delay>0</delay>
-    </video>
-  </view>
+  <variables>
+    <videoDelay>0</videoDelay>
+  </variables>
 </theme>

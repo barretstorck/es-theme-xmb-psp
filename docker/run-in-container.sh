@@ -68,13 +68,19 @@ case "${VIEW}" in
   *)            GLVIEW="automatic" ;;   # system/menu views: gamelist style irrelevant
 esac
 
+# Optional subset pins (ICON_SIZE / TITLE_VISIBILITY envs). Generic subsets
+# persist as "subset.<name>" (GuiMenu.cpp:3276); empty env = theme default.
+SUBSET_LINES=""
+[[ -n "${ICON_SIZE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.iconSize\" value=\"${ICON_SIZE}\" />"$'\n'
+[[ -n "${TITLE_VISIBILITY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.titleVisibility\" value=\"${TITLE_VISIBILITY}\" />"$'\n'
+
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
 <config>
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
-  <bool name="ShowHelpPrompts" value="false" />
+${SUBSET_LINES}  <bool name="ShowHelpPrompts" value="false" />
   <bool name="MusicEnabled" value="false" />
 </config>
 XML
@@ -111,7 +117,8 @@ case "${VIEW}" in
   system)
     : ;;                                   # already on the system carousel
   gamelist|gamecarousel)
-    key Return 4 ;;                        # enter the selected system's gamelist
+    key Return 4
+    for _i in $(seq 1 "${GAMELIST_DOWN:-0}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;

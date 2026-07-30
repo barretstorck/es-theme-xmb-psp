@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v0.11 PR D: media-fallback for wonderswan. Sets mediaFallbackPath so the
+     gamelist itemTemplate's <tplFallbackIcon> image resolves to the
+     handheld-cart glyph for games with no scraped thumbnail. -->
+<theme>
+  <variables>
+    <mediaFallbackPath>./art/system-media/handheld-cart.png</mediaFallbackPath>
+  </variables>
+</theme>

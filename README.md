@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.11 (partial)** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is restored** in the system view, subtler than v0.9.3 (0.28 footprint, 0.6 opacity). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, two gamelist styles — text list or boxart carousel — sharing a widened title / rating / video / description panel, a boxart carousel sized and positioned under the system icon, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
+> Status: **v0.11** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is restored** in the system view, subtler than v0.9.3 (0.28 footprint, 0.6 opacity). **PSP-card gamelist**: each game is a collapsed row that expands on selection — a horizontal rule bisects the icon, title above, `genre · ★★★★` metadata below — with per-system media-type fallback icons for games without scraped boxart, and two orthogonal toggles (Icon Size, Title Visibility). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
 
 ## Screenshots
 
@@ -12,22 +12,22 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 |:---:|:---:|:---:|:---:|:---:|
 | ![](docs/screenshots/system-4x3.png) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/system-8x7.png) |
 
-### Gamelist — detailed (text list)
+### Gamelist — PSP card list (default: Boxart icons, PSP-Faithful titles)
 
 | 4:3 | 16:9 | 3:2 | 1:1 | 8:7 |
 |:---:|:---:|:---:|:---:|:---:|
-| ![](docs/screenshots/detailed-4x3.png) | ![](docs/screenshots/detailed-16x9.png) | ![](docs/screenshots/detailed-3x2.png) | ![](docs/screenshots/detailed-1x1.png) | ![](docs/screenshots/detailed-8x7.png) |
+| ![](docs/screenshots/gamelist-4x3.png) | ![](docs/screenshots/gamelist-16x9.png) | ![](docs/screenshots/gamelist-3x2.png) | ![](docs/screenshots/gamelist-1x1.png) | ![](docs/screenshots/gamelist-8x7.png) |
 
-### Gamelist — boxart carousel
+### Gamelist toggles (4:3, January Blue)
 
-| 4:3 | 16:9 | 3:2 | 1:1 | 8:7 |
-|:---:|:---:|:---:|:---:|:---:|
-| ![](docs/screenshots/gamecarousel-4x3.png) | ![](docs/screenshots/gamecarousel-16x9.png) | ![](docs/screenshots/gamecarousel-3x2.png) | ![](docs/screenshots/gamecarousel-1x1.png) | ![](docs/screenshots/gamecarousel-8x7.png) |
+| Boxart + With Titles | Compact + PSP-Faithful | Compact + With Titles |
+|:---:|:---:|:---:|
+| ![](docs/screenshots/v0.11/redesign-boxart-friendly-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-strict-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-friendly-4x3-january-blue.png) |
 
 ## Known limitations
 
 - System icon coverage is mixed-source: 134 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), and ~56 less-common shortnames retain icons from the previous XMB Menu ES-DE set. Systems still without a specific icon fall back to a generic `_default.png` placeholder. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
-- The `gamecarousel` gamelist style shows each game's scraped `thumbnail` (box art). A game with no thumbnail scraped falls back to its name as a styled white caption. Scrape your library with box/thumbnail media for a full boxart column, or use the `detailed` text-list style.
+- Gamelist rows show each game's scraped `thumbnail` (box art) when Icon Size is `Boxart`. A game with no thumbnail scraped falls back to its system's media-type silhouette (cartridge, CD, floppy, etc. — see `art/system-media/`). Scrape your library with box/thumbnail media for full boxart rows, or use the `Compact` icon size.
 
 ## Install
 
@@ -52,10 +52,15 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ## Customization
 
-Three configurable knobs, all under **UI Settings → Theme Configuration**:
+Configurable knobs, all under **UI Settings → Theme Configuration**:
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
+- **Icon Size** — gamelist row icons as scraped boxart (`Boxart`, default) or small uniform icons (`Compact`)
+- **Title Visibility** — unselected rows show icon only (`PSP-Faithful`, default) or icon + title (`With Titles`)
+- **Video Delay** — how long a game stays selected before its preview video starts (Instant / 2s / 5s / 10s)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
-- **Gamelist View Style** — show each system's games as a text list (`detailed`) or as a vertical boxart carousel (`gamecarousel`); `automatic` uses the theme default. Both styles share the same title / rating / video / description info panel.
+- **Video Audio** and **Scroll Speed** — preview-audio mute and description auto-scroll pacing
+
+The old Gamelist View Style knob (`detailed` / `gamecarousel`) was removed in v0.11 — the PSP card list replaces both styles.
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 
@@ -94,7 +99,7 @@ Theme development and verification use the **Docker render harness** — it runs
 
 ```
 ./scripts/render.sh --view system
-./scripts/render.sh --view gamecarousel --library <path> --resolution 1280x720
+./scripts/render.sh --view gamelist --library <path> --resolution 1280x720
 ```
 
 The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.

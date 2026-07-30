@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Title Visibility: With Titles" (Friendly).
+  Peek (prev/next) rows show a small dim title to the right of the icon
+  (opacity 1). The selected game's title always shows on the big card.
+  Selected via UI Settings > Theme Configuration > Title Visibility > With Titles.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <titleUnselectedOpacity>1</titleUnselectedOpacity>
+  </variables>
+</theme>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Icon Size: Boxart" (default).
+  Larger selected boxart + peek icons for users with scraped boxart they want
+  to see. Selected via UI Settings > Theme Configuration > Icon Size > Boxart.
+
+  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 240px (0.234 x
+  0.3125), peek icons bumped 65px -> 90px (0.088 width-cap / 0.51 slot-height
+  at glListH=0.69). Selected-to-peek ratio ~2.7x. Description font shrunk to
+  ~18px (0.023) and narrowed (cardDescW 0.35 -> 0.28) so it marquees on-device.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <cardBoxartW>0.234</cardBoxartW>
+    <cardBoxartH>0.3125</cardBoxartH>
+    <cardTextX>0.385</cardTextX>
+    <cardTextW>0.585</cardTextW>
+    <cardLineW>0.585</cardLineW>
+    <cardTitleFontSize>0.075</cardTitleFontSize>
+    <cardMetaFontSize>0.030</cardMetaFontSize>
+    <cardDescFontSize>0.023</cardDescFontSize>
+    <cardDescX>0.62</cardDescX>
+    <cardDescW>0.28</cardDescW>
+    <peekIconW>0.088</peekIconW>
+    <peekIconH>0.51</peekIconH>
+    <peekTextX>0.31</peekTextX>
+    <peekTitleFontSize>0.030</peekTitleFontSize>
+  </variables>
+</theme>
