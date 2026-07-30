@@ -712,9 +712,11 @@ by the fallback half, but the redesign then removed the halo's
 regardless of whether the slot is showing a thumbnail or a generic
 icon. The glow is consistent.
 
-**Current theme:** System carousel keeps its soft white halo
-(`staticBackgroundHalo`, restored + re-tuned in PR #28,
-`haloW=0.28` / `opacity=0.6`). The gamelist has none, per the
+**Current theme:** The system carousel's soft white halo
+(`staticBackgroundHalo`, restored + re-tuned in PR #28 to
+`haloW=0.28` / `opacity=0.6`) is **currently disabled** — commented
+out in PR #32's round-4 on-device tuning as still too bright;
+re-enable tracked in issue #34. The gamelist has none, per the
 settled decision above.
 
 **Reference:** PSP screenshots 1 and 3 — the selected `AVLS` row and
