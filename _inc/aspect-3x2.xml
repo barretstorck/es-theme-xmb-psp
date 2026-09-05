@@ -24,5 +24,11 @@
          line still ends short of the Boxart-mode desc at 0.62. -->
     <cardMetaW>0.24</cardMetaW>
     <cardMetaFontSize>0.027</cardMetaFontSize>
+
+    <!-- v0.12 gamelist styles -->
+    <cardMediaW>0.42</cardMediaW>
+    <cardMediaH>0.32</cardMediaH>
+    <listMediaW>0.32</listMediaW>
+    <gridTileW>0.170</gridTileW>
   </variables>
 </theme>
