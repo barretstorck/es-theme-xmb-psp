@@ -215,6 +215,13 @@
          Default 5 matches the pre-v0.11 default; the four user-facing subsets
          (Instant/2s/5s/10s) override this via the videoDelay variable. -->
     <videoDelay>5</videoDelay>
+
+    <!-- v0.12 style D (Box Art Grid). Geometry from the approved mockup
+         d-boxart-grid.png: 4 columns x 2 visible rows, info bar beneath. -->
+    <gridTileW>0.185</gridTileW>
+    <gridTileH>0.255</gridTileH>
+    <gridInfoY>0.795</gridInfoY>
+    <gridStarX>0.680</gridStarX>
   </variables>
 
   <view name="system,detailed,gamecarousel,menu">
