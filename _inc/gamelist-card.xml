@@ -169,6 +169,20 @@
       <zIndex>8</zIndex>
     </image>
 
+    <!-- v0.12: the media block is a PAIR, not one element.
+         ES's <video> alone would suffice on hardware, but the harness ES binary
+         has ZERO VideoVlcComponent symbols and no libvlc linkage — video support
+         is compiled out — so <video> draws nothing there, not even its snapshot,
+         and this whole region would be unverifiable. This image is the
+         always-present screenshot; the video paints over it on device. -->
+    <image name="cardScreenshot" extra="true">
+      <path>{game:image}</path>
+      <pos>${cardMediaX} ${cardMediaY}</pos>
+      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <zIndex>7</zIndex>
+    </image>
+
     <!-- v0.12: screenshot -> video in ONE element. ES does this natively:
          snapshotSource=image makes the still {game:image}; showSnapshotDelay
          shows it during <delay>; showSnapshotNoVideo keeps it forever when a
@@ -188,7 +202,7 @@
       <showSnapshotNoVideo>true</showSnapshotNoVideo>
       <delay>${videoDelay}</delay>
       <audio>${videoAudioEnabled}</audio>
-      <zIndex>8</zIndex>
+      <zIndex>9</zIndex>
     </video>
 
     <!-- Big title, right of the boxart, sitting just above the line. -->
@@ -310,6 +324,12 @@
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>
+      <!-- <size> alone does NOT clip on this build — v0.11 proved that and this
+           task's first attempt reproduced it (text reached y~0.96, inside the
+           0.94 help strip). clipRect is normalized SCREEN coords (x y w h),
+           scaled by screenScale and pushed as a render clip
+           (GuiComponent.cpp:885, 1269). -->
+      <clipRect>${cardTextX} ${cardDescY} ${cardTextW} ${cardDescH}</clipRect>
       <zIndex>8</zIndex>
     </text>
 
