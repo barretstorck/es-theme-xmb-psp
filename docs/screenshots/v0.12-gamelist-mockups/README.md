@@ -142,3 +142,15 @@ This makes the original "a long genre pushes the stars onto line 2" fault
 structurally impossible, rather than tuned away as in v0.11.
 
 The `a2-*` mockups above are regenerated to match.
+
+---
+
+# Round 4 — position counter removed
+
+The `2 / 10` counter drawn in rounds 1–3 **is not implementable**.
+`FileData::getBindableProperty()` exposes no per-game `index`, and
+`{system:total}` (`SystemData.cpp:2162`) is a whole-library game count, not a
+cursor position. The `gamecount` subset only affects the system-view carousel.
+
+The corner stays empty. The `a2-*` mockups are regenerated without it, so what
+is shown is what will be built.
