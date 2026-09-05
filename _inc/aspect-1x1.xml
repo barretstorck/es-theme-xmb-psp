@@ -29,10 +29,28 @@
     <gameColTextY>0.47</gameColTextY>
     <gameColH>0.46</gameColH>
 
-    <!-- Card metadata font: at 720x720 the width-normalized cardMetaW box
-         shrinks to 158px while the height-normalized font stays ~21.6px,
-         wrapping the genre+stars line. 0.023 x 720 = 16.6px keeps the
-         same box-to-font proportion as 4:3 (225px : 23px). -->
+    <!-- Card metadata font, renormalized for this ratio: at 720x720 the
+         height-normalized font stays ~21.6px at 4:3's 0.030, too large for
+         the narrower metadata columns here. 0.023 x 720 = 16.6px keeps the
+         same pixel proportion 4:3 used (225px-wide box : 23px font). -->
     <cardMetaFontSize>0.023</cardMetaFontSize>
+
+    <!-- v0.12 gamelist styles: square screen means vertical space is the
+         constraint; shrink the media envelope or it collides with the
+         title. -->
+    <cardMediaW>0.44</cardMediaW>
+    <cardMediaH>0.26</cardMediaH>
+    <cardDescH>0.150</cardDescH>
+    <listMediaH>0.24</listMediaH>
+    <gridTileH>0.210</gridTileH>
+
+    <!-- Added beyond the brief (found by rendering, not listed there):
+         same fixed-fontSize issue as aspect-8x7.xml, worse here because the
+         720-wide screen shrinks the denominator that turns the track's
+         pixel width into a variable-fraction. Render showed the star track
+         and "1P"/"2P" fully overlapping (glyphs touching with no gap) at
+         720x720. Shift listStarX left; kept clear of the textlist's right
+         edge (0.525) with ~10px to spare. -->
+    <listStarX>0.540</listStarX>
   </variables>
 </theme>

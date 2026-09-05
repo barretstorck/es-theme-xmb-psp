@@ -2,7 +2,7 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
-> Status: **v0.11** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is currently disabled** (re-tuned in PR #28, then pulled again during PR #32's on-device rounds as still too bright — re-enable tracked in issue #34). **PSP-card gamelist**: each game is a collapsed row that expands on selection — a horizontal rule bisects the icon, title above, `genre · ★★★★` metadata below — with per-system media-type fallback icons for games without scraped boxart, and two orthogonal toggles (Icon Size, Title Visibility). Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
+> Status: **v0.12** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **The selected-icon halo is currently disabled** (re-tuned in PR #28, then pulled again during PR #32's on-device rounds as still too bright — re-enable tracked in issue #34). **Three user-selectable gamelist styles** (see Gamelist Style below): a PSP-card layout where each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description; a ten-row list with metadata and description; and a box-art grid. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. Clock-only status bar (the battery widget remains pulled pending redesign, issue #4). Default colorset is January Blue.
 
 ## Screenshots
 
@@ -12,7 +12,12 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 |:---:|:---:|:---:|:---:|:---:|
 | ![](docs/screenshots/system-4x3.png) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/system-8x7.png) |
 
-### Gamelist — PSP card list (default: Boxart icons, PSP-Faithful titles)
+### Gamelist — PSP Card style (default: Boxart icons, PSP-Faithful titles)
+
+Screenshots below predate the v0.12 media-block/metadata recomposition
+(§6.7 of the style guide) and the List + Details / Box Art Grid styles;
+they still show the general PSP-card shape. Regenerate before the next
+screenshot refresh.
 
 | 4:3 | 16:9 | 3:2 | 1:1 | 8:7 |
 |:---:|:---:|:---:|:---:|:---:|
@@ -53,14 +58,45 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 ## Customization
 
 Configurable knobs, all under **UI Settings → Theme Configuration**:
+- **Gamelist Style** — PSP Card / List + Details / Box Art Grid; see below
 - **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
-- **Icon Size** — gamelist row icons as scraped boxart (`Boxart`, default) or small uniform icons (`Compact`)
-- **Title Visibility** — unselected rows show icon only (`PSP-Faithful`, default) or icon + title (`With Titles`)
-- **Video Delay** — how long a game stays selected before its preview video starts (Instant / 2s / 5s / 10s)
+- **Icon Size** — PSP Card gamelist row icons as scraped boxart (`Boxart`, default) or small uniform icons (`Compact`)
+- **Title Visibility** — PSP Card unselected rows show icon only (`PSP-Faithful`, default) or icon + title (`With Titles`)
+- **Video Delay** — how long a game stays selected before its screenshot becomes a preview video (Instant / 2s / 5s / 10s)
+- **Video Audio** — mute or allow audio on that preview video (also subject to ES's own global "Enable video preview audio" setting)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
-- **Video Audio** and **Scroll Speed** — preview-audio mute and description auto-scroll pacing
+- **Scroll Speed** — currently a no-op; kept for forward compatibility (see the style guide §8)
 
-The old Gamelist View Style knob (`detailed` / `gamecarousel`) was removed in v0.11 — the PSP card list replaces both styles.
+### Gamelist Style
+
+UI Settings → Theme Configuration → **Gamelist Style**:
+
+- **PSP Card** (default) — the XMB card layout. Selected game expands into a
+  large card with box art, screenshot/video, and a bounded description.
+- **List + Details** — a ten-row title list with art, metadata and description.
+- **Box Art Grid** — a wall of cover art with an info bar.
+
+In **PSP Card** and **List + Details** (Box Art Grid has no media slot by
+design), the screenshot becomes a video preview after the delay set by
+**Video Delay**. Videos play at their own aspect ratio; a clip that was
+scraped with letterboxing baked in will keep it. Whether that slot shows an
+actual screenshot or a second copy of the box art depends on your scraper:
+it's driven by the game's `<image>` tag, which most scrapers fill
+separately from `<thumbnail>` — if your scraper (or a manual edit) points
+both at the same file, the media slot will just mirror the box art.
+
+**Box Art Grid requires UI Settings → Gamelist View Style = Automatic**
+(ES's own default, under a different menu from this theme's settings). If
+that setting is pinned to Detailed or Gamecarousel, ES ignores this theme's
+requested view and renders an unstyled gamelist instead of the grid — this
+theme cannot detect or override that preference. Switching back to
+Automatic restores the grid.
+
+The old Gamelist View Style knob this theme used to expose (`detailed` /
+`gamecarousel`) was removed in v0.11, when both view-style names resolved
+to the same single card layout. v0.12's Gamelist Style is a different,
+theme-level choice — it doesn't read ES's own Gamelist View Style setting
+at all (except for the Box Art Grid interaction above).
 
 The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
 

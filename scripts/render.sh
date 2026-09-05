@@ -27,6 +27,11 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
   --out         host path for the captured PNG            (default: .dev/render.png)
+
+  Env pins (optional, empty = theme default):
+    ICON_SIZE=Boxart|Compact
+    TITLE_VISIBILITY="PSP-Faithful"|"With Titles"
+    GAMELIST_STYLE="PSP Card"|"List + Details"|"Box Art Grid"
 EOF
   exit "${1:-0}"
 }
@@ -80,6 +85,7 @@ DOCKER_ARGS+=(
   -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
   -e GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
   -e ICON_SIZE="${ICON_SIZE:-}" -e TITLE_VISIBILITY="${TITLE_VISIBILITY:-}"
+  -e GAMELIST_STYLE="${GAMELIST_STYLE:-}"
 )
 
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \

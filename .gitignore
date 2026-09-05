@@ -13,3 +13,6 @@
 # editor swap files
 *.swp
 *~
+
+# SDD scratch workspace
+.superpowers/

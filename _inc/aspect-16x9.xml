@@ -19,5 +19,16 @@
     <sysIconMaxW>0.10</sysIconMaxW>
     <sysIconMaxH>0.17</sysIconMaxH>
     <sysCarouselLogoW>0.08</sysCarouselLogoW>
+
+    <!-- v0.12 gamelist styles: wider screen lets the card media envelope
+         grow horizontally; the star column shifts right with the wider
+         text column. -->
+    <cardMediaW>0.46</cardMediaW>
+    <cardMediaH>0.34</cardMediaH>
+    <cardGenreW>0.115</cardGenreW>
+    <cardStarX>0.500</cardStarX>
+    <cardPlayersX>0.620</cardPlayersX>
+    <listMediaW>0.30</listMediaW>
+    <gridTileW>0.150</gridTileW>
   </variables>
 </theme>
