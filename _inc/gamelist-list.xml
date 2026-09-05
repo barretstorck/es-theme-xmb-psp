@@ -4,8 +4,12 @@
   style files selected by the "gamelistStyle" subset in theme.xml; exactly one
   is ever included, so element names cannot collide across styles.
 
-  PLACEHOLDER: this file is currently a byte-for-byte copy of the PSP Card
-  body below. Task 4 replaces its contents with the List + Details layout.
+  Conventional ten-row title list with art, metadata and description on the
+  right, modelled on es-theme-PlayStation-X (see the approved mockup
+  docs/screenshots/v0.12-gamelist-mockups/b-playstation-x.png). Deliberately
+  does NOT use the XMB cross/peek column that style A (gamelist-card.xml)
+  uses — the wave background and colorset are what keep it part of the
+  theme.
 
   The root defaultView attribute is what selects the ES view type:
   ThemeData::appendFile() runs parseTheme() on every include, and parseTheme()
@@ -18,39 +22,6 @@
   extra="true" elements declared only in that include do not animate on
   gamelist views. Do not "clean up" the duplication.
 
-  CC-BY-NC-SA 2.0. See CREDITS.md.
--->
-<!--
-  v0.11 gamelist redesign (v6 layout): PSP-card, selected-dominates format.
-
-  PATH B (pinned card + extras). The overflow spike (.dev/v6-spike-overflow.png)
-  proved an itemTemplate child CAN overflow its slot, so Path A's mechanism
-  works. BUT the textlist cannot pin the cursor to the middle slot:
-  TextListComponent's updateCameraOffset() centers the cursor only for INTERIOR
-  rows and clamps to 0 at the list start, so the default landing (cursor on the
-  first game) renders the selected row at the TOP slot, never centered. This
-  Knulli ES build does NOT consume the <centerSelection> theme property in
-  TextListComponent (only ImageGridComponent does — verified in source). So a
-  pure-itemTemplate Path A can't deliver the mockup's centered card.
-
-  Path B decouples the dominant card from the cursor slot. The big card
-  (boxart, title, line, metadata, scrolling description, video) is rendered as
-  extra="true" elements at a FIXED screen anchor (crossX, cardY=0.59) binding
-  {game:*}. ES's ISimpleGameListView::updateThemeExtrasBindings() rebinds those
-  placeholders to the SELECTED game on every cursor change (proven in
-  .dev/v6-spike-pathb.png — the extras showed Contra's boxart/name while the
-  textlist still listed all rows). The textlist itself only renders the small
-  PEEK icons (and, in Friendly mode, small dim titles). The selected row's own
-  peek icon is hidden on activate so it doesn't double up with the big card.
-
-  Spike outcomes (see .dev/spike-results.txt + .dev/v6-spike-*.png):
-   - itemTemplate child larger than its slot overflows (not clipped to slot).
-   - extra="true" elements binding {game:thumbnail}/{game:name}/{game:desc}
-     rebind to the selected game on cursor change.
-   - property="position" does NOT animate; property="x"/"y" DO.
-   - Variable substitution in storyboard from/to WORKS.
-
-  See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme defaultView="detailed">
@@ -116,146 +87,154 @@
       </storyboard>
     </image>
 
-    <!-- Pinned system icon. v0.11 v7 (PR #32 on-device tweaks): LOWERED to
-         (crossX, glLogoY=0.18) and SHRUNK to a 0.13-square maxSize per the
-         approved v7 mockup (proposed-v7-ondevice-tweaks.png). 0.13 width =
-         ~133px at 4:3; 0.173 height keeps the box square (133px tall). The
-         caption (glCaptionY) follows it down to stay tight below. -->
-    <image name="logo">
-      <path>./art/system-icons/${system.theme}.png</path>
-      <pos>${crossX} ${glLogoY}</pos>
-      <maxSize>0.13 0.173</maxSize>
-      <origin>0.5 0.5</origin>
-      <zIndex>6</zIndex>
-    </image>
-
-    <!-- System-name caption, tight below the pinned icon (v6: glCaptionY). -->
-    <text name="md_systemName" extra="true">
-      <pos>${crossX} ${glCaptionY}</pos>
-      <origin>0.5 0</origin>
-      <size>0.5 0.06</size>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.040</fontSize>
-      <color>${textSecondary}</color>
-      <text>${system.theme}</text>
-      <alignment>center</alignment>
-      <forceUppercase>true</forceUppercase>
-      <zIndex>6</zIndex>
-    </text>
-
-    <!-- ============================================================
-         BIG SELECTED CARD (Path B fixed-position extras).
-         All bind {game:*}; ES rebinds them to the selected game on
-         cursor change. Anchored at the textlist's MIDDLE slot
-         (crossX, cardY) so when the cursor is centered the card sits
-         over the middle peek; when the cursor is at the list edge the
-         card still floats at cardY as the dominant element.
-         ============================================================ -->
-
-    <!-- Selected boxart, 240px (Boxart) / 165px (Compact), bisected by the
-         line at cardY. maxSize preserves aspect for non-square scraped art. -->
-    <image name="cardBoxart" extra="true">
-      <path>{game:thumbnail}</path>
-      <pos>${crossX} ${cardY}</pos>
-      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <zIndex>8</zIndex>
-    </image>
-
-    <!-- Media fallback when the selected game has no thumbnail. -->
-    <image name="cardFallback" extra="true">
-      <path>${mediaFallbackPath}</path>
-      <pos>${crossX} ${cardY}</pos>
-      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <visible>!exists({game:thumbnail})</visible>
-      <zIndex>8</zIndex>
-    </image>
-
-    <!-- Inline video preview for the selected game. Single element tracking
-         selection via {game:video} rebinding (v6: kept as a single extra so
-         only ONE video plays at a time — does not regress the round-4
-         single-video-tracking behaviour). Audio-leak-on-hidden remains a
-         known on-device issue; not regressed here. -->
-    <video name="cardVideo" extra="true">
-      <path>{game:video}</path>
-      <pos>${crossX} ${cardY}</pos>
-      <!-- v7 device-behaviour fix: was <size> which force-stretched the video
-           to the square boxart envelope, squishing non-square (e.g. 4:3 / 16:9)
-           videos. <maxSize> preserves the video's native aspect ratio,
-           letterboxing it inside the cardBoxartW x cardBoxartH envelope instead
-           of distorting it. NOTE: needs on-device verification — the harness has
-           no scraped video so this element does not render in static captures. -->
-      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <delay>${videoDelay}</delay>
-      <showSnapshotNoVideo>false</showSnapshotNoVideo>
-      <visible>exists({game:video})</visible>
-      <zIndex>9</zIndex>
-    </video>
-
-    <!-- Big title, right of the boxart, sitting just above the line. -->
-    <text name="cardTitle" extra="true">
-      <pos>${cardTextX} ${cardTitleY}</pos>
-      <size>${cardTextW} 0.16</size>
-      <origin>0 1</origin>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>${cardTitleFontSize}</fontSize>
+    <text name="listSystemName" extra="true">
+      <pos>0.03 0.022</pos>
+      <size>0.60 0.08</size>
+      <origin>0 0</origin>
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>0.050</fontSize>
       <color>${textPrimary}</color>
-      <text>{game:name}</text>
+      <text>${system.fullName}</text>
       <alignment>left</alignment>
-      <verticalAlignment>bottom</verticalAlignment>
-      <zIndex>8</zIndex>
+      <forceUppercase>true</forceUppercase>
+      <multiLine>false</multiLine>
+      <zIndex>6</zIndex>
     </text>
 
-    <!-- Horizontal line, bisecting the boxart vertically at cardY. -->
-    <image name="cardLine" extra="true">
+    <image name="listRule" extra="true">
       <path>./art/line-1px.png</path>
-      <pos>${cardTextX} ${cardY}</pos>
-      <size>${cardLineW} ${cardLineH}</size>
+      <pos>0.03 0.108</pos>
+      <size>0.94 0.002</size>
       <origin>0 0.5</origin>
       <color>${textPrimary}</color>
-      <zIndex>8</zIndex>
+      <opacity>0.35</opacity>
+      <zIndex>6</zIndex>
     </image>
 
-    <!-- Metadata below the line, LEFT: genre + stars. {game:lastplayed}
-         intentionally omitted (epoch leak on this build). -->
-    <text name="cardMetadata" extra="true">
-      <pos>${cardTextX} ${cardMetaY}</pos>
-      <size>${cardMetaW} 0.10</size>
-      <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textSecondary}</color>
-      <text>{game:genre} · {game:stars}</text>
+    <!-- Real 10-row title list. Unlike the card style's transparent peek
+         list, this textlist renders its own text. -->
+    <textlist name="gamelist">
+      <pos>0.025 0.135</pos>
+      <size>0.50 0.685</size>
+      <lines>10</lines>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.040</fontSize>
+      <primaryColor>${textSecondary}</primaryColor>
+      <secondaryColor>${textSecondary}</secondaryColor>
+      <selectedColor>${textPrimary}</selectedColor>
+      <!-- v0.12 bugfix (caught in render verification, not the brief's spec):
+           selectorColor as plain ${textPrimary} (opaque FFFFFF) paints a solid
+           white bar UNDER the row text, and selectedColor is ALSO
+           ${textPrimary} — so the selected row's title was invisible,
+           white-on-white. ES applies alpha for 8-hex colors, so a translucent
+           highlight needs an explicit alpha suffix (precedent:
+           _inc/menu.xml's "${waveTint}F0"). 30 hex (~19% opacity) matches the
+           highlight-vs-background contrast measured from the approved mockup
+           b-playstation-x.png (background ~2B60B7, highlight ~537EC5). -->
+      <selectorColor>${textPrimary}30</selectorColor>
+      <selectorHeight>0.058</selectorHeight>
       <alignment>left</alignment>
-      <verticalAlignment>top</verticalAlignment>
+      <horizontalMargin>0.02</horizontalMargin>
+      <zIndex>5</zIndex>
+    </textlist>
+
+    <!-- v0.12: the media block is a PAIR, not one element.
+         ES's <video> alone would suffice on hardware, but the harness ES binary
+         has ZERO VideoVlcComponent symbols and no libvlc linkage — video support
+         is compiled out — so <video> draws nothing there, not even its snapshot,
+         and this whole region would be unverifiable. This image is the
+         always-present screenshot; the video paints over it on device. -->
+    <image name="listScreenshot" extra="true">
+      <path>{game:image}</path>
+      <pos>${listMediaX} ${listMediaY}</pos>
+      <maxSize>${listMediaW} ${listMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <zIndex>7</zIndex>
+    </image>
+
+    <video name="listMedia" extra="true">
+      <path>{game:video}</path>
+      <pos>${listMediaX} ${listMediaY}</pos>
+      <maxSize>${listMediaW} ${listMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <snapshotSource>image</snapshotSource>
+      <showSnapshotDelay>true</showSnapshotDelay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
+      <delay>${videoDelay}</delay>
+      <audio>${videoAudioEnabled}</audio>
+      <zIndex>8</zIndex>
+    </video>
+
+    <text name="listYearDev" extra="true">
+      <pos>0.575 0.505</pos>
+      <size>0.395 0.04</size>
+      <origin>0 0</origin>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.030</fontSize>
+      <color>${accent}</color>
+      <text>{game:releaseyear}  •  {game:developer}</text>
+      <alignment>left</alignment>
+      <multiLine>false</multiLine>
       <zIndex>8</zIndex>
     </text>
 
-    <!-- Scrolling description, RIGHT of the metadata, under the line.
-         v7 device-behaviour fix: smaller font (cardDescFontSize ~18px) plus a
-         NARROWER cardDescW (0.28 @ 4:3) so typical descriptions overflow the
-         box and the <autoScrollSpeed> marquee actually triggers on-device.
-         <autoScrollSpeed> drives the marquee (NOT <container> on this build);
-         tunable via the Scroll Speed subset. NOTE: marquee MOTION cannot be
-         verified in a static render — only the config + first frame are. -->
-    <text name="cardDesc" extra="true">
-      <pos>${cardDescX} ${cardMetaY}</pos>
-      <size>${cardDescW} 0.10</size>
+    <!-- Same track-behind-stars pattern as style A; see gamelist-card.xml
+         for why {game:stars} needs it. -->
+    <text name="listStarTrack" extra="true">
+      <pos>${listStarX} 0.548</pos>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
-      <fontSize>${cardDescFontSize}</fontSize>
+      <fontSize>0.028</fontSize>
+      <color>${textSecondary}</color>
+      <opacity>0.35</opacity>
+      <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
+      <alignment>left</alignment>
+      <zIndex>7</zIndex>
+    </text>
+    <text name="listStars" extra="true">
+      <pos>${listStarX} 0.548</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.028</fontSize>
+      <color>${textPrimary}</color>
+      <text>{game:stars}</text>
+      <alignment>left</alignment>
+      <zIndex>8</zIndex>
+    </text>
+
+    <text name="listMeta" extra="true">
+      <pos>${listMetaX} 0.548</pos>
+      <size>0.27 0.04</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.028</fontSize>
+      <color>${accent}</color>
+      <text>{game:playercount}P  •  {game:genre}</text>
+      <alignment>left</alignment>
+      <multiLine>false</multiLine>
+      <zIndex>8</zIndex>
+    </text>
+
+    <text name="listDesc" extra="true">
+      <pos>0.575 ${listDescY}</pos>
+      <size>0.395 ${listDescH}</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.024</fontSize>
       <color>${textSecondary}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>
-      <autoScrollSpeed>200</autoScrollSpeed>
+      <!-- <size> alone does NOT clip on this build — style A (cardDesc) proved
+           that. clipRect is normalized SCREEN coords (x y w h), scaled by
+           screenScale and pushed as a render clip (GuiComponent.cpp:885,
+           1269). -->
+      <clipRect>0.575 ${listDescY} 0.395 ${listDescH}</clipRect>
       <zIndex>8</zIndex>
     </text>
 
-    <!-- Suppress ES's built-in metadata elements (md_*). The card above
-         replaces the default right info panel, so the default rendering of
+    <!-- Suppress ES's built-in metadata elements (md_*). The elements above
+         replace the default right info panel, so the default rendering of
          md_name / md_rating / md_video / md_image / md_description would
          otherwise paint in unstyled locations. -->
     <text name="md_name"><visible>false</visible></text>
@@ -282,92 +261,6 @@
     <image name="md_thumbnail"><visible>false</visible></image>
     <image name="md_marquee"><visible>false</visible></image>
     <video name="md_video"><visible>false</visible></video>
-
-    <!-- ============================================================
-         PEEK LIST. The textlist provides only the small prev/next peek
-         icons (Boxart) plus a small dim title (Friendly). 3 slots whose
-         centers land at glRowY top/mid/bottom (0.37 / 0.59 / 0.81). The
-         middle slot sits under the big card; the selected row's own peek
-         icon/title fade out on activate so they don't double up with the
-         card.
-         ============================================================ -->
-    <textlist name="gamelist">
-      <pos>0.0 ${glListTop}</pos>
-      <size>1.0 ${glListH}</size>
-      <!-- <lines>3</lines> allocates three equal vertical slots inside
-           <size>; without it ES collapses slots to ~0px when fontSize is
-           tiny (set tiny below to suppress default text). See
-           TextListComponent.h:611. -->
-      <lines>3</lines>
-      <lineSpacing>1.0</lineSpacing>
-      <fontSize>0.0001</fontSize>
-      <primaryColor>00000000</primaryColor>
-      <secondaryColor>00000000</secondaryColor>
-      <selectedColor>00000000</selectedColor>
-      <selectorColor>00000000</selectorColor>
-      <selectorImagePath></selectorImagePath>
-      <zIndex>5</zIndex>
-
-      <itemTemplate>
-
-        <!-- Peek boxart (65px Boxart / 46px Compact). Opacity 1 by default;
-             on the selected row it fades to 0 so the big card replaces it. -->
-        <image name="tplPeekIcon">
-          <path>{game:thumbnail}</path>
-          <pos>${crossX} 0.5</pos>
-          <maxSize>${peekIconW} ${peekIconH}</maxSize>
-          <origin>0.5 0.5</origin>
-          <zIndex>2</zIndex>
-          <opacity>1</opacity>
-          <storyboard event="activate">
-            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
-          </storyboard>
-          <storyboard event="deactivate">
-            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
-          </storyboard>
-        </image>
-
-        <!-- Peek media fallback when no thumbnail. Same activate fade. -->
-        <image name="tplPeekFallback">
-          <path>${mediaFallbackPath}</path>
-          <pos>${crossX} 0.5</pos>
-          <maxSize>${peekIconW} ${peekIconH}</maxSize>
-          <origin>0.5 0.5</origin>
-          <visible>!exists({game:thumbnail})</visible>
-          <zIndex>2</zIndex>
-          <opacity>1</opacity>
-          <storyboard event="activate">
-            <animation property="opacity" from="1" to="0" duration="150" mode="linear"/>
-          </storyboard>
-          <storyboard event="deactivate">
-            <animation property="opacity" from="0" to="1" duration="150" mode="linear"/>
-          </storyboard>
-        </image>
-
-        <!-- Peek title (Friendly only). titleUnselectedOpacity is 1 in the
-             Friendly subset, 0 in Strict (icon-only). Hidden on the selected
-             row (the big card title takes over). -->
-        <text name="tplPeekTitle">
-          <pos>${peekTextX} 0.5</pos>
-          <size>0.70 0.30</size>
-          <origin>0 0.5</origin>
-          <fontPath>${fontLight}</fontPath>
-          <fontSize>${peekTitleFontSize}</fontSize>
-          <color>${textSecondary}</color>
-          <text>{game:name}</text>
-          <alignment>left</alignment>
-          <verticalAlignment>center</verticalAlignment>
-          <opacity>${titleUnselectedOpacity}</opacity>
-          <storyboard event="activate">
-            <animation property="opacity" from="${titleUnselectedOpacity}" to="0" duration="150" mode="linear"/>
-          </storyboard>
-          <storyboard event="deactivate">
-            <animation property="opacity" from="0" to="${titleUnselectedOpacity}" duration="150" mode="linear"/>
-          </storyboard>
-        </text>
-
-      </itemTemplate>
-    </textlist>
 
   </view>
 </theme>

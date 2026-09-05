@@ -216,4 +216,49 @@ assert y + h <= 0.94, f"cardDesc bottom {y + h:.3f} reaches the help strip at 0.
 PY
 check "cardDesc is height-bounded above the help strip" $?
 
+echo
+echo "style B — list + details:"
+
+LIST="${REPO_ROOT}/_inc/gamelist-list.xml"
+
+python3 - "${LIST}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+tl = root.find(".//textlist[@name='gamelist']")
+assert tl is not None, "style B needs a real textlist"
+assert tl.findtext("lines") == "10", f"expected 10 lines, got {tl.findtext('lines')}"
+# Style B shows real titles, unlike the card style's transparent peek list.
+assert tl.findtext("fontSize") != "0.0001", "style B must not hide its own text"
+PY
+check "style B textlist shows 10 real rows" $?
+
+python3 - "${LIST}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+v = root.find(".//video[@name='listMedia']")
+assert v is not None, "no listMedia"
+for tag, want in (("snapshotSource","image"),("showSnapshotDelay","true"),
+                  ("showSnapshotNoVideo","true")):
+    assert v.findtext(tag) == want, f"listMedia {tag} is {v.findtext(tag)}, want {want}"
+assert v.findtext("delay") == "${videoDelay}"
+assert v.find("maxSize") is not None and v.find("size") is None
+PY
+check "listMedia does screenshot->video at correct aspect" $?
+
+python3 - "${LIST}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+t = root.find(".//text[@name='listStarTrack']")
+s = root.find(".//text[@name='listStars']")
+assert t is not None and s is not None, "missing listStarTrack/listStars"
+assert t.findtext("text").count("") == 5
+for tag in ("pos","origin","fontPath","fontSize"):
+    assert t.findtext(tag) == s.findtext(tag), f"{tag} differs"
+PY
+check "style B star track aligns with filled stars" $?
+
+# Style B does not use the XMB spine; the card elements must be gone.
+! grep -qE 'name="(cardBoxart|cardMedia|cardStars|tplPeekIcon)"' "${LIST}"
+check "style B does not carry leftover card elements" $?
+
 exit "${fail}"

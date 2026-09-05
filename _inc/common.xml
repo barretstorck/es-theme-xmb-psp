@@ -199,6 +199,17 @@
          Strict (PSP-Faithful) = 0 (icon-only peeks); Friendly = 1. -->
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
 
+    <!-- v0.12 style B (List + Details). Geometry from the approved mockup
+         b-playstation-x.png. Independent of the card's crossX spine. -->
+    <listMediaX>0.765</listMediaX>
+    <listMediaY>0.300</listMediaY>
+    <listMediaW>0.34</listMediaW>
+    <listMediaH>0.30</listMediaH>
+    <listStarX>0.575</listStarX>
+    <listMetaX>0.700</listMetaX>
+    <listDescY>0.600</listDescY>
+    <listDescH>0.280</listDescH>
+
     <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,
          matching the values written by _inc/video-delay-*.xml subsets).
          Default 5 matches the pre-v0.11 default; the four user-facing subsets
