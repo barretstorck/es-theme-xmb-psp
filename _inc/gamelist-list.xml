@@ -128,10 +128,11 @@
            ${textPrimary} — so the selected row's title was invisible,
            white-on-white. ES applies alpha for 8-hex colors, so a translucent
            highlight needs an explicit alpha suffix (precedent:
-           _inc/menu.xml's "${waveTint}F0"). 30 hex (~19% opacity) matches the
-           highlight-vs-background contrast measured from the approved mockup
-           b-playstation-x.png (background ~2B60B7, highlight ~537EC5). -->
-      <selectorColor>${textPrimary}30</selectorColor>
+           _inc/menu.xml's "${waveTint}F0"). Spec §5 pins ~30% opacity ->
+           hex 4D (77/255 = 30.2%); an earlier pass mistakenly derived 30 hex
+           (48/255 = 18.8%) from sampling the mockup's rendered pixels instead
+           of converting the spec's stated percentage. -->
+      <selectorColor>${textPrimary}4D</selectorColor>
       <selectorHeight>0.058</selectorHeight>
       <alignment>left</alignment>
       <horizontalMargin>0.02</horizontalMargin>
@@ -165,13 +166,19 @@
       <zIndex>8</zIndex>
     </video>
 
+    <!-- listYearDev / listMeta merge two semantically distinct fields
+         (year+developer, players+genre) into one single-coloured <text>
+         each: ES has no inline multi-colour text run, so a single <color>
+         is the only option here. -->
     <text name="listYearDev" extra="true">
       <pos>0.575 0.505</pos>
       <size>0.395 0.04</size>
       <origin>0 0</origin>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.030</fontSize>
-      <color>${accent}</color>
+      <!-- selectorGlow, NOT accent: accent is the wave-layer tint, so accent
+           text on the wave is blue-on-blue. The approved mockup used glow. -->
+      <color>${selectorGlow}</color>
       <text>{game:releaseyear}  •  {game:developer}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -208,7 +215,7 @@
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.028</fontSize>
-      <color>${accent}</color>
+      <color>${selectorGlow}</color>
       <text>{game:playercount}P  •  {game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
