@@ -171,28 +171,22 @@
     <cardLineW>0.585</cardLineW>
     <cardLineH>0.004</cardLineH>
 
-    <!-- Metadata (left) + scrolling description (right), below the line.
-         v7: cardMetaFontSize is the metadata size; the description has its own
-         smaller font (cardDescFontSize ~18px) so it marquees rather than wraps,
-         and cardDescW is narrowed so typical descriptions overflow and scroll
-         on-device. -->
+    <!-- Metadata row, below the line. v7: cardMetaFontSize is the metadata
+         size; the description below it has its own smaller font
+         (cardDescFontSize ~18px) and wraps within cardTextW (the v0.12
+         metadata split moved the description under cardTextX/cardTextW,
+         full-width — it no longer has its own narrower column). -->
     <cardMetaY>0.602</cardMetaY>
     <cardMeta2Y>0.643</cardMeta2Y>
-    <cardMetaW>0.22</cardMetaW>
     <cardMetaFontSize>0.030</cardMetaFontSize>
     <cardDescFontSize>0.023</cardDescFontSize>
-    <cardDescX>0.62</cardDescX>
-    <cardDescW>0.28</cardDescW>
 
     <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
          peekIconW = 90/1024 = 0.088 (screen width cap); peekIconH = 90/176.6 =
          0.51 (slot height; slot ~176.6px tall at 4:3 = glListH*768/3 with
-         glListH=0.69). Overridden smaller by the Compact subset. peekTextX
-         positions the Friendly peek title right of the peek icon (peek right
-         edge = crossX + peekIconW/2). -->
+         glListH=0.69). Overridden smaller by the Compact subset. -->
     <peekIconW>0.088</peekIconW>
     <peekIconH>0.51</peekIconH>
-    <peekTextX>0.31</peekTextX>
     <peekTitleFontSize>0.030</peekTitleFontSize>
 
     <!-- Title Visibility subset controls ONLY the peek title's opacity:
@@ -224,7 +218,7 @@
     <gridStarX>0.680</gridStarX>
   </variables>
 
-  <view name="system,detailed,gamecarousel,menu">
+  <view name="system,detailed,gamecarousel,grid,menu">
     <!-- Sounds (replace ES default click sounds) -->
     <sound name="systemscroll">
       <path>${soundNavigate}</path>

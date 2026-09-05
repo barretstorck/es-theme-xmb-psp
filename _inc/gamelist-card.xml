@@ -32,7 +32,7 @@
 
   Path B decouples the dominant card from the cursor slot. The big card
   (boxart, title, line, metadata, scrolling description, video) is rendered as
-  extra="true" elements at a FIXED screen anchor (crossX, cardY=0.59) binding
+  extra="true" elements at a FIXED screen anchor (crossX, cardY=0.585) binding
   {game:*}. ES's ISimpleGameListView::updateThemeExtrasBindings() rebinds those
   placeholders to the SELECTED game on every cursor change (proven in
   .dev/v6-spike-pathb.png — the extras showed Contra's boxart/name while the
@@ -114,10 +114,12 @@
     </image>
 
     <!-- Pinned system icon. v0.11 v7 (PR #32 on-device tweaks): LOWERED to
-         (crossX, glLogoY=0.18) and SHRUNK to a 0.13-square maxSize per the
-         approved v7 mockup (proposed-v7-ondevice-tweaks.png). 0.13 width =
-         ~133px at 4:3; 0.173 height keeps the box square (133px tall). The
-         caption (glCaptionY) follows it down to stay tight below. -->
+         (crossX, glLogoY) and SHRUNK to a 0.13-square maxSize per the
+         approved v7 mockup (proposed-v7-ondevice-tweaks.png); v0.12 moved
+         glLogoY back up to 0.110 (see _inc/common.xml) so the caption stops
+         colliding with the icon. 0.13 width = ~133px at 4:3; 0.173 height
+         keeps the box square (133px tall). The caption (glCaptionY) follows
+         it down to stay tight below. -->
     <image name="logo">
       <path>./art/system-icons/${system.theme}.png</path>
       <pos>${crossX} ${glLogoY}</pos>
@@ -167,6 +169,18 @@
       <origin>0.5 0.5</origin>
       <visible>!exists({game:thumbnail})</visible>
       <zIndex>8</zIndex>
+    </image>
+
+    <!-- Media fallback when the selected game has no screenshot. Unlike the
+         thumbnail slot (cardFallback, left), this is the upper-right art slot
+         and would otherwise sit blank for an unscraped game. -->
+    <image name="cardMediaFallback" extra="true">
+      <path>${mediaFallbackPath}</path>
+      <pos>${cardMediaX} ${cardMediaY}</pos>
+      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <visible>!exists({game:image})</visible>
+      <zIndex>6</zIndex>
     </image>
 
     <!-- v0.12: the media block is a PAIR, not one element.
@@ -376,10 +390,10 @@
     <!-- ============================================================
          PEEK LIST. The textlist provides only the small prev/next peek
          icons (Boxart) plus a small dim title (Friendly). 3 slots whose
-         centers land at glRowY top/mid/bottom (0.37 / 0.59 / 0.81). The
-         middle slot sits under the big card; the selected row's own peek
-         icon/title fade out on activate so they don't double up with the
-         card.
+         centers land at glListTop/glListH top/mid/bottom (0.335 / 0.585 /
+         0.835, see _inc/common.xml). The middle slot sits under the big
+         card; the selected row's own peek icon/title fade out on activate
+         so they don't double up with the card.
          ============================================================ -->
     <textlist name="gamelist">
       <pos>0.0 ${glListTop}</pos>
@@ -400,7 +414,7 @@
 
       <itemTemplate>
 
-        <!-- Peek boxart (65px Boxart / 46px Compact). Opacity 1 by default;
+        <!-- Peek boxart (90px Boxart / 75px Compact). Opacity 1 by default;
              on the selected row it fades to 0 so the big card replaces it. -->
         <image name="tplPeekIcon">
           <path>{game:thumbnail}</path>

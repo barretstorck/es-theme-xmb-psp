@@ -1198,18 +1198,21 @@ elements rebind to the selected tile exactly as in the other styles.
 Degrades to the shared `_inc/media-fallback/` silhouettes for games
 without scraped box art. Full geometry: the v0.12 design spec §6.
 
-**Requires ES's own Gamelist View Style = Automatic.** Six shared
-includes register a `detailed,gamecarousel` view unconditionally —
-`_inc/common.xml`, `_inc/wave-motion.xml`,
-`_inc/scroll-speed-{slow,normal,fast}.xml`,
-`_inc/video-audio-{on,off}.xml` — so `hasView("detailed")` and
-`hasView("gamecarousel")` are always true, and ES never falls back to
-consulting this theme's `defaultView` when the user has pinned
+**Requires ES's own Gamelist View Style = Automatic.** Three shared
+includes register a `detailed,gamecarousel` view unconditionally (or,
+for the scroll-speed trio, whichever single variant is active) —
+`_inc/common.xml`, `_inc/wave-motion.xml`, and the active
+`_inc/scroll-speed-{slow,normal,fast}.xml` — so `hasView("detailed")`
+and `hasView("gamecarousel")` are always true, and ES never falls back
+to consulting this theme's `defaultView` when the user has pinned
 Gamelist View Style to Detailed or Gamecarousel. Pinning either of
 those with Box Art Grid selected yields an unstyled ES view, not the
-grid. This cannot be fixed by narrowing those six includes —
-`common.xml` legitimately styles shared chrome (the clock) across
-every gamelist view. See §10 and the README.
+grid. This cannot be fixed by narrowing those includes — `common.xml`'s
+`<view name="system,detailed,gamecarousel,grid,menu">` block holds the
+shared helpsystem styling and the four navigate/select/back sounds
+(the clock is separately in `<view name="screen">`), and those must
+stay wired to every gamelist view regardless of style. See §10 and the
+README.
 
 ### 6.8 Menu chrome
 
@@ -1477,7 +1480,7 @@ evidence:
 | **`{game:stars}` needs a backing track.** | v0.12 | `FileData.cpp:1924` builds the string with `for (i = 0; i < stars; i++)` — filled glyphs only, no empty-star track. Every rating element is a PAIR: a dim five-glyph `&#xF005;` track plus the bound element over it, identical except `text`/`color`/`opacity`/`zIndex`. This forces stars into a fixed column. |
 | **No per-game position counter (e.g. "2 / 10").** | v0.12 | There is no `{game:index}` binding on this build; `{system:total}` (`SystemData.cpp:2162`) is a whole-library game count, not a cursor position, and the `gamecount` subset only affects the system-view carousel's Game Count caption, not the gamelist. Would need an ES-side change, not a theme change. Not carried over from the removed right info panel — see §6.7. |
 | **`cardDesc` is a bounded, `<clipRect>`-bound block, not a marquee.** | v0.11 attempted a narrow marquee; superseded by the bounded block in v0.12 | v0.11's narrow `cardDesc` deliberately overflowed and marqueed, but its `<size>` alone did not clip on-device (it ran under the help strip in use). v0.12 widened it to the full text column and added a `<clipRect>` (`_inc/gamelist-card.xml`) so overflow clips instead of marqueeing (§6.7, §7.4). If this still overflows on hardware, add/verify `<clipRect>` — do not ship an unbounded description again. |
-| **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Six shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, `_inc/scroll-speed-{slow,normal,fast}.xml`, `_inc/video-audio-{on,off}.xml`) register a `detailed,gamecarousel` view unconditionally, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those six includes — `common.xml` legitimately styles shared chrome (the clock) across every gamelist view. Documented in the README. |
+| **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Three shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, and whichever single `_inc/scroll-speed-{slow,normal,fast}.xml` variant is active) register a `detailed,gamecarousel` view, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those includes — `common.xml`'s shared-chrome `<view>` block holds the helpsystem styling and the four navigate/select/back sounds (not the clock, which lives separately in `<view name="screen">`), and those must stay wired to every gamelist view. Documented in the README. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
 | **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |

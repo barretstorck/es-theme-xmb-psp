@@ -76,9 +76,14 @@ UI Settings → Theme Configuration → **Gamelist Style**:
 - **List + Details** — a ten-row title list with art, metadata and description.
 - **Box Art Grid** — a wall of cover art with an info bar.
 
-The screenshot becomes a video preview after the delay set by
+In **PSP Card** and **List + Details** (Box Art Grid has no media slot by
+design), the screenshot becomes a video preview after the delay set by
 **Video Delay**. Videos play at their own aspect ratio; a clip that was
-scraped with letterboxing baked in will keep it.
+scraped with letterboxing baked in will keep it. Whether that slot shows an
+actual screenshot or a second copy of the box art depends on your scraper:
+it's driven by the game's `<image>` tag, which most scrapers fill
+separately from `<thumbnail>` — if your scraper (or a manual edit) points
+both at the same file, the media slot will just mirror the box art.
 
 **Box Art Grid requires UI Settings → Gamelist View Style = Automatic**
 (ES's own default, under a different menu from this theme's settings). If

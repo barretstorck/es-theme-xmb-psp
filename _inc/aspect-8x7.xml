@@ -18,9 +18,8 @@
 
     <!-- Card metadata font renormalized (P1 reasoning): 8:7 shares 4:3's
          1024px width but is taller, so the height-normalized 0.030 font
-         inflates to ~27px inside the same-width cardMetaW box and the
-         genre+stars line collides with cardDesc. 0.026 x 896 = 23px,
-         matching the 4:3 pixel size exactly. -->
+         inflates to ~27px — too large for the metadata row at this ratio.
+         0.026 x 896 = 23px, matching the 4:3 pixel size exactly. -->
     <cardMetaFontSize>0.026</cardMetaFontSize>
 
     <!-- v0.12 gamelist styles -->
