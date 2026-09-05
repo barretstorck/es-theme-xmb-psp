@@ -568,6 +568,33 @@ PY
 check "list style star track clears listMeta at every ratio" $?
 
 echo
+echo "guard: no duplicate variable declarations:"
+
+python3 - "${REPO_ROOT}/_inc/common.xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+
+root = ET.parse(sys.argv[1]).getroot()
+all_vars = []
+for var_block in root.findall("variables"):
+    for child in var_block:
+        # Direct children of <variables> are simple variable declarations.
+        # Skip any that are not simple text elements (comments, etc.).
+        all_vars.append(child.tag)
+
+duplicates = []
+seen = {}
+for var in all_vars:
+    if var in seen:
+        if var not in duplicates:
+            duplicates.append(var)
+    else:
+        seen[var] = True
+
+assert not duplicates, f"Duplicate variable declarations: {', '.join(sorted(set(duplicates)))}"
+PY
+check "no variable is declared more than once in <variables> blocks" $?
+
+echo
 echo "docs and subset fold:"
 
 GUIDE="${REPO_ROOT}/docs/psp-xmb-style-guidelines.md"
