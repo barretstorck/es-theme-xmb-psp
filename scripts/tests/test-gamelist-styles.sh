@@ -17,7 +17,10 @@ check() { # check <description> <condition-exit-code>
 
 echo "harness plumbing:"
 
-grep -q 'GAMELIST_STYLE' "${REPO_ROOT}/scripts/render.sh"
+# A bare 'GAMELIST_STYLE' also matches the usage heredoc (render.sh:30-34) --
+# deleting the functional -e passthrough would still pass. Require the
+# passthrough itself.
+grep -q '\-e GAMELIST_STYLE=' "${REPO_ROOT}/scripts/render.sh"
 check "render.sh passes GAMELIST_STYLE through" $?
 
 grep -q 'subset.gamelistStyle' "${REPO_ROOT}/docker/run-in-container.sh"
@@ -100,6 +103,31 @@ style_line="$(grep -n 'subset name="gamelistStyle"' "${REPO_ROOT}/theme.xml" | c
 check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line ${aspect_line})" $?
 
 echo
+echo "shared chrome (help strip + sounds):"
+
+# Important-1 regression: the shared <helpsystem name="help"> and the four
+# navigate/scroll/select/back <sound> elements live in ONE <view> block in
+# common.xml (ThemeData::getElement returns NULL for a view name absent from
+# that list, with no cross-view fallback). If "grid" is missing, Box Art Grid
+# silently falls back to ES's built-in help strip (wrong position/font/colour)
+# and default click sounds.
+python3 - "${REPO_ROOT}/_inc/common.xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+help_view = None
+for v in root.findall("view"):
+    if v.find("helpsystem[@name='help']") is not None:
+        help_view = v
+        break
+assert help_view is not None, "no <view> in common.xml declares <helpsystem name='help'>"
+names = {n.strip() for n in help_view.get("name", "").split(",")}
+required = {"system", "detailed", "gamecarousel", "grid", "menu"}
+missing = required - names
+assert not missing, f"shared-chrome view list is missing: {sorted(missing)} (has {sorted(names)})"
+PY
+check "shared-chrome view list (helpsystem + sounds) includes system,detailed,gamecarousel,grid,menu" $?
+
+echo
 echo "style A — card geometry:"
 
 CARD="${REPO_ROOT}/_inc/gamelist-card.xml"
@@ -135,13 +163,39 @@ assert sx + track + MIN_COL_GAP < px, f"star track {sx}..{sx+track:.4f} collides
 PY
 check "star track clears the players column" $?
 
-# Nothing may reach the helpsystem strip at 0.94.
-python3 - "$(var glListTop)" "$(var glListH)" <<'PY'
-import sys
-top, h = (float(x) for x in sys.argv[1:3])
-bottom_peek = top + h * 2.5 / 3
-title = bottom_peek + 0.076 + 0.013   # peek title centre + half its line height
-assert title < 0.94, f"bottom peek title reaches {title}, help strip starts at 0.94"
+# Nothing may reach the helpsystem strip at 0.94. Modeled from the ACTUAL
+# element: tplPeekTitle is TOP-anchored (origin.y=0), not centred, and its
+# <pos>/<size> are row-relative (0..1 within its own textlist slot, per the
+# peekIconH design comment above) while <fontSize> is screen-normalized like
+# every other font in this theme. peekTitleFontSize is read from
+# icon-size-boxart.xml (the default Icon Size variant), not hardcoded.
+python3 - "$(var glListTop)" "$(var glListH)" "${CARD}" "${REPO_ROOT}/_inc/icon-size-boxart.xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+top, h, card, boxart = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+top, h = float(top), float(h)
+
+root = ET.parse(card).getroot()
+tpl = root.find(".//text[@name='tplPeekTitle']")
+assert tpl is not None, "no tplPeekTitle"
+pos_y = float(tpl.findtext("pos").split()[1])
+origin_y = float(tpl.findtext("origin").split()[1])
+size_h = float(tpl.findtext("size").split()[1])
+
+font_size = float(
+    __import__("re").search(r"<peekTitleFontSize>([^<]+)<", open(boxart).read()).group(1)
+)
+
+# Last (bottom) row is slot index 2 of 3; row_top = glListTop + glListH*2/3.
+row_h = h / 3
+row_top = top + h * 2 / 3
+# pos/origin are row-relative: the text box's top edge, in row-relative
+# units, is pos_y - origin_y * size_h (origin_y=0 here means pos_y IS the
+# top edge already).
+box_top = row_top + (pos_y - origin_y * size_h) * row_h
+# Single-line text bottom approximated as top + fontSize (screen-normalized),
+# matching the convention used elsewhere in this file for line-height.
+bottom = box_top + font_size
+assert bottom < 0.94, f"bottom peek title reaches {bottom:.4f}, help strip starts at 0.94"
 PY
 check "bottom peek title clears the help strip" $?
 
@@ -196,6 +250,29 @@ for tag in ("pos", "maxSize", "origin"):
 assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "cardMedia must paint over cardScreenshot"
 PY
 check "cardScreenshot and cardMedia align and layer correctly" $?
+
+# Important-1 fix wave: cardScreenshot has no <visible> guard and no fallback
+# sibling, so an unscraped game (no {game:image}) left the upper-right art
+# slot blank. cardMediaFallback must cover it, at the same anchor/envelope,
+# guarded on !exists({game:image}), and painted UNDER cardScreenshot so a
+# real screenshot still wins when present.
+python3 - "${CARD}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+fb = root.find(".//image[@name='cardMediaFallback']")
+shot = root.find(".//image[@name='cardScreenshot']")
+assert fb is not None, "no cardMediaFallback"
+assert shot is not None, "no cardScreenshot"
+assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
+    f"cardMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
+assert fb.findtext("visible") == "!exists({game:image})", \
+    f"cardMediaFallback visible guard is {fb.findtext('visible')!r}"
+for tag in ("pos", "maxSize", "origin"):
+    assert fb.findtext(tag) == shot.findtext(tag), f"{tag} differs between cardMediaFallback and cardScreenshot"
+assert float(fb.findtext("zIndex")) < float(shot.findtext("zIndex")), \
+    "cardMediaFallback must sit BELOW cardScreenshot (lower zIndex)"
+PY
+check "cardMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under cardScreenshot" $?
 
 # The v0.11 fault: an unbounded description ran under the help strip.
 python3 - "${CARD}" "${COMMON}" <<'PY'
@@ -280,6 +357,29 @@ for tag in ("pos", "maxSize", "origin"):
 assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "listMedia must paint over listScreenshot"
 PY
 check "listScreenshot and listMedia align and layer correctly" $?
+
+# Important-1 fix wave: style B has NO OTHER art slot, so an unscraped game
+# (no {game:image}) with an unguarded listScreenshot left the entire right
+# half of the screen blank. listMediaFallback must cover it, at the same
+# anchor/envelope, guarded on !exists({game:image}), and painted UNDER
+# listScreenshot so a real screenshot still wins when present.
+python3 - "${LIST}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+fb = root.find(".//image[@name='listMediaFallback']")
+shot = root.find(".//image[@name='listScreenshot']")
+assert fb is not None, "no listMediaFallback"
+assert shot is not None, "no listScreenshot"
+assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
+    f"listMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
+assert fb.findtext("visible") == "!exists({game:image})", \
+    f"listMediaFallback visible guard is {fb.findtext('visible')!r}"
+for tag in ("pos", "maxSize", "origin"):
+    assert fb.findtext(tag) == shot.findtext(tag), f"{tag} differs between listMediaFallback and listScreenshot"
+assert float(fb.findtext("zIndex")) < float(shot.findtext("zIndex")), \
+    "listMediaFallback must sit BELOW listScreenshot (lower zIndex)"
+PY
+check "listMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under listScreenshot" $?
 
 # Mirrors the style-A cardDesc check: an unbounded description ran under the
 # help strip in v0.11. Style B uses clipRect (not size) to bound it — assert

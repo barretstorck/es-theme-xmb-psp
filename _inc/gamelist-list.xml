@@ -139,6 +139,18 @@
       <zIndex>5</zIndex>
     </textlist>
 
+    <!-- Media fallback when the selected game has no screenshot. Style B has
+         no other art slot, so without this an unscraped game leaves the whole
+         right half of the screen empty. -->
+    <image name="listMediaFallback" extra="true">
+      <path>${mediaFallbackPath}</path>
+      <pos>${listMediaX} ${listMediaY}</pos>
+      <maxSize>${listMediaW} ${listMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <visible>!exists({game:image})</visible>
+      <zIndex>6</zIndex>
+    </image>
+
     <!-- v0.12: the media block is a PAIR, not one element.
          ES's <video> alone would suffice on hardware, but the harness ES binary
          has ZERO VideoVlcComponent symbols and no libvlc linkage — video support
