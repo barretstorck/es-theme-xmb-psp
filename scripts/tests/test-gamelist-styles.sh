@@ -128,7 +128,10 @@ sx, px, fs = (float(x) for x in sys.argv[1:4])
 # five glyphs plus four 25% gaps. Matches the mockup generator's measurement.
 w = fs * 0.85 * 768
 track = (5 * w + 4 * w * 0.25) / 1024
-assert sx + track < px, f"star track {sx}..{sx+track:.4f} collides with players at {px}"
+# A bare '<' is satisfied by a layout that is visually touching (zero
+# clearance is not clearance). MIN_COL_GAP demands real, measurable margin.
+MIN_COL_GAP = 0.010  # normalized; a bare '<' let 8x7 pass by 0.05px
+assert sx + track + MIN_COL_GAP < px, f"star track {sx}..{sx+track:.4f} collides with players at {px}"
 PY
 check "star track clears the players column" $?
 
@@ -389,20 +392,30 @@ for ratio in 8x7 3x2 16x9 1x1; do
   check "aspect-${ratio}.xml sets cardMediaW" $?
 
   # Every ratio that changes cardMetaFontSize MUST re-check the star budget,
-  # or a wider track runs into the players column.
-  python3 - "${f}" "${REPO_ROOT}/_inc/common.xml" <<'PY'
+  # or a wider track runs into the players column. Must use THIS ratio's own
+  # (w, h) design surface, not 4:3's -- fontSize is height-normalised, so
+  # computing at the wrong dimensions understates/overstates the track and
+  # can silently pass a genuinely colliding layout.
+  python3 - "${ratio}" "${f}" "${REPO_ROOT}/_inc/common.xml" <<'PY'
 import sys, re
 def vals(path):
     t = open(path).read()
     return {k: v for k, v in re.findall(r"<(card(?:MetaFontSize|StarX|PlayersX))>([^<]+)<", t)}
-override, base = vals(sys.argv[1]), vals(sys.argv[2])
+ratio = sys.argv[1]
+override, base = vals(sys.argv[2]), vals(sys.argv[3])
 fs = float(override.get("cardMetaFontSize", base["cardMetaFontSize"]))
 sx = float(override.get("cardStarX", base["cardStarX"]))
 px = float(override.get("cardPlayersX", base["cardPlayersX"]))
-w = fs * 0.85 * 768
-track = (5 * w + 4 * w * 0.25) / 1024
-assert sx + track < px, (
-    f"{sys.argv[1]}: track {sx:.3f}..{sx+track:.3f} collides with players at {px}")
+# (width, height) of each ratio's design surface, matching the render matrix.
+DIMS = {"8x7": (1024, 896), "3x2": (1280, 854), "16x9": (1280, 720), "1x1": (720, 720)}
+w_screen, h_screen = DIMS[ratio]
+glyph_w = fs * 0.85 * h_screen
+track = (5 * glyph_w + 4 * glyph_w * 0.25) / w_screen
+# A bare '<' is satisfied by a layout that is visually touching (zero
+# clearance is not clearance). MIN_COL_GAP demands real, measurable margin.
+MIN_COL_GAP = 0.010  # normalized; a bare '<' let 8x7 pass by 0.05px
+assert sx + track + MIN_COL_GAP < px, (
+    f"{sys.argv[2]}: track {sx:.3f}..{sx+track:.3f} collides with players at {px}")
 PY
   check "aspect-${ratio}.xml star budget holds" $?
 done
@@ -438,7 +451,12 @@ for ratio, (w, h) in DIMS.items():
     mx = float(override.get("listMetaX", base["listMetaX"]))
     glyph_w = fs * 0.85 * h
     track = (5 * glyph_w + 4 * glyph_w * 0.25) / w
-    if not (sx + track < mx):
+    # A bare '<' is satisfied by a layout that is visually touching (zero
+    # clearance is not clearance). MIN_COL_GAP demands real, measurable
+    # margin -- without it, the un-overridden base listStarX (0.575) at 8x7
+    # computes end=0.69995 against listMetaX=0.700 and passes by 0.05px.
+    MIN_COL_GAP = 0.010  # normalized
+    if not (sx + track + MIN_COL_GAP < mx):
         failures.append(
             f"aspect-{ratio}.xml: list star track {sx:.3f}..{sx+track:.3f} "
             f"collides with listMeta at {mx}")
