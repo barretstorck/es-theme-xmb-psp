@@ -72,3 +72,50 @@ box art is missing.
 
 `.dev/mockups/{common,gen}.py` (untracked — `.dev/` is gitignored). Rebuild with
 `python3 .dev/mockups/gen.py`. Requires the render library at `/tmp/library`.
+
+---
+
+# Round 2 — A revised, three styles selected
+
+Chosen: **A**, **B** and **D**, exposed as a user-selectable subset.
+**C** and **E** are dropped.
+
+## A2 — revisions to the card layout
+
+Feedback on round 1: the `GB` caption collided with the system icon, and a
+screenshot should sit above the title and be replaced by a video after a delay.
+
+| Mockup | What it shows |
+|---|---|
+| [`a2-media-centred-i-screenshot.png`](./a2-media-centred-i-screenshot.png) | Media centred in the card's text column, above the title. Screenshot state. |
+| [`a2-media-centred-ii-video-16x9.png`](./a2-media-centred-ii-video-16x9.png) | Same layout, video state, 16:9 source — shows how a wide clip fills the envelope that a 10:9 screenshot only partly fills. |
+| [`a2-media-split.png`](./a2-media-split.png) | Alternative: media left on the card spine, `released / developer / publisher / players` stack filling the right. |
+
+Both A2 variants fix the caption gap (system icon centre 0.110, caption centre
+0.222) and shorten the description to a bounded 5 lines.
+
+`a2-media-split` fills the upper right more completely but reintroduces a
+metadata stack, which is closer to B than to a PSP card.
+
+## Feasibility — resolved against the pinned Knulli ES source
+
+Read from `/opt/es` in the render container (Knulli `9bbb16a`), not assumed:
+
+- **A subset variant can select the view type.** `ThemeData::appendFile()` calls
+  `parseTheme()` on every included file, and `parseTheme()` reads the root
+  `defaultView` attribute (`ThemeData.cpp:1329`). `ViewController::getGameListView()`
+  substitutes `getDefaultView()` whenever ES's own `GamelistViewStyle` is
+  `automatic` (`ViewController.cpp:715-720`). So a variant file whose root is
+  `<theme defaultView="grid">` switches the theme to the grid view.
+  **Caveat:** if the user has explicitly set Gamelist View Style to a style the
+  theme defines, the user's setting wins (`ViewController.cpp:697-698`).
+- **`gridtile` is themeable** — `selectionMode`, `imageSizeMode`, `padding`,
+  `backgroundImage`, `backgroundColor`, `reflexion` (`ThemeData.cpp:196-207`),
+  and `imagegrid` accepts an `itemTemplate` (`ThemeData.cpp:30`). D is buildable.
+- **Video aspect ratio is preserved by `<maxSize>`** — `VideoComponent.h:95`
+  documents `setMaxSize()` as *"Never breaks the aspect ratio."* The v0.11
+  `<size>` → `<maxSize>` change on `cardVideo` was correct; it has still never
+  been verified on-device.
+  **Limit:** this preserves the *video file's* aspect ratio, not the system's
+  canonical one. A 4:3-padded ScreenScraper clip for a 10:9 Game Boy game will
+  render with its padding intact; the theme cannot crop it.
