@@ -61,9 +61,12 @@ print(len(ET.parse(sys.argv[1]).getroot().findall('view')))" "${f}" 2>/dev/null)
   check "gamelist-${name}.xml carries the licence header" $?
 
   # Knulli quirk: animated wave layers must sit inside the view block.
-  w="$(grep -c 'waveLayer' "${f}" || true)"
-  [[ "${w}" -ge 3 ]]
-  check "gamelist-${name}.xml duplicates the wave layers (found ${w})" $?
+  # Count ELEMENTS, not lines containing the word — the header prose mentions
+  # "waveLayer" twice, so a line count of >=3 would still pass with two of the
+  # three real elements deleted, which is exactly the regression this guards.
+  w="$(grep -c '<image name="waveLayer' "${f}" || true)"
+  [[ "${w}" -eq 3 ]]
+  check "gamelist-${name}.xml has all 3 waveLayer elements (found ${w})" $?
 done
 
 echo
