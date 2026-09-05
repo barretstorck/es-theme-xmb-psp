@@ -23,13 +23,30 @@ export SDL_AUDIODRIVER=dummy
 mkdir -p "${ES_CFG}" /userdata/system/logs /userdata/roms \
          /usr/share/emulationstation/resources
 cp -r /opt/es/resources/* /usr/share/emulationstation/resources/ 2>/dev/null || true
-touch /userdata/system/knulli.conf
+# A representative knulli.conf. ES and configgen read settings from here; an
+# empty file is not what the device looks like.
+cat > /userdata/system/knulli.conf <<'KNULLI'
+system.language=en_US
+system.kblayout=us
+system.timezone=America/Chicago
+system.power.led=1
+audio.bgmusic=0
+KNULLI
 
 # --- es_systems.cfg + roms ---
+# If the library ships its own es_systems.cfg, use it verbatim. Knulli's real
+# one carries proper fullnames ("Super Nintendo Entertainment System", not
+# "snes"), per-system extension lists and theme folder names. Synthesising
+# <fullname>${sysname}</fullname> hides any theme that keys off those - a theme
+# can render blank here and fine on the device, or vice versa.
 SYSTEMS_XML=""
 if [[ "${HAS_LIBRARY}" == "1" ]] && [[ -d /harness-library ]]; then
   # The library is mounted read-only; copy it so ES can write gamelist caches.
   cp -r /harness-library/. /userdata/roms/
+  if [[ -f /userdata/roms/es_systems.cfg ]]; then
+    mv /userdata/roms/es_systems.cfg "${ES_CFG}/es_systems.cfg"
+    echo "using library-provided es_systems.cfg" >&2
+  fi
   for sysdir in /userdata/roms/*/; do
     sysname="$(basename "${sysdir}")"
     [[ -d "${sysdir}" ]] || continue
@@ -46,8 +63,10 @@ if [[ -z "${SYSTEMS_XML}" ]]; then
   mkdir -p /userdata/roms/snes && touch /userdata/roms/snes/placeholder.smc
   SYSTEMS_XML="  <system><name>snes</name><fullname>Super Nintendo</fullname><path>/userdata/roms/snes</path><extension>.smc</extension><command>echo %ROM%</command><platform>snes</platform><theme>snes</theme></system>"
 fi
-printf '<?xml version="1.0"?>\n<systemList>\n%s</systemList>\n' "${SYSTEMS_XML}" \
-  > "${ES_CFG}/es_systems.cfg"
+if [[ ! -f "${ES_CFG}/es_systems.cfg" ]]; then
+  printf '<?xml version="1.0"?>\n<systemList>\n%s</systemList>\n' "${SYSTEMS_XML}" \
+    > "${ES_CFG}/es_systems.cfg"
+fi
 
 # --- es_settings.cfg ---
 # ThemeColorSet is the persisted key for the "colorset" subset in this ES build.
