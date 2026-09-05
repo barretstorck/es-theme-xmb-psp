@@ -219,7 +219,14 @@
     <gridStarX>0.680</gridStarX>
   </variables>
 
-  <view name="system,detailed,gamecarousel,grid,menu">
+  <!-- NOTE: "grid" is deliberately ABSENT from this list. Declaring it here
+       makes ThemeData::hasView("grid") true unconditionally, which hijacks any
+       user who has pinned ES's own Gamelist View Style to "grid": ES then
+       builds an unstyled GridGameListView instead of falling back to the
+       theme's defaultView. Style D carries its own copy of these elements in
+       _inc/gamelist-grid.xml so the grid view is only registered when that
+       style is actually selected. Keep the two copies in sync. -->
+  <view name="system,detailed,gamecarousel,menu">
     <!-- Sounds (replace ES default click sounds) -->
     <sound name="systemscroll">
       <path>${soundNavigate}</path>
