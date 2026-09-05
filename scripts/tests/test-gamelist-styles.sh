@@ -261,4 +261,46 @@ check "style B star track aligns with filled stars" $?
 ! grep -qE 'name="(cardBoxart|cardMedia|cardStars|tplPeekIcon)"' "${LIST}"
 check "style B does not carry leftover card elements" $?
 
+# Mirrors the style-A cardScreenshot/cardMedia check: the harness ES binary
+# has zero VideoVlcComponent symbols / no libvlc, so <video> draws nothing
+# there — listScreenshot is the always-present fallback that must share
+# listMedia's anchor/envelope and sit behind it.
+python3 - "${LIST}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+shot = root.find(".//image[@name='listScreenshot']")
+media = root.find(".//video[@name='listMedia']")
+assert shot is not None and media is not None, "missing listScreenshot/listMedia"
+assert shot.findtext("path").strip() == "{game:image}", "listScreenshot must bind {game:image}"
+for tag in ("pos", "maxSize", "origin"):
+    assert shot.findtext(tag) == media.findtext(tag), f"{tag} differs between listScreenshot and listMedia"
+assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "listMedia must paint over listScreenshot"
+PY
+check "listScreenshot and listMedia align and layer correctly" $?
+
+# Mirrors the style-A cardDesc check: an unbounded description ran under the
+# help strip in v0.11. Style B uses clipRect (not size) to bound it — assert
+# the clipRect exists and its box stays above the 0.94 help strip.
+python3 - "${LIST}" "${COMMON}" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+listf, common = sys.argv[1], sys.argv[2]
+src = open(common).read()
+def resolve(tok):
+    """Turn '${name}' into its numeric value from common.xml; pass numbers through."""
+    m = re.fullmatch(r"\$\{(\w+)\}", tok.strip())
+    if not m:
+        return float(tok)
+    v = re.search(rf"<{m.group(1)}>([^<]+)<", src)
+    assert v, f"{tok} is not defined in common.xml"
+    return float(v.group(1))
+root = ET.parse(listf).getroot()
+d = root.find(".//text[@name='listDesc']")
+assert d is not None, "no listDesc"
+clip = d.findtext("clipRect")
+assert clip, "listDesc must have a clipRect"
+x, y, w, h = (resolve(tok) for tok in clip.split())
+assert y + h <= 0.94, f"listDesc clipRect bottom {y + h:.3f} reaches the help strip at 0.94"
+PY
+check "listDesc clipRect is height-bounded above the help strip" $?
+
 exit "${fail}"
