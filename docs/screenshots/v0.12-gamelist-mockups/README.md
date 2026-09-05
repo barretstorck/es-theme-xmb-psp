@@ -119,3 +119,26 @@ Read from `/opt/es` in the render container (Knulli `9bbb16a`), not assumed:
   **Limit:** this preserves the *video file's* aspect ratio, not the system's
   canonical one. A 4:3-padded ScreenScraper clip for a 10:9 Game Boy game will
   render with its padding intact; the theme cannot crop it.
+
+---
+
+# Round 3 — five-star track, fixed metadata columns
+
+`{game:stars}` emits **filled glyphs only** (`FileData.cpp:1924` loops
+`i < stars`). Rounds 1 and 2 drew a dim fifth star that ES would never render.
+
+Approved fix: pair each bound stars element with a dim backing track of five
+literal `&#xF005;`. ES does per-glyph font fallback
+(`Font.cpp:274-312`: element font → `:/fontawesome-webfont.ttf` → Droid), so
+the literal resolves to the same glyph at the same advance width.
+
+**Layout consequence:** the track is always five glyphs wide and the filled
+string is 0–5, so both must be left-aligned at the same fixed x. Stars can no
+longer flow after a variable-width genre. Style A's metadata line 1 becomes
+three fixed columns — genre `0.385` (clipped at `0.135`), stars `0.530`,
+players `0.680`.
+
+This makes the original "a long genre pushes the stars onto line 2" fault
+structurally impossible, rather than tuned away as in v0.11.
+
+The `a2-*` mockups above are regenerated to match.
