@@ -178,6 +178,22 @@ assert float(stars.findtext("zIndex")) > float(track.findtext("zIndex")), "stars
 PY
 check "star track and filled stars align and layer correctly" $?
 
+# The harness ES binary has zero VideoVlcComponent symbols / no libvlc, so
+# <video> draws nothing there — cardScreenshot is the always-present fallback
+# that must share cardMedia's anchor/envelope and sit behind it.
+python3 - "${CARD}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+shot = root.find(".//image[@name='cardScreenshot']")
+media = root.find(".//video[@name='cardMedia']")
+assert shot is not None and media is not None, "missing cardScreenshot/cardMedia"
+assert shot.findtext("path").strip() == "{game:image}", "cardScreenshot must bind {game:image}"
+for tag in ("pos", "maxSize", "origin"):
+    assert shot.findtext(tag) == media.findtext(tag), f"{tag} differs between cardScreenshot and cardMedia"
+assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "cardMedia must paint over cardScreenshot"
+PY
+check "cardScreenshot and cardMedia align and layer correctly" $?
+
 # The v0.11 fault: an unbounded description ran under the help strip.
 python3 - "${CARD}" "${COMMON}" <<'PY'
 import sys, re, xml.etree.ElementTree as ET
