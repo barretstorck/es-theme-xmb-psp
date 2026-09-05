@@ -39,9 +39,32 @@ one under `.dev/library/` (gitignored). Acquire a small subset (a few systems,
 ~10 games, including at least one with no scraped thumbnail) by copying from a
 Knulli device or NAS.
 
-The harness recognises a fixed set of ROM extensions
-(`.zip .bin .iso .chd .pce .nes .smc .sh`); games whose files use a different
-extension will not appear in the generated gamelist.
+### Making the library Knulli-accurate
+
+By default the harness synthesises one `<system>` entry per directory, using the
+directory name as the fullname and a fixed extension list
+(`.zip .bin .iso .chd .pce .nes .smc .sh`). That renders, but it is not what the
+device looks like, and a theme that keys off fullnames, theme folders or
+per-system extensions will behave differently here than on hardware.
+
+Generate a real `es_systems.cfg` into the library instead:
+
+```sh
+./scripts/make-library-systems.py .dev/library
+```
+
+It pulls definitions from batocera's canonical `es_systems.yml` (which Knulli
+inherits) and writes `es_systems.cfg` into the library root, giving proper
+fullnames (`Super Nintendo Entertainment System`, not `snes`), the real
+per-system extension list, and theme folder names. `run-in-container.sh` uses it
+verbatim when present and logs `using library-provided es_systems.cfg`. The
+definitions are cached beside the script, so it works offline after the first run.
+
+Systems batocera does not know about fall back to the directory name rather than
+being dropped, so ports collections and Knulli-only entries still appear.
+
+The container also writes a representative `/userdata/system/knulli.conf`
+(language, timezone, LED, background music) rather than an empty file.
 
 ## How it works
 
