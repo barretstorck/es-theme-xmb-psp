@@ -58,9 +58,8 @@ yourself — those derivations are recorded here.
    - 6.4 [Game count caption (optional)](#64-game-count-caption-optional)
    - 6.5 [Top-right status cluster](#65-top-right-status-cluster)
    - 6.6 [Helpsystem strip](#66-helpsystem-strip)
-   - 6.7 [Gamelist — PSP card list](#67-gamelist--psp-card-list)
-   - 6.8 [Expanded-card metadata (info panel removed)](#68-expanded-card-metadata-info-panel-removed)
-   - 6.9 [Menu chrome](#69-menu-chrome)
+   - 6.7 [Gamelist — three styles](#67-gamelist--three-styles)
+   - 6.8 [Menu chrome](#68-menu-chrome)
 7. [Motion](#7-motion)
    - 7.1 [Wave animation](#71-wave-animation)
    - 7.2 [Carousel transition style](#72-carousel-transition-style)
@@ -267,13 +266,14 @@ exactly on the anchor.
   slide horizontally through the anchor point; the icon at the anchor
   is the selected one.
 
-- **Vertical axis (sub-item column).** In the gamelist view (v0.11
-  card list), the game rows' icons stack vertically at `crossX`: the
-  pinned system icon at `(crossX, glLogoY=0.18)`, then three peek-row
-  slots whose centers land at y `0.36 / 0.59 / 0.82`. The selected
-  game's expanded card anchors its boxart at `(crossX, cardY=0.59)` —
-  the middle slot — so the cross's vertical arm reads as
-  icon-over-icon down the `crossX` column (see §6.7).
+- **Vertical axis (sub-item column).** In the PSP Card gamelist style
+  (style A, §6.7), the game rows' icons stack vertically at `crossX`:
+  the pinned system icon at `(crossX, glLogoY=0.110)`, then three
+  peek-row slots whose centers land at y `0.335 / 0.585 / 0.835`. The
+  selected game's expanded card anchors its boxart at
+  `(crossX, cardY=0.585)` — the middle slot — so the cross's vertical
+  arm reads as icon-over-icon down the `crossX` column. Styles B and D
+  don't use the cross's vertical axis at all (see §6.7).
 
 - **Caption.** Directly below the selected category icon sits the
   system-name caption at `(crossX, captionY)`. `captionY` (`0.401` in
@@ -302,12 +302,13 @@ aspect ratio. **This table is the canonical lookup.** Cite
 
 The v0.11 gamelist redesign (PR #32) deleted the old gamelist / info
 panel geometry rows (`gameColCarY`, `panelX`, `panelW`, `panelDescY`,
-`panelDescH`, `mdRatingX`, `mdVideo*`). The card-list geometry
-variables that replaced them (`glLogoY=0.18`, `glCaptionY=0.24`,
-`glListTop=0.245`, `glListH=0.69`, `cardY=0.59`, plus the `card*` /
-`peek*` set in §6.7) are **aspect-uniform in geometry** — defined once
-in `_inc/common.xml` (with `card*`/`peek*` values swapped by the Icon
-Size subset). The card follows the aspect through `crossX`, plus
+`panelDescH`, `mdRatingX`, `mdVideo*`). The style-A card-list geometry
+variables that replaced them (`glLogoY=0.110`, `glCaptionY=0.222`,
+`glListTop=0.21`, `glListH=0.75`, `cardY=0.585`, plus the `card*` /
+`peek*` set in §6.7 — values current as of the v0.12 recomposition)
+are **aspect-uniform in geometry** — defined once in `_inc/common.xml`
+(with `card*`/`peek*` values swapped by the Icon Size subset). The
+card follows the aspect through `crossX`, plus
 **text-fit corrections only**: `cardMetaW` / `cardMetaFontSize` get
 `aspect-*.xml` overrides at 3:2, 1:1 and 8:7 (see P3 in §1.3) so the
 genre + stars line neither wraps nor collides with `cardDesc`.
