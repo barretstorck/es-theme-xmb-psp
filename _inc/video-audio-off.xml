@@ -7,9 +7,10 @@
 -->
 <theme>
   <formatVersion>7</formatVersion>
-  <view name="detailed,gamecarousel">
-    <video name="md_video">
-      <audio>false</audio>
-    </video>
-  </view>
+  <!-- v0.12: sets a variable consumed by the <audio> property of cardMedia /
+       listMedia. Before v0.12 this subset overrode ES's built-in, now-hidden
+       preview-video element and was therefore a no-op. -->
+  <variables>
+    <videoAudioEnabled>false</videoAudioEnabled>
+  </variables>
 </theme>
