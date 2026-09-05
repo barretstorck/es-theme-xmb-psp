@@ -475,8 +475,18 @@ GUIDE="${REPO_ROOT}/docs/psp-xmb-style-guidelines.md"
 grep -q 'gamelistStyle' "${GUIDE}"
 check "style guide §8 documents the gamelistStyle subset" $?
 
-grep -qi 'supersede' "${GUIDE}"
-check "style guide records the superseded §10 decisions" $?
+# A plain `grep -qi supersede "${GUIDE}"` passes before any implementation
+# work: "superseded" already appears elsewhere in the guide (§1.3's "Largely
+# superseded", §7.4/§7.5's own "Superseded in v0.12" markers), so that check
+# is a false-positive proxy, not a real assertion. Scope it to the §10 table
+# and require the two rows this task's §10 rewrite actually produced.
+SEC10="$(sed -n '/^## 10\. Settled decisions/,/^## 11\./p' "${GUIDE}")"
+
+grep -q 'Single PSP-card gamelist.*Superseded in v0\.12' <<<"${SEC10}"
+check "§10 records the single-PSP-card-gamelist decision as superseded" $?
+
+grep -q 'Three visible game rows.*style A only' <<<"${SEC10}"
+check "§10 scopes the three-visible-rows decision to style A" $?
 
 # The old subsets were flagged as no-ops in §8; they must now be real.
 grep -q 'videoAudioEnabled' "${REPO_ROOT}/_inc/video-audio-on.xml"
