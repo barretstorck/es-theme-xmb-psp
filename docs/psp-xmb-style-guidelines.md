@@ -336,7 +336,7 @@ shift when vertical real estate changes, principally at 1:1.
 |:---|:---:|:---:|:---|
 | Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock only (top-right cluster; battery glyph pulled in v0.10, restoration tracked as #4) |
 | Cross top row (system view) | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
-| Gamelist header (style A) | `0.037 – 0.238` | `crossX ± 0.07` | Pinned system icon at `(crossX, glLogoY=0.110)`, `maxSize 0.13 0.173`; system-name caption at `glCaptionY=0.222` |
+| Gamelist header (style A) | `0.0235 – 0.282` (rendered text ends ~`0.262`) | `crossX ± 0.07` | Pinned icon: `origin 0.5 0.5`, `pos.y=glLogoY=0.110`, `maxSize` height `0.173` → spans `0.110 ± 0.0865` = `0.0235–0.1965`. Caption (`md_systemName`): `origin 0.5 0`, `pos.y=glCaptionY=0.222`, `size.y=0.06` → declared box `0.222–0.282`; its `fontSize=0.040` single line of rendered text only reaches ~`0.262`, the remainder being unused box (`_inc/gamelist-card.xml`) |
 | Peek list (style A, icon column) | `0.21 – 0.96` | container full width; icons at `crossX` | `textlist name="gamelist"` — 3 slots (`glListTop=0.21`, `glListH=0.75`), row centers at y `0.335 / 0.585 / 0.835` |
 | Media block (style A) | `0.120 – 0.460` | centred at `x=0.6775` | `cardScreenshot`/`cardMedia` pair, `maxSize 0.40 × 0.34`, screenshot-then-video (§6.7, §8) |
 | Selected card (style A) | `~0.44 – 0.87` (boxart, Boxart size) | boxart at `crossX`; text column `0.385 – 0.97` | `cardBoxart`/`cardFallback` at `(crossX, cardY=0.585)`; `cardTitle` above the line, `cardLine` at `cardY`, metadata/stars/players from `cardMetaY=0.602`, `cardDesc` bounded block from `~0.695` |
@@ -1128,9 +1128,9 @@ set is overridden wholesale by the Icon Size subset files
 | `cardMetaFontSize` | `0.030` | `0.026` | Genre / star / player-count line |
 | `cardGenreW`, `cardStarX`, `cardPlayersX` | `0.135`, `0.530`, `0.680` | same | Fixed-column budget for metadata line 1 — re-check if `cardMetaFontSize` changes per ratio (§8) |
 | `cardDescFontSize` | `0.023` | `0.021` | Bounded description block |
-| `peekIconW × peekIconH` | `0.088 × 0.115` | smaller | Peek icon (screen-w × slot-relative-h — see gotcha below) |
+| `peekIconW × peekIconH` | `0.088 × 0.51` | `0.073 × 0.425` | Peek icon (screen-w × slot-relative-h — see gotcha below) |
 | `titleUnselectedOpacity` | `0` (Strict) | — | `1` in Friendly; set by the Title Visibility subset, not Icon Size |
-| `cardY`, `cardTitleY`, `cardMetaY`, `cardMeta2Y`, `cardDescY` | `0.585`, ..., `0.602`, `0.643`, `~0.695` | same | Card vertical anchors (subset-independent) |
+| `cardY`, `cardTitleY`, `cardMetaY`, `cardMeta2Y`, `cardDescY` | `0.585`, `0.572`, `0.602`, `0.643`, `~0.695` | same | Card vertical anchors (subset-independent) |
 | `glLogoY`, `glCaptionY`, `glListTop`, `glListH` | `0.110`, `0.222`, `0.21`, `0.75` | same | Header + peek-list frame |
 
 **Per-aspect tuning:** geometry none — only `crossX` shifts per ratio
@@ -1143,7 +1143,16 @@ subset-vs-aspect include-order precedence this depends on.
 **Coordinate gotcha (documented in `_inc/common.xml`):** itemTemplate
 `<pos>` / `<size>` / `<maxSize>` scale by the **row-slot's pixel
 dimensions**, not the screen. The big-card extras, by contrast, are
-ordinary screen-relative elements.
+ordinary screen-relative elements. `peekIconW` is still screen-relative
+(it caps the icon's width against the full 1024px screen width), but
+`peekIconH` is **slot-relative**, because the peek icons live inside
+the textlist's `itemTemplate`, not among the screen-relative card
+extras. `_inc/common.xml` documents the derivation for the Boxart
+default: a 90px peek icon in a slot ~176.6px tall gives
+`peekIconH = 90/176.6 ≈ 0.51`. Treating a screen-relative number like
+`0.115` as this slot-relative height would size the icon roughly
+4.4× too small on-device — the exact error this guide previously
+contained.
 
 **Orphaned leftovers to be aware of:** `rowHaloW` / `rowHaloH` in
 `_inc/common.xml` reference a `tplHalo` element that does not exist
@@ -1466,6 +1475,9 @@ evidence:
 | ~~**Single PSP-card gamelist; right info panel removed.**~~ **Superseded in v0.12.** | v0.11 (PR #32), superseded v0.12 | The card is now one of three styles behind the `gamelistStyle` subset. Superseded deliberately, at the user's request, after living with the single-style build. Style B does reintroduce a right-hand metadata region. Data point: `FakeXMB`, the only other XMB theme in the 211-theme render corpus, also abandons XMB for its own gamelist. |
 | **Three visible game rows** — still holds for style A only. | v0.9.3 r4; scoped to style A in v0.12 | Styles B (10 rows) and D (grid) are exempt by construction. |
 | **`{game:stars}` needs a backing track.** | v0.12 | `FileData.cpp:1924` builds the string with `for (i = 0; i < stars; i++)` — filled glyphs only, no empty-star track. Every rating element is a PAIR: a dim five-glyph `&#xF005;` track plus the bound element over it, identical except `text`/`color`/`opacity`/`zIndex`. This forces stars into a fixed column. |
+| **No per-game position counter (e.g. "2 / 10").** | v0.12 | There is no `{game:index}` binding on this build; `{system:total}` (`SystemData.cpp:2162`) is a whole-library game count, not a cursor position, and the `gamecount` subset only affects the system-view carousel's Game Count caption, not the gamelist. Would need an ES-side change, not a theme change. Not carried over from the removed right info panel — see §6.7. |
+| **`cardDesc` is a bounded, `<clipRect>`-bound block, not a marquee.** | v0.11 attempted a narrow marquee; superseded by the bounded block in v0.12 | v0.11's narrow `cardDesc` deliberately overflowed and marqueed, but its `<size>` alone did not clip on-device (it ran under the help strip in use). v0.12 widened it to the full text column and added a `<clipRect>` (`_inc/gamelist-card.xml`) so overflow clips instead of marqueeing (§6.7, §7.4). If this still overflows on hardware, add/verify `<clipRect>` — do not ship an unbounded description again. |
+| **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Six shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, `_inc/scroll-speed-{slow,normal,fast}.xml`, `_inc/video-audio-{on,off}.xml`) register a `detailed,gamecarousel` view unconditionally, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those six includes — `common.xml` legitimately styles shared chrome (the clock) across every gamelist view. Documented in the README. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
 | **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
