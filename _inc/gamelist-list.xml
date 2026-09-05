@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+  v0.12 gamelist style B — List + Details. One of three mutually-exclusive
+  style files selected by the "gamelistStyle" subset in theme.xml; exactly one
+  is ever included, so element names cannot collide across styles.
+
+  PLACEHOLDER: this file is currently a byte-for-byte copy of the PSP Card
+  body below. Task 4 replaces its contents with the List + Details layout.
+
+  The root defaultView attribute is what selects the ES view type:
+  ThemeData::appendFile() runs parseTheme() on every include, and parseTheme()
+  reads defaultView (ThemeData.cpp:1329). ViewController substitutes it when
+  the user's GamelistViewStyle is "automatic", or names a view this style does
+  not define (ViewController.cpp:697-720).
+
+  The waveLayer elements below are duplicated verbatim from
+  _inc/wave-motion.xml ON PURPOSE. Knulli build quirk: storyboard-animated
+  extra="true" elements declared only in that include do not animate on
+  gamelist views. Do not "clean up" the duplication.
+
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<!--
   v0.11 gamelist redesign (v6 layout): PSP-card, selected-dominates format.
 
   PATH B (pinned card + extras). The overflow spike (.dev/v6-spike-overflow.png)
@@ -32,7 +53,7 @@
   See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
-<theme>
+<theme defaultView="detailed">
   <formatVersion>7</formatVersion>
 
   <view name="detailed,gamecarousel">

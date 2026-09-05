@@ -127,9 +127,10 @@
   </subset>
 
   <!-- v0.11 redesign: orthogonal subsets controlling the PSP-card row layout.
-       Must appear BEFORE the gamelist <include> so the variables they set
-       (rowIconW/H, titleFontSize, metaFontSize, titleUnselectedY/Opacity,
-       videoDelay) are resolved by the time _inc/gamelist.xml is parsed. -->
+       Must appear BEFORE the gamelistStyle subset's includes so the variables
+       they set (rowIconW/H, titleFontSize, metaFontSize,
+       titleUnselectedY/Opacity, videoDelay) are resolved by the time the
+       gamelist-*.xml style files are parsed. -->
   <subset name="iconSize" displayName="Icon Size">
     <include name="Boxart">./_inc/icon-size-boxart.xml</include>
     <include name="Compact">./_inc/icon-size-compact.xml</include>
@@ -161,8 +162,20 @@
   <include if="${screen.ratio} == '16/9'">./_inc/aspect-16x9.xml</include>
   <include if="${screen.ratio} == '1/1'">./_inc/aspect-1x1.xml</include>
 
+  <!-- v0.12: the gamelist style subset. Each variant is a full <view>
+       definition, so it MUST parse after aspect-*.xml — views resolve
+       ${variables} at element-parse time, and a view parsed before the
+       per-ratio overrides silently keeps the mode-subset defaults. This is
+       the same last-write-wins trap that cost a debug cycle in v0.11.
+       Each variant's root <theme defaultView="..."> selects the ES view
+       type; see the header comment in each style file. -->
+  <subset name="gamelistStyle" displayName="Gamelist Style">
+    <include name="PSP Card">./_inc/gamelist-card.xml</include>
+    <include name="List + Details">./_inc/gamelist-list.xml</include>
+    <include name="Box Art Grid">./_inc/gamelist-grid.xml</include>
+  </subset>
+
   <include>./_inc/system.xml</include>
-  <include>./_inc/gamelist.xml</include>
   <include>./_inc/menu.xml</include>
   <include>./_inc/wave-motion.xml</include>
 

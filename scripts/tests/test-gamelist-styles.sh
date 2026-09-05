@@ -29,4 +29,71 @@ check "run-in-container.sh writes subset.gamelistStyle" $?
 grep -qE 'gamelist\)[[:space:]]*GLVIEW="automatic"' "${REPO_ROOT}/docker/run-in-container.sh"
 check "gamelist view uses GamelistViewStyle=automatic" $?
 
+echo
+echo "style files:"
+
+STYLES=("card:detailed" "list:detailed" "grid:grid")
+for entry in "${STYLES[@]}"; do
+  name="${entry%%:*}"; want_view="${entry##*:}"
+  f="${REPO_ROOT}/_inc/gamelist-${name}.xml"
+
+  [[ -f "${f}" ]]
+  check "_inc/gamelist-${name}.xml exists" $?
+
+  python3 -c "import xml.etree.ElementTree as ET,sys; ET.parse(sys.argv[1])" "${f}" 2>/dev/null
+  check "gamelist-${name}.xml is well-formed XML" $?
+
+  # Root <theme defaultView="..."> is what selects the view type.
+  got="$(python3 -c "
+import xml.etree.ElementTree as ET,sys
+print(ET.parse(sys.argv[1]).getroot().get('defaultView',''))" "${f}" 2>/dev/null)"
+  [[ "${got}" == "${want_view}" ]]
+  check "gamelist-${name}.xml declares defaultView='${want_view}' (got '${got}')" $?
+
+  # Exactly one <view> element — two would let styles leak into each other.
+  n="$(python3 -c "
+import xml.etree.ElementTree as ET,sys
+print(len(ET.parse(sys.argv[1]).getroot().findall('view')))" "${f}" 2>/dev/null)"
+  [[ "${n}" == "1" ]]
+  check "gamelist-${name}.xml has exactly one <view> (got ${n})" $?
+
+  grep -q 'CC-BY-NC-SA' "${f}"
+  check "gamelist-${name}.xml carries the licence header" $?
+
+  # Knulli quirk: animated wave layers must sit inside the view block.
+  w="$(grep -c 'waveLayer' "${f}" || true)"
+  [[ "${w}" -ge 3 ]]
+  check "gamelist-${name}.xml duplicates the wave layers (found ${w})" $?
+done
+
+echo
+echo "theme.xml wiring:"
+
+[[ ! -f "${REPO_ROOT}/_inc/gamelist.xml" ]]
+check "old _inc/gamelist.xml is gone" $?
+
+! grep -q '_inc/gamelist\.xml' "${REPO_ROOT}/theme.xml"
+check "theme.xml no longer includes _inc/gamelist.xml" $?
+
+grep -q 'subset name="gamelistStyle"' "${REPO_ROOT}/theme.xml"
+check "theme.xml declares the gamelistStyle subset" $?
+
+for v in "PSP Card" "List + Details" "Box Art Grid"; do
+  grep -qF "<include name=\"${v}\">" "${REPO_ROOT}/theme.xml"
+  check "gamelistStyle offers '${v}'" $?
+done
+
+# First variant is the default (matches the videoDelay convention).
+first="$(grep -A4 'subset name="gamelistStyle"' "${REPO_ROOT}/theme.xml" \
+         | grep -o 'name="[^"]*"' | sed -n 2p)"
+[[ "${first}" == 'name="PSP Card"' ]]
+check "PSP Card is the first/default variant (got ${first})" $?
+
+# ORDER: the style subset must parse AFTER aspect-*.xml, or per-ratio
+# overrides are silently lost (the v0.11 icon-size clobbering bug).
+aspect_line="$(grep -n 'aspect-1x1.xml' "${REPO_ROOT}/theme.xml" | cut -d: -f1)"
+style_line="$(grep -n 'subset name="gamelistStyle"' "${REPO_ROOT}/theme.xml" | cut -d: -f1)"
+[[ -n "${aspect_line}" && -n "${style_line}" && "${style_line}" -gt "${aspect_line}" ]]
+check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line ${aspect_line})" $?
+
 exit "${fail}"
