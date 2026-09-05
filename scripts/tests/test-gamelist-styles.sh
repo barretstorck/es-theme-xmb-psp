@@ -105,27 +105,53 @@ check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line
 echo
 echo "shared chrome (help strip + sounds):"
 
-# Important-1 regression: the shared <helpsystem name="help"> and the four
-# navigate/scroll/select/back <sound> elements live in ONE <view> block in
-# common.xml (ThemeData::getElement returns NULL for a view name absent from
-# that list, with no cross-view fallback). If "grid" is missing, Box Art Grid
-# silently falls back to ES's built-in help strip (wrong position/font/colour)
-# and default click sounds.
-python3 - "${REPO_ROOT}/_inc/common.xml" <<'PY'
+# The shared <helpsystem name="help"> and the four sounds live in ONE <view>
+# block per file (ThemeData::getElement returns NULL for a view name absent
+# from that list, with no cross-view fallback), so every gamelist view name
+# must appear in some file's chrome block or that view gets ES's built-in
+# help strip and default click sounds.
+#
+# "grid" must be in gamelist-grid.xml's OWN block, NOT common.xml's shared
+# one. Declaring grid in the shared list makes hasView("grid") true even when
+# Box Art Grid is not selected, which hijacks a user who pinned ES's Gamelist
+# View Style to "grid" into an unstyled built-in grid instead of falling back
+# to the theme's defaultView. Found on real hardware.
+python3 - "${REPO_ROOT}/_inc/common.xml" "${REPO_ROOT}/_inc/gamelist-grid.xml" <<'PY'
 import sys, xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-help_view = None
-for v in root.findall("view"):
-    if v.find("helpsystem[@name='help']") is not None:
-        help_view = v
-        break
-assert help_view is not None, "no <view> in common.xml declares <helpsystem name='help'>"
-names = {n.strip() for n in help_view.get("name", "").split(",")}
-required = {"system", "detailed", "gamecarousel", "grid", "menu"}
+
+def chrome_view(path):
+    root = ET.parse(path).getroot()
+    for v in root.findall("view"):
+        if v.find("helpsystem[@name='help']") is not None:
+            return v
+    return None
+
+shared = chrome_view(sys.argv[1])
+assert shared is not None, "no <view> in common.xml declares <helpsystem name='help'>"
+names = {n.strip() for n in shared.get("name", "").split(",")}
+
+required = {"system", "detailed", "gamecarousel", "menu"}
 missing = required - names
-assert not missing, f"shared-chrome view list is missing: {sorted(missing)} (has {sorted(names)})"
+assert not missing, f"common.xml chrome view is missing: {sorted(missing)} (has {sorted(names)})"
+
+assert "grid" not in names, (
+    "common.xml's shared chrome view must NOT list 'grid' — that makes "
+    "hasView('grid') unconditionally true and hijacks a user pinned to "
+    "GamelistViewStyle=grid into an unstyled built-in grid")
+
+grid = chrome_view(sys.argv[2])
+assert grid is not None, (
+    "gamelist-grid.xml must declare its own <helpsystem name='help'> so the "
+    "grid style still gets themed chrome")
+assert grid.get("name", "").strip() == "grid", (
+    f"gamelist-grid.xml chrome must be in <view name='grid'>, got "
+    f"{grid.get('name')!r}")
+sounds = {s.get("name") for s in grid.findall("sound")}
+assert sounds == {"systemscroll", "scroll", "select", "back"}, (
+    f"gamelist-grid.xml is missing sounds: "
+    f"{sorted({'systemscroll','scroll','select','back'} - sounds)}")
 PY
-check "shared-chrome view list (helpsystem + sounds) includes system,detailed,gamecarousel,grid,menu" $?
+check "grid chrome is in gamelist-grid.xml, NOT in common.xml's shared list" $?
 
 echo
 echo "style A — card geometry:"

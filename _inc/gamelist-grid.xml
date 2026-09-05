@@ -33,6 +33,33 @@
 
   <view name="grid">
 
+    <!-- Shared chrome, duplicated verbatim from _inc/common.xml's
+         <view name="system,detailed,gamecarousel,menu"> block. It lives here
+         rather than in that shared list ON PURPOSE: adding "grid" there makes
+         hasView("grid") true even when this style is not selected, which
+         hijacks a user who pinned ES's Gamelist View Style to "grid" into an
+         unstyled built-in grid. Declaring it here registers the grid view only
+         when this style is active. Keep in sync with common.xml. -->
+    <sound name="systemscroll">
+      <path>${soundNavigate}</path>
+    </sound>
+    <sound name="scroll">
+      <path>${soundNavigate}</path>
+    </sound>
+    <sound name="select">
+      <path>${soundSelect}</path>
+    </sound>
+    <sound name="back">
+      <path>${soundBack}</path>
+    </sound>
+    <helpsystem name="help">
+      <pos>0.02 0.94</pos>
+      <textColor>${textPrimary}</textColor>
+      <iconColor>${helpAccent}</iconColor>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.025</fontSize>
+    </helpsystem>
+
     <!-- Wave background. extra="true" required to render. -->
     <image name="waveBackground" extra="true">
       <path>./art/wave/wave.png</path>
