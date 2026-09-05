@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  v0.12 gamelist style D — Box Art Grid. One of three mutually-exclusive
+  style files selected by the "gamelistStyle" subset in theme.xml; exactly one
+  is ever included, so element names cannot collide across styles.
+
+  A wall of box art with a bound info bar beneath, modelled on
+  Meringue_Knulli. No text list at all — the art is the list. Uses
+  <imagegrid>/<gridtile>, which GridGameListView renders instead of the
+  textlist-based views styles A/B use. See the approved mockup
+  docs/screenshots/v0.12-gamelist-mockups/d-boxart-grid.png.
+
+  The root defaultView attribute is what selects the ES view type:
+  ThemeData::appendFile() runs parseTheme() on every include, and parseTheme()
+  reads defaultView (ThemeData.cpp:1329). ViewController substitutes it when
+  the user's GamelistViewStyle is "automatic", or names a view this style does
+  not define (ViewController.cpp:697-720).
+
+  GridGameListView derives from ISimpleGameListView and calls
+  updateThemeExtrasBindings() (GridGameListView.cpp:228), so the extra="true"
+  info-bar elements below rebind to the selected tile on cursor change exactly
+  as in the other views.
+
+  The waveLayer elements below are duplicated verbatim from
+  _inc/wave-motion.xml ON PURPOSE. Knulli build quirk: storyboard-animated
+  extra="true" elements declared only in that include do not animate on
+  gamelist views. Do not "clean up" the duplication.
+
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme defaultView="grid">
+  <formatVersion>7</formatVersion>
+
+  <view name="grid">
+
+    <!-- Wave background. extra="true" required to render. -->
+    <image name="waveBackground" extra="true">
+      <path>./art/wave/wave.png</path>
+      <pos>0.5 0.5</pos>
+      <size>1.10 1.10</size>
+      <origin>0.5 0.5</origin>
+      <color>${waveTint}</color>
+      <zIndex>0</zIndex>
+    </image>
+
+    <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
+         declared only inside _inc/wave-motion.xml do not animate on
+         gamelist views on this Knulli ES build. The three waveLayer
+         declarations below are duplicated verbatim from
+         _inc/wave-motion.xml so they sit directly in the view block. -->
+    <image name="waveLayer1" extra="true">
+      <path>./art/wave/wave-layer-1.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>1</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="30000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+    <image name="waveLayer2" extra="true">
+      <path>./art/wave/wave-layer-2.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>2</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="20000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+    <image name="waveLayer3" extra="true">
+      <path>./art/wave/wave-layer-3.png</path>
+      <pos>0.0 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>3</zIndex>
+      <storyboard>
+        <animation property="x" from="0.0" to="-1.0"
+                   duration="12000" mode="linear"
+                   repeat="forever"/>
+      </storyboard>
+    </image>
+
+    <text name="gridSystemName" extra="true">
+      <pos>0.03 0.028</pos>
+      <size>0.50 0.06</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.040</fontSize>
+      <color>${textSecondary}</color>
+      <text>${system.fullName}</text>
+      <alignment>left</alignment>
+      <forceUppercase>true</forceUppercase>
+      <multiLine>false</multiLine>
+      <zIndex>6</zIndex>
+    </text>
+
+    <imagegrid name="gamegrid">
+      <pos>0.04 0.16</pos>
+      <size>0.92 0.60</size>
+      <margin>0.012 0.020</margin>
+      <scrollDirection>vertical</scrollDirection>
+      <autoLayout>4 2</autoLayout>
+      <!-- Real properties on this build (ThemeData.cpp imagegrid map);
+           this is how the selected tile grows, not a hand-rolled border. -->
+      <autoLayoutSelectedZoom>1.14</autoLayoutSelectedZoom>
+      <animateSelection>true</animateSelection>
+      <zIndex>5</zIndex>
+    </imagegrid>
+
+    <!-- imageSizeMode=maxSize keeps non-square box art undistorted;
+         selectionMode=image scopes the selector to the artwork. -->
+    <!-- GridTileComponent looks these up by the element NAMES "default" and
+         "selected" (GridTileComponent.cpp:797,806). An unnamed <gridtile>
+         is not the same thing — name it explicitly. -->
+    <gridtile name="default">
+      <size>${gridTileW} ${gridTileH}</size>
+      <padding>0.008 0.008 0.008 0.008</padding>
+      <selectionMode>image</selectionMode>
+      <imageSizeMode>maxSize</imageSizeMode>
+      <imageColor>FFFFFF9E</imageColor>
+    </gridtile>
+    <gridtile name="selected">
+      <imageColor>FFFFFFFF</imageColor>
+      <backgroundColor>${selectorGlow}FF</backgroundColor>
+      <backgroundCornerSize>4 4</backgroundCornerSize>
+    </gridtile>
+
+    <!-- Info bar. GridGameListView derives from ISimpleGameListView and calls
+         updateThemeExtrasBindings() (GridGameListView.cpp:228), so these
+         {game:*} extras rebind to the selected tile on cursor change. -->
+    <image name="gridInfoPanel" extra="true">
+      <path>./art/line-1px.png</path>
+      <pos>0.03 ${gridInfoY}</pos>
+      <size>0.94 0.110</size>
+      <origin>0 0</origin>
+      <color>000000</color>
+      <opacity>0.40</opacity>
+      <zIndex>7</zIndex>
+    </image>
+
+    <text name="gridTitle" extra="true">
+      <pos>0.05 0.808</pos>
+      <size>0.90 0.055</size>
+      <origin>0 0</origin>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.046</fontSize>
+      <color>${textPrimary}</color>
+      <text>{game:name}</text>
+      <alignment>left</alignment>
+      <multiLine>false</multiLine>
+      <!-- emptyTextDefaults=false: TextComponent.cpp:625 defaults extra="true"
+           text bindings to substitute "Unknown"/"None" for an empty binding
+           (BindingManager.cpp:126), regardless of ThemeData.cpp:252's comment
+           claiming the default is false. Disabled here so an unscraped game's
+           empty {game:*} fields render blank instead of a fake "Unknown". -->
+      <emptyTextDefaults>false</emptyTextDefaults>
+      <zIndex>8</zIndex>
+    </text>
+
+    <text name="gridMeta" extra="true">
+      <pos>0.05 0.862</pos>
+      <size>0.60 0.04</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.027</fontSize>
+      <color>${textSecondary}</color>
+      <text>{game:genre}  ·  {game:releaseyear}  ·  {game:developer}  ·  {game:playercount}P</text>
+      <alignment>left</alignment>
+      <multiLine>false</multiLine>
+      <!-- <size> alone does NOT clip on this build (proven in styles A/B).
+           Defensive clipRect matching the sibling cardDesc/listDesc pattern:
+           a long genre/developer string could still reach the star column at
+           gridStarX (0.680) since this field has no per-clause length limit.
+           clipRect is normalized SCREEN coords (x y w h), scaled by
+           screenScale and pushed as a render clip (GuiComponent.cpp:885,
+           1269). -->
+      <clipRect>0.05 0.862 0.60 0.04</clipRect>
+      <emptyTextDefaults>false</emptyTextDefaults>
+      <zIndex>8</zIndex>
+    </text>
+
+    <text name="gridStarTrack" extra="true">
+      <pos>${gridStarX} 0.862</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.027</fontSize>
+      <color>${textSecondary}</color>
+      <opacity>0.35</opacity>
+      <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
+      <alignment>left</alignment>
+      <zIndex>8</zIndex>
+    </text>
+    <text name="gridStars" extra="true">
+      <pos>${gridStarX} 0.862</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.027</fontSize>
+      <color>${textPrimary}</color>
+      <text>{game:stars}</text>
+      <alignment>left</alignment>
+      <emptyTextDefaults>false</emptyTextDefaults>
+      <zIndex>9</zIndex>
+    </text>
+
+    <!-- Suppress ES's built-in metadata elements (md_*). The card above
+         replaces the default right info panel, so the default rendering of
+         md_name / md_rating / md_video / md_image / md_description would
+         otherwise paint in unstyled locations. -->
+    <text name="md_name"><visible>false</visible></text>
+    <text name="md_description"><visible>false</visible></text>
+    <text name="md_developer"><visible>false</visible></text>
+    <text name="md_publisher"><visible>false</visible></text>
+    <text name="md_genre"><visible>false</visible></text>
+    <text name="md_players"><visible>false</visible></text>
+    <text name="md_lbl_rating"><visible>false</visible></text>
+    <text name="md_lbl_releasedate"><visible>false</visible></text>
+    <text name="md_lbl_developer"><visible>false</visible></text>
+    <text name="md_lbl_publisher"><visible>false</visible></text>
+    <text name="md_lbl_genre"><visible>false</visible></text>
+    <text name="md_lbl_players"><visible>false</visible></text>
+    <text name="md_lbl_lastplayed"><visible>false</visible></text>
+    <text name="md_lbl_playcount"><visible>false</visible></text>
+    <text name="md_releasedate"><visible>false</visible></text>
+    <text name="md_lastplayed"><visible>false</visible></text>
+    <text name="md_playcount"><visible>false</visible></text>
+    <datetime name="md_releasedate"><visible>false</visible></datetime>
+    <datetime name="md_lastplayed"><visible>false</visible></datetime>
+    <rating name="md_rating"><visible>false</visible></rating>
+    <image name="md_image"><visible>false</visible></image>
+    <image name="md_thumbnail"><visible>false</visible></image>
+    <image name="md_marquee"><visible>false</visible></image>
+    <video name="md_video"><visible>false</visible></video>
+
+  </view>
+</theme>

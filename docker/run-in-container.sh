@@ -78,20 +78,24 @@ fi
 # GuiMenu.cpp:3276 — that is why battery uses "subset.battery" and not a
 # named constant.
 
-# Gamelist view style: gamecarousel view -> the boxart carousel, else detailed.
-# Setting name confirmed from ViewController.cpp: getString("GamelistViewStyle"),
-# with values "gamecarousel" / "detailed" (CarouselGameListView / DetailedGameListView).
+# Gamelist view style. v0.12: use "automatic" for the plain gamelist view so
+# the theme's own root defaultView attribute selects the view type — that is
+# the mechanism the gamelistStyle subset relies on (ThemeData.cpp:1329 sets
+# mDefaultView; ViewController.cpp:715-720 substitutes it when the preference
+# is "automatic"). Pinning "detailed" here would mask it.
 case "${VIEW}" in
   gamecarousel) GLVIEW="gamecarousel" ;;
-  gamelist)     GLVIEW="detailed" ;;
-  *)            GLVIEW="automatic" ;;   # system/menu views: gamelist style irrelevant
+  gamelist)     GLVIEW="automatic" ;;
+  *)            GLVIEW="automatic" ;;
 esac
 
-# Optional subset pins (ICON_SIZE / TITLE_VISIBILITY envs). Generic subsets
-# persist as "subset.<name>" (GuiMenu.cpp:3276); empty env = theme default.
+# Optional subset pins (ICON_SIZE / TITLE_VISIBILITY / GAMELIST_STYLE envs).
+# Generic subsets persist as "subset.<name>" (GuiMenu.cpp:3276); empty env =
+# theme default.
 SUBSET_LINES=""
 [[ -n "${ICON_SIZE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.iconSize\" value=\"${ICON_SIZE}\" />"$'\n'
 [[ -n "${TITLE_VISIBILITY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.titleVisibility\" value=\"${TITLE_VISIBILITY}\" />"$'\n'
+[[ -n "${GAMELIST_STYLE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.gamelistStyle\" value=\"${GAMELIST_STYLE}\" />"$'\n'
 
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
