@@ -339,4 +339,44 @@ check "style D star track aligns with filled stars" $?
 ! grep -qE '<textlist|name="(cardBoxart|cardMedia|tplPeekIcon)"' "${GRID}"
 check "style D has no textlist or leftover card elements" $?
 
+echo
+echo "emptyTextDefaults -- every {game:*}-binding text element must disable it:"
+
+# BindingManager.cpp:126 substitutes "Unknown"/"None" for ANY empty {game:*}
+# binding when the TextComponent has mBindingDefaults set, and
+# TextComponent.cpp:625 defaults that to TRUE for extra="true" elements
+# (ThemeData.cpp:252's comment claiming the default is false is wrong).
+# Every extra="true" <text> that binds {game:*} must explicitly disable it
+# so an unscraped game renders blank fields, not a fake "Unknown"/"None".
+# Enumerated explicitly (not grepped) so a future style file -- or a new
+# bound element added to an existing one -- that forgets this fails loudly
+# instead of silently passing.
+python3 - "${REPO_ROOT}" <<'INNER_PY'
+import sys, xml.etree.ElementTree as ET
+
+EXPECT = {
+    "_inc/gamelist-grid.xml": ["gridTitle", "gridMeta", "gridStars"],
+    "_inc/gamelist-card.xml": ["cardTitle", "cardGenre", "cardPlayers", "cardMeta2", "cardStars", "cardDesc"],
+    "_inc/gamelist-list.xml": ["listYearDev", "listMeta", "listStars", "listDesc"],
+}
+
+repo_root = sys.argv[1]
+failures = []
+for relpath, names in EXPECT.items():
+    root = ET.parse(f"{repo_root}/{relpath}").getroot()
+    for name in names:
+        el = root.find(f".//text[@name='{name}']")
+        if el is None:
+            failures.append(f"{relpath}: no <text name='{name}'>")
+            continue
+        val = el.findtext("emptyTextDefaults")
+        if val != "false":
+            failures.append(f"{relpath}: {name} has emptyTextDefaults={val!r}, want 'false'")
+
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+INNER_PY
+check "every {game:*}-binding text element disables emptyTextDefaults" $?
+
 exit "${fail}"

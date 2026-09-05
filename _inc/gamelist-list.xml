@@ -182,6 +182,12 @@
       <text>{game:releaseyear}  •  {game:developer}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
+      <!-- emptyTextDefaults=false: TextComponent.cpp:625 defaults extra="true"
+           text bindings to substitute "Unknown"/"None" for an empty binding
+           (BindingManager.cpp:126), regardless of ThemeData.cpp:252's comment
+           claiming the default is false. Disabled here so an unscraped game's
+           empty {game:*} fields render blank instead of a fake "Unknown". -->
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -206,6 +212,7 @@
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -219,6 +226,7 @@
       <text>{game:playercount}P  •  {game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -237,6 +245,7 @@
            screenScale and pushed as a render clip (GuiComponent.cpp:885,
            1269). -->
       <clipRect>0.575 ${listDescY} 0.395 ${listDescH}</clipRect>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 

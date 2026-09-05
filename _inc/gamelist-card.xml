@@ -216,6 +216,12 @@
       <text>{game:name}</text>
       <alignment>left</alignment>
       <verticalAlignment>bottom</verticalAlignment>
+      <!-- emptyTextDefaults=false: TextComponent.cpp:625 defaults extra="true"
+           text bindings to substitute "Unknown"/"None" for an empty binding
+           (BindingManager.cpp:126), regardless of ThemeData.cpp:252's comment
+           claiming the default is false. Disabled here so an unscraped game's
+           empty {game:*} fields render blank instead of a fake "Unknown". -->
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -241,6 +247,7 @@
       <text>{game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -270,6 +277,7 @@
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -283,6 +291,7 @@
       <color>${textSecondary}</color>
       <text>{game:playercount}P</text>
       <alignment>left</alignment>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -299,6 +308,7 @@
       <text>{game:releaseyear} · {game:developer}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
@@ -330,6 +340,7 @@
            scaled by screenScale and pushed as a render clip
            (GuiComponent.cpp:885, 1269). -->
       <clipRect>${cardTextX} ${cardDescY} ${cardTextW} ${cardDescH}</clipRect>
+      <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
