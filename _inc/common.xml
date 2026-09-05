@@ -37,15 +37,16 @@
     <captionY>0.401</captionY>
     <countY>0.456</countY>
 
-    <!-- v0.11 v7 gamelist redesign (PR #32 on-device tweaks). The gamelist
-         header sits HIGHER than the system view's cross anchor. v7 lowered and
-         shrank the icon (glLogoY 0.14->0.18, maxSize 0.18->0.13 square) and
-         moved the caption down to stay tight below it (glCaptionY ~0.27).
-         These are gamelist-only and deliberately do NOT touch crossY/captionY
-         (which the system view still uses). See
-         docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png. -->
-    <glLogoY>0.18</glLogoY>
-    <glCaptionY>0.24</glCaptionY>
+    <!-- v0.11 v7 gamelist redesign (PR #32 on-device tweaks) — SUPERSEDED by v0.12.
+         The gamelist header sits HIGHER than the system view's cross anchor.
+         v7 experimented with lowering the icon (glLogoY 0.14->0.18, maxSize
+         0.18->0.13 square) and moving the caption down to stay tight below it
+         (glCaptionY ~0.27). v0.12 moved these HIGHER AGAIN to fix caption/icon
+         collision — see glLogoY/glCaptionY declarations at the v0.12 redesign
+         block below (around lines 122-123).
+         See docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png for
+         v0.11's design intent. These are gamelist-only and do NOT touch
+         crossY/captionY (which the system view uses). -->
 
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
