@@ -99,4 +99,105 @@ style_line="$(grep -n 'subset name="gamelistStyle"' "${REPO_ROOT}/theme.xml" | c
 [[ -n "${aspect_line}" && -n "${style_line}" && "${style_line}" -gt "${aspect_line}" ]]
 check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line ${aspect_line})" $?
 
+echo
+echo "style A — card geometry:"
+
+CARD="${REPO_ROOT}/_inc/gamelist-card.xml"
+COMMON="${REPO_ROOT}/_inc/common.xml"
+
+var() { # var <name> -> value from common.xml
+  grep -oP "(?<=<$1>)[^<]*" "${COMMON}" | head -1
+}
+
+# Slot centres are FORCED even by <lines>3</lines>:
+#   centre_i = glListTop + glListH * (i + 0.5) / 3
+# cardY must equal the middle centre or the card detaches from the cursor row.
+python3 - "$(var glListTop)" "$(var glListH)" "$(var cardY)" <<'PY'
+import sys
+top, h, cardy = (float(x) for x in sys.argv[1:4])
+mid = top + h * 1.5 / 3
+assert abs(mid - cardy) < 1e-6, f"middle slot {mid} != cardY {cardy}"
+PY
+check "cardY sits on the middle textlist slot" $?
+
+# Column budget: five fontawesome glyphs must not reach the players column.
+python3 - "$(var cardStarX)" "$(var cardPlayersX)" "$(var cardMetaFontSize)" <<'PY'
+import sys
+sx, px, fs = (float(x) for x in sys.argv[1:4])
+# glyph advance ~= fontSize (height-normalised) * 768 / 1024 width-normalised,
+# five glyphs plus four 25% gaps. Matches the mockup generator's measurement.
+w = fs * 0.85 * 768
+track = (5 * w + 4 * w * 0.25) / 1024
+assert sx + track < px, f"star track {sx}..{sx+track:.4f} collides with players at {px}"
+PY
+check "star track clears the players column" $?
+
+# Nothing may reach the helpsystem strip at 0.94.
+python3 - "$(var glListTop)" "$(var glListH)" <<'PY'
+import sys
+top, h = (float(x) for x in sys.argv[1:3])
+bottom_peek = top + h * 2.5 / 3
+title = bottom_peek + 0.076 + 0.013   # peek title centre + half its line height
+assert title < 0.94, f"bottom peek title reaches {title}, help strip starts at 0.94"
+PY
+check "bottom peek title clears the help strip" $?
+
+# The screenshot->video handoff is ONE <video>, not a paired image swap.
+for prop in 'snapshotSource>image' 'showSnapshotDelay>true' 'showSnapshotNoVideo>true'; do
+  grep -q "<${prop}<" "${CARD}"
+  check "cardMedia sets ${prop%%>*}" $?
+done
+
+grep -q '<delay>${videoDelay}</delay>' "${CARD}"
+check "cardMedia delay is driven by the videoDelay subset" $?
+
+# maxSize never breaks aspect ratio; size would stretch the video.
+python3 - "${CARD}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+v = root.find(".//video[@name='cardMedia']")
+assert v is not None, "no cardMedia video element"
+assert v.find("maxSize") is not None, "cardMedia must use maxSize"
+assert v.find("size") is None, "cardMedia must NOT use size (stretches video)"
+PY
+check "cardMedia uses maxSize, not size" $?
+
+# {game:stars} emits filled glyphs only, so a dim 5-glyph track sits behind it.
+python3 - "${CARD}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+track = root.find(".//text[@name='cardStarTrack']")
+stars = root.find(".//text[@name='cardStars']")
+assert track is not None and stars is not None, "missing cardStarTrack/cardStars"
+assert track.findtext("text").count("") == 5, "track must be exactly 5 glyphs"
+assert stars.findtext("text").strip() == "{game:stars}"
+# They must align exactly: same anchor, font and size.
+for tag in ("pos", "origin", "fontPath", "fontSize"):
+    assert track.findtext(tag) == stars.findtext(tag), f"{tag} differs between track and stars"
+assert float(stars.findtext("zIndex")) > float(track.findtext("zIndex")), "stars must paint over track"
+PY
+check "star track and filled stars align and layer correctly" $?
+
+# The v0.11 fault: an unbounded description ran under the help strip.
+python3 - "${CARD}" "${COMMON}" <<'PY'
+import sys, re, xml.etree.ElementTree as ET
+card, common = sys.argv[1], sys.argv[2]
+src = open(common).read()
+def resolve(tok):
+    """Turn '${name}' into its numeric value from common.xml; pass numbers through."""
+    m = re.fullmatch(r"\$\{(\w+)\}", tok.strip())
+    if not m:
+        return float(tok)
+    v = re.search(rf"<{m.group(1)}>([^<]+)<", src)
+    assert v, f"{tok} is not defined in common.xml"
+    return float(v.group(1))
+root = ET.parse(card).getroot()
+d = root.find(".//text[@name='cardDesc']")
+assert d is not None, "no cardDesc"
+y = resolve(d.findtext("pos").split()[1])
+h = resolve(d.findtext("size").split()[1])
+assert y + h <= 0.94, f"cardDesc bottom {y + h:.3f} reaches the help strip at 0.94"
+PY
+check "cardDesc is height-bounded above the help strip" $?
+
 exit "${fail}"

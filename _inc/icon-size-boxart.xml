@@ -13,8 +13,10 @@
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-    <cardBoxartW>0.234</cardBoxartW>
-    <cardBoxartH>0.3125</cardBoxartH>
+    <cardBoxartW>0.22</cardBoxartW>
+    <cardBoxartH>0.29</cardBoxartH>
+    <cardMediaW>0.40</cardMediaW>
+    <cardMediaH>0.34</cardMediaH>
     <cardTextX>0.385</cardTextX>
     <cardTextW>0.585</cardTextW>
     <cardLineW>0.585</cardLineW>
