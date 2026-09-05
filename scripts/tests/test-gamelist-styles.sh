@@ -467,4 +467,25 @@ if failures:
 PY
 check "list style star track clears listMeta at every ratio" $?
 
+echo
+echo "docs and subset fold:"
+
+GUIDE="${REPO_ROOT}/docs/psp-xmb-style-guidelines.md"
+
+grep -q 'gamelistStyle' "${GUIDE}"
+check "style guide §8 documents the gamelistStyle subset" $?
+
+grep -qi 'supersede' "${GUIDE}"
+check "style guide records the superseded §10 decisions" $?
+
+# The old subsets were flagged as no-ops in §8; they must now be real.
+grep -q 'videoAudioEnabled' "${REPO_ROOT}/_inc/video-audio-on.xml"
+check "videoAudio subset sets videoAudioEnabled" $?
+
+! grep -q 'md_video' "${REPO_ROOT}/_inc/video-audio-on.xml"
+check "videoAudio no longer targets the hidden legacy md_video" $?
+
+grep -q 'Gamelist Style' "${REPO_ROOT}/README.md"
+check "README documents the Gamelist Style knob" $?
+
 exit "${fail}"

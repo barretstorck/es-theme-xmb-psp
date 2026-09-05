@@ -28,12 +28,14 @@
       <opacity>1.00</opacity>
     </image>
 
-    <!-- NOTE: waveLayer1/2/3 below are also declared verbatim in
-         _inc/gamelist.xml's <view name="detailed,gamecarousel"> block. That
-         duplication is intentional: on this Knulli ES build, storyboard
-         animations declared in this separate include do not fire on the
-         detailed/gamecarousel views, so those views carry their own copy.
-         Keep both copies in sync when tuning any wave property. -->
+    <!-- NOTE: waveLayer1/2/3 below are also declared verbatim in each of the
+         three v0.12 gamelist style files (_inc/gamelist-card.xml,
+         _inc/gamelist-list.xml, _inc/gamelist-grid.xml) inside their
+         <view> blocks. That duplication is intentional: on this Knulli ES
+         build, storyboard animations declared in this separate include do
+         not fire on the gamelist views, so those views each carry their
+         own copy. Keep all four copies in sync when tuning any wave
+         property. -->
     <!-- Wave layer 1: top crest, slowest scroll -->
     <image name="waveLayer1" extra="true">
       <path>./art/wave/wave-layer-1.png</path>
