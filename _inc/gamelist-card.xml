@@ -169,26 +169,26 @@
       <zIndex>8</zIndex>
     </image>
 
-    <!-- Inline video preview for the selected game. Single element tracking
-         selection via {game:video} rebinding (v6: kept as a single extra so
-         only ONE video plays at a time — does not regress the round-4
-         single-video-tracking behaviour). Audio-leak-on-hidden remains a
-         known on-device issue; not regressed here. -->
-    <video name="cardVideo" extra="true">
+    <!-- v0.12: screenshot -> video in ONE element. ES does this natively:
+         snapshotSource=image makes the still {game:image}; showSnapshotDelay
+         shows it during <delay>; showSnapshotNoVideo keeps it forever when a
+         game has no scraped video. v0.11 left both flags at their false
+         default, which is why it needed a separate image element.
+         <delay> is in SECONDS (VideoComponent.cpp:282 multiplies by 1000),
+         so the existing Video Delay subset drives the handoff.
+         <maxSize> never breaks aspect ratio (VideoComponent.h:95) — it
+         preserves the FILE's aspect, not the system's canonical one. -->
+    <video name="cardMedia" extra="true">
       <path>{game:video}</path>
-      <pos>${crossX} ${cardY}</pos>
-      <!-- v7 device-behaviour fix: was <size> which force-stretched the video
-           to the square boxart envelope, squishing non-square (e.g. 4:3 / 16:9)
-           videos. <maxSize> preserves the video's native aspect ratio,
-           letterboxing it inside the cardBoxartW x cardBoxartH envelope instead
-           of distorting it. NOTE: needs on-device verification — the harness has
-           no scraped video so this element does not render in static captures. -->
-      <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
+      <pos>${cardMediaX} ${cardMediaY}</pos>
+      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
       <origin>0.5 0.5</origin>
+      <snapshotSource>image</snapshotSource>
+      <showSnapshotDelay>true</showSnapshotDelay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
       <delay>${videoDelay}</delay>
-      <showSnapshotNoVideo>false</showSnapshotNoVideo>
-      <visible>exists({game:video})</visible>
-      <zIndex>9</zIndex>
+      <audio>${videoAudioEnabled}</audio>
+      <zIndex>8</zIndex>
     </video>
 
     <!-- Big title, right of the boxart, sitting just above the line. -->
@@ -215,31 +215,94 @@
       <zIndex>8</zIndex>
     </image>
 
-    <!-- Metadata below the line, LEFT: genre + stars. {game:lastplayed}
-         intentionally omitted (epoch leak on this build). -->
-    <text name="cardMetadata" extra="true">
+    <!-- Metadata line 1, column 1: genre. Clipped so it can never reach the
+         star column — this is what makes the v0.11 overflow impossible. -->
+    <text name="cardGenre" extra="true">
       <pos>${cardTextX} ${cardMetaY}</pos>
-      <size>${cardMetaW} 0.10</size>
+      <size>${cardGenreW} 0.04</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
       <color>${textSecondary}</color>
-      <text>{game:genre} · {game:stars}</text>
+      <text>{game:genre}</text>
       <alignment>left</alignment>
-      <verticalAlignment>top</verticalAlignment>
+      <multiLine>false</multiLine>
       <zIndex>8</zIndex>
     </text>
 
-    <!-- Scrolling description, RIGHT of the metadata, under the line.
-         v7 device-behaviour fix: smaller font (cardDescFontSize ~18px) plus a
-         NARROWER cardDescW (0.28 @ 4:3) so typical descriptions overflow the
-         box and the <autoScrollSpeed> marquee actually triggers on-device.
-         <autoScrollSpeed> drives the marquee (NOT <container> on this build);
-         tunable via the Scroll Speed subset. NOTE: marquee MOTION cannot be
-         verified in a static render — only the config + first frame are. -->
+    <!-- Column 2: dim five-glyph track, then the filled stars over it.
+         {game:stars} emits FILLED glyphs only (FileData.cpp:1924), so the
+         track supplies the empty half. The literal U+F005 resolves through
+         ES's per-glyph font fallback to fontawesome (Font.cpp:274-312), so
+         no <fontPath> override is needed and the advance widths match.
+         These two elements MUST stay identical except text/color/opacity/
+         zIndex, or the track will not sit under the stars. -->
+    <text name="cardStarTrack" extra="true">
+      <pos>${cardStarX} ${cardMetaY}</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>${cardMetaFontSize}</fontSize>
+      <color>${textSecondary}</color>
+      <opacity>0.35</opacity>
+      <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
+      <alignment>left</alignment>
+      <zIndex>7</zIndex>
+    </text>
+    <text name="cardStars" extra="true">
+      <pos>${cardStarX} ${cardMetaY}</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>${cardMetaFontSize}</fontSize>
+      <color>${textPrimary}</color>
+      <text>{game:stars}</text>
+      <alignment>left</alignment>
+      <zIndex>8</zIndex>
+    </text>
+
+    <!-- Column 3: player count. {game:playercount} normalises "1-4"/"2+"
+         to an integer; {game:players} would print the raw string. -->
+    <text name="cardPlayers" extra="true">
+      <pos>${cardPlayersX} ${cardMetaY}</pos>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>${cardMetaFontSize}</fontSize>
+      <color>${textSecondary}</color>
+      <text>{game:playercount}P</text>
+      <alignment>left</alignment>
+      <zIndex>8</zIndex>
+    </text>
+
+    <!-- Metadata line 2. {game:releaseyear} is the year binding — there is
+         NO {game:releasedate:%Y} format syntax on this build. -->
+    <text name="cardMeta2" extra="true">
+      <pos>${cardTextX} ${cardMeta2Y}</pos>
+      <size>${cardTextW} 0.04</size>
+      <origin>0 0</origin>
+      <fontPath>${fontLight}</fontPath>
+      <fontSize>0.026</fontSize>
+      <color>${textSecondary}</color>
+      <opacity>0.75</opacity>
+      <text>{game:releaseyear} · {game:developer}</text>
+      <alignment>left</alignment>
+      <multiLine>false</multiLine>
+      <zIndex>8</zIndex>
+    </text>
+
+    <!-- NOTE: no "2 / 10" position counter here (see approved mockup). There
+         is no per-game index binding on this build — FileData exposes no
+         index, and {system:total} is a whole-library game count, not a
+         cursor position (SystemData.cpp:2162). The gamecount subset only
+         touches the system-view carousel, so it cannot fill this corner
+         either. The mockup overstates what is implementable; the corner
+         stays empty. If a counter is wanted later it needs an ES-side
+         change, not a theme change. -->
+
+    <!-- v0.12: bounded block, full text width. v0.11's narrow marquee strip
+         ran under the help strip on-device because its size height did not
+         clip. If this STILL overflows on hardware, add <clipRect>. -->
     <text name="cardDesc" extra="true">
-      <pos>${cardDescX} ${cardMetaY}</pos>
-      <size>${cardDescW} 0.10</size>
+      <pos>${cardTextX} ${cardDescY}</pos>
+      <size>${cardTextW} ${cardDescH}</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>${cardDescFontSize}</fontSize>
@@ -247,7 +310,6 @@
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>
-      <autoScrollSpeed>200</autoScrollSpeed>
       <zIndex>8</zIndex>
     </text>
 
@@ -345,15 +407,15 @@
              Friendly subset, 0 in Strict (icon-only). Hidden on the selected
              row (the big card title takes over). -->
         <text name="tplPeekTitle">
-          <pos>${peekTextX} 0.5</pos>
-          <size>0.70 0.30</size>
-          <origin>0 0.5</origin>
+          <pos>${crossX} 0.79</pos>
+          <size>0.20 0.10</size>
+          <origin>0.5 0</origin>
           <fontPath>${fontLight}</fontPath>
           <fontSize>${peekTitleFontSize}</fontSize>
           <color>${textSecondary}</color>
           <text>{game:name}</text>
-          <alignment>left</alignment>
-          <verticalAlignment>center</verticalAlignment>
+          <alignment>center</alignment>
+          <multiLine>false</multiLine>
           <opacity>${titleUnselectedOpacity}</opacity>
           <storyboard event="activate">
             <animation property="opacity" from="${titleUnselectedOpacity}" to="0" duration="150" mode="linear"/>
