@@ -379,4 +379,74 @@ if failures:
 INNER_PY
 check "every {game:*}-binding text element disables emptyTextDefaults" $?
 
+echo
+echo "per-aspect overrides:"
+
+for ratio in 8x7 3x2 16x9 1x1; do
+  f="${REPO_ROOT}/_inc/aspect-${ratio}.xml"
+
+  grep -q 'cardMediaW' "${f}"
+  check "aspect-${ratio}.xml sets cardMediaW" $?
+
+  # Every ratio that changes cardMetaFontSize MUST re-check the star budget,
+  # or a wider track runs into the players column.
+  python3 - "${f}" "${REPO_ROOT}/_inc/common.xml" <<'PY'
+import sys, re
+def vals(path):
+    t = open(path).read()
+    return {k: v for k, v in re.findall(r"<(card(?:MetaFontSize|StarX|PlayersX))>([^<]+)<", t)}
+override, base = vals(sys.argv[1]), vals(sys.argv[2])
+fs = float(override.get("cardMetaFontSize", base["cardMetaFontSize"]))
+sx = float(override.get("cardStarX", base["cardStarX"]))
+px = float(override.get("cardPlayersX", base["cardPlayersX"]))
+w = fs * 0.85 * 768
+track = (5 * w + 4 * w * 0.25) / 1024
+assert sx + track < px, (
+    f"{sys.argv[1]}: track {sx:.3f}..{sx+track:.3f} collides with players at {px}")
+PY
+  check "aspect-${ratio}.xml star budget holds" $?
+done
+
+echo
+echo "style B list-style star/meta budget:"
+
+# gamelist-list.xml's listStars/listStarTrack fontSize is a fixed literal
+# (0.028), not a variable -- it cannot be overridden per ratio without
+# editing the style file, which is out of scope here. Its pixel width still
+# scales with actual screen height, so at ratios whose width:height departs
+# far enough from 4:3 the 5-glyph track can run into listMeta even with no
+# fontSize change at all. Render verification caught this touching/
+# overlapping at 1024x896 and 720x720 (per-ratio design surfaces below).
+python3 - "${REPO_ROOT}" <<'PY'
+import re, sys
+
+repo = sys.argv[1]
+list_xml = open(f"{repo}/_inc/gamelist-list.xml").read()
+fs = float(re.search(r'name="listStars".*?<fontSize>([^<]+)<', list_xml, re.S).group(1))
+
+common = open(f"{repo}/_inc/common.xml").read()
+base = dict(re.findall(r"<(listStarX|listMetaX)>([^<]+)<", common))
+
+# (width, height) of each ratio's design surface, matching the render matrix.
+DIMS = {"8x7": (1024, 896), "3x2": (1280, 854), "16x9": (1280, 720), "1x1": (720, 720)}
+
+failures = []
+for ratio, (w, h) in DIMS.items():
+    override = dict(re.findall(r"<(listStarX|listMetaX)>([^<]+)<",
+                                open(f"{repo}/_inc/aspect-{ratio}.xml").read()))
+    sx = float(override.get("listStarX", base["listStarX"]))
+    mx = float(override.get("listMetaX", base["listMetaX"]))
+    glyph_w = fs * 0.85 * h
+    track = (5 * glyph_w + 4 * glyph_w * 0.25) / w
+    if not (sx + track < mx):
+        failures.append(
+            f"aspect-{ratio}.xml: list star track {sx:.3f}..{sx+track:.3f} "
+            f"collides with listMeta at {mx}")
+
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+PY
+check "list style star track clears listMeta at every ratio" $?
+
 exit "${fail}"
