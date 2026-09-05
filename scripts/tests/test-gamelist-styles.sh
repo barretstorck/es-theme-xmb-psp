@@ -303,4 +303,40 @@ assert y + h <= 0.94, f"listDesc clipRect bottom {y + h:.3f} reaches the help st
 PY
 check "listDesc clipRect is height-bounded above the help strip" $?
 
+echo
+echo "style D — box art grid:"
+
+GRID="${REPO_ROOT}/_inc/gamelist-grid.xml"
+
+python3 - "${GRID}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+assert root.get("defaultView") == "grid"
+view = root.find("view")
+assert view.get("name") == "grid", f"view name is {view.get('name')}"
+ig = root.find(".//imagegrid[@name='gamegrid']")
+assert ig is not None, "no imagegrid"
+gt = root.find(".//gridtile")
+assert gt is not None, "no gridtile"
+# selectionMode/imageSizeMode confirmed present in this build (ThemeData.cpp:196-207)
+assert gt.findtext("imageSizeMode") == "maxSize", "tiles must preserve box-art aspect"
+PY
+check "style D declares imagegrid + gridtile in a grid view" $?
+
+python3 - "${GRID}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+t = root.find(".//text[@name='gridStarTrack']")
+s = root.find(".//text[@name='gridStars']")
+assert t is not None and s is not None, "missing gridStarTrack/gridStars"
+assert t.findtext("text").count("") == 5
+for tag in ("pos","origin","fontPath","fontSize"):
+    assert t.findtext(tag) == s.findtext(tag), f"{tag} differs"
+PY
+check "style D star track aligns with filled stars" $?
+
+# A grid has no textlist and must not carry the card spine.
+! grep -qE '<textlist|name="(cardBoxart|cardMedia|tplPeekIcon)"' "${GRID}"
+check "style D has no textlist or leftover card elements" $?
+
 exit "${fail}"
