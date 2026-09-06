@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Caption override for the "auto-favorites" collection.
+
+     system.xml's systemName caption renders ${system.theme}, which for a
+     real system is the short name we want (NES, SNES, PSX) but for an ES
+     collection is its theme-folder name — so the carousel read
+     "AUTO-ALLGAMES", "AUTO-FAVORITES", "AUTO-LASTPLAYED". ES has no
+     themeable binding for a collection's friendly name (${system.fullName}
+     would also expand real systems to their long manufacturer names), so
+     each collection gets a literal caption here.
+
+     Included AFTER _inc/system.xml in theme.xml: ES merges properties per
+     view+element and the last declaration wins, so this replaces only
+     <text> and inherits pos/size/font/color/forceUppercase from
+     system.xml. forceUppercase renders this as "FAVORITES". -->
+<theme>
+  <view name="system">
+    <text name="systemName" extra="true">
+      <text>Favorites</text>
+    </text>
+  </view>
+</theme>
