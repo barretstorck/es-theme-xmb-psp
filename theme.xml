@@ -197,6 +197,21 @@
   </subset>
 
   <include>./_inc/system.xml</include>
+
+  <!-- Friendly captions for ES collections. system.xml's systemName caption
+       renders ${system.theme}; for a collection that is its theme-folder
+       name, so the carousel read "AUTO-ALLGAMES" / "AUTO-FAVORITES" /
+       "AUTO-LASTPLAYED". These must load AFTER system.xml — ES merges
+       properties per view+element and the last declaration wins, so each
+       file replaces only <text> and inherits the caption's geometry, font
+       and forceUppercase. Real systems match no condition and keep
+       ${system.theme}, so NES/SNES/PSX are unaffected. -->
+  <include if="${system.theme} == 'auto-allgames'">./_inc/collection-name/auto-allgames.xml</include>
+  <include if="${system.theme} == 'auto-favorites'">./_inc/collection-name/auto-favorites.xml</include>
+  <include if="${system.theme} == 'auto-lastplayed'">./_inc/collection-name/auto-lastplayed.xml</include>
+  <include if="${system.theme} == 'auto-neverplayed'">./_inc/collection-name/auto-neverplayed.xml</include>
+  <include if="${system.theme} == 'auto-retroachievements'">./_inc/collection-name/auto-retroachievements.xml</include>
+
   <include>./_inc/menu.xml</include>
   <include>./_inc/wave-motion.xml</include>
 
