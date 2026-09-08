@@ -7,26 +7,26 @@
 
   v0.11 v7 (PR #32 on-device tweaks): selected card boxart 165px (0.161 x
   0.215), peek icons bumped proportionally 46px -> 75px (0.073 width-cap /
-  0.425 slot-height at glListH=0.69). Description font shrunk to ~16px (0.021)
-  and narrowed (cardDescW 0.39 -> 0.31) so it marquees on-device.
+  0.425 slot-height at glListH=0.69). Description font shrunk to ~16px (0.021);
+  the description now wraps full-width under cardTextW (v0.12 metadata
+  split), no longer marquees in a narrower column.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-    <cardBoxartW>0.161</cardBoxartW>
-    <cardBoxartH>0.215</cardBoxartH>
+    <cardBoxartW>0.155</cardBoxartW>
+    <cardBoxartH>0.205</cardBoxartH>
+    <cardMediaW>0.34</cardMediaW>
+    <cardMediaH>0.28</cardMediaH>
     <cardTextX>0.345</cardTextX>
     <cardTextW>0.625</cardTextW>
     <cardLineW>0.625</cardLineW>
     <cardTitleFontSize>0.060</cardTitleFontSize>
     <cardMetaFontSize>0.026</cardMetaFontSize>
     <cardDescFontSize>0.021</cardDescFontSize>
-    <cardDescX>0.58</cardDescX>
-    <cardDescW>0.31</cardDescW>
     <peekIconW>0.073</peekIconW>
     <peekIconH>0.425</peekIconH>
-    <peekTextX>0.30</peekTextX>
     <peekTitleFontSize>0.026</peekTitleFontSize>
   </variables>
 </theme>

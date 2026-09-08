@@ -18,9 +18,25 @@
 
     <!-- Card metadata font renormalized (P1 reasoning): 8:7 shares 4:3's
          1024px width but is taller, so the height-normalized 0.030 font
-         inflates to ~27px inside the same-width cardMetaW box and the
-         genre+stars line collides with cardDesc. 0.026 x 896 = 23px,
-         matching the 4:3 pixel size exactly. -->
+         inflates to ~27px — too large for the metadata row at this ratio.
+         0.026 x 896 = 23px, matching the 4:3 pixel size exactly. -->
     <cardMetaFontSize>0.026</cardMetaFontSize>
+
+    <!-- v0.12 gamelist styles -->
+    <cardMediaW>0.40</cardMediaW>
+    <cardMediaH>0.30</cardMediaH>
+    <cardDescH>0.160</cardDescH>
+    <gridTileH>0.230</gridTileH>
+
+    <!-- Added beyond the brief (found by rendering, not listed there):
+         style B's listStars/listStarTrack fontSize is fixed at 0.028 (not a
+         variable, gamelist-list.xml is out of scope to edit), so its pixel
+         width scales with height alone. At 1024x896 that inflates the
+         5-glyph track to where it lands flush against listMeta (0.700) with
+         ~0px clearance -- confirmed touching in the render. Shift listStarX
+         left to restore a ~20px gap; listMetaX is left untouched so its
+         0.27-wide box keeps the same right-edge margin as every other
+         ratio. -->
+    <listStarX>0.555</listStarX>
   </variables>
 </theme>
