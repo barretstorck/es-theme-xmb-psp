@@ -261,9 +261,10 @@ assert float(stars.findtext("zIndex")) > float(track.findtext("zIndex")), "stars
 PY
 check "star track and filled stars align and layer correctly" $?
 
-# The harness ES binary has zero VideoVlcComponent symbols / no libvlc, so
-# <video> draws nothing there — cardScreenshot is the always-present fallback
-# that must share cardMedia's anchor/envelope and sit behind it.
+# The default harness image has no VLC plugins, so <video> draws nothing there
+# (`render.sh --video` uses the image that can) — cardScreenshot is the
+# always-present fallback that must share cardMedia's anchor/envelope and sit
+# behind it.
 python3 - "${CARD}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
@@ -367,10 +368,10 @@ check "style B star track aligns with filled stars" $?
 ! grep -qE 'name="(cardBoxart|cardMedia|cardStars|tplPeekIcon)"' "${LIST}"
 check "style B does not carry leftover card elements" $?
 
-# Mirrors the style-A cardScreenshot/cardMedia check: the harness ES binary
-# has zero VideoVlcComponent symbols / no libvlc, so <video> draws nothing
-# there — listScreenshot is the always-present fallback that must share
-# listMedia's anchor/envelope and sit behind it.
+# Mirrors the style-A cardScreenshot/cardMedia check: the default harness image
+# has no VLC plugins, so <video> draws nothing there — listScreenshot is the
+# always-present fallback that must share listMedia's anchor/envelope and sit
+# behind it.
 python3 - "${LIST}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()

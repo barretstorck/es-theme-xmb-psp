@@ -152,11 +152,15 @@
     </image>
 
     <!-- v0.12: the media block is a PAIR, not one element.
-         ES's <video> alone would suffice on hardware, but the harness ES binary
-         has ZERO VideoVlcComponent symbols and no libvlc linkage — video support
-         is compiled out — so <video> draws nothing there, not even its snapshot,
-         and this whole region would be unverifiable. This image is the
-         always-present screenshot; the video paints over it on device. -->
+         ES's <video> alone would suffice on hardware. The pair exists because
+         the DEFAULT harness image cannot play video: libvlc is linked but VLC's
+         plugins are not installed, so <video> draws nothing there, not even its
+         snapshot, and this whole region would be unverifiable. (Not "compiled
+         out" — the symbols are present; that diagnosis was wrong, see #40.)
+         The harness's video flag selects a second image that does play video;
+         see docker/README.md. This image is the always-present screenshot; the
+         video paints over it on device. Collapsing the pair back to one
+         <video> is issue #41. -->
     <image name="listScreenshot" extra="true">
       <path>{game:image}</path>
       <pos>${listMediaX} ${listMediaY}</pos>

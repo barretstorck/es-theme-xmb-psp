@@ -136,7 +136,12 @@ Theme development and verification use the **Docker render harness** — it runs
 ```
 ./scripts/render.sh --view system
 ./scripts/render.sh --view gamelist --library <path> --resolution 1280x720
+./scripts/render.sh --view gamelist --library <path> --video --settle 4
 ```
+
+The default harness image links libvlc but ships none of VLC's plugins, so
+preview videos never play in it. `--video` builds a second image at the same ES
+pin that does play them; it is for video work only, not for layout.
 
 The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
 
