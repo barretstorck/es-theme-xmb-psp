@@ -26,6 +26,10 @@ aspect ratios should inherit any change unless noted.
   shipped). Entries G4, G5, G6, X1 in this audit are the audit-lens
   re-entries of roadmap items 2, 3+5, 1, and 4 respectively.
 - [`superpowers/specs/`](superpowers/specs/) — per-version design specs.
+- This audit is scoped to the v0.11 baseline, so its `_inc/gamelist.xml`
+  citations are historical evidence, not live paths: v0.12 split that file
+  into `_inc/gamelist-{card,list,grid}.xml` (PSP Card / List + Details /
+  Box Art Grid). See `superpowers/specs/2026-09-05-v0.12-gamelist-styles-design.md`.
 
 **Primary visual references:**
 - Four user-provided PSP XMB stills (cited as "PSP screenshot 1/2/3/4"

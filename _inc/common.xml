@@ -37,15 +37,16 @@
     <captionY>0.401</captionY>
     <countY>0.456</countY>
 
-    <!-- v0.11 v7 gamelist redesign (PR #32 on-device tweaks). The gamelist
-         header sits HIGHER than the system view's cross anchor. v7 lowered and
-         shrank the icon (glLogoY 0.14->0.18, maxSize 0.18->0.13 square) and
-         moved the caption down to stay tight below it (glCaptionY ~0.27).
-         These are gamelist-only and deliberately do NOT touch crossY/captionY
-         (which the system view still uses). See
-         docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png. -->
-    <glLogoY>0.18</glLogoY>
-    <glCaptionY>0.24</glCaptionY>
+    <!-- v0.11 v7 gamelist redesign (PR #32 on-device tweaks) — SUPERSEDED by v0.12.
+         The gamelist header sits HIGHER than the system view's cross anchor.
+         v7 experimented with lowering the icon (glLogoY 0.14->0.18, maxSize
+         0.18->0.13 square) and moving the caption down to stay tight below it
+         (glCaptionY ~0.27). v0.12 moved these HIGHER AGAIN to fix caption/icon
+         collision — see glLogoY/glCaptionY declarations at the v0.12 redesign
+         block below (around lines 122-123).
+         See docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png for
+         v0.11's design intent. These are gamelist-only and do NOT touch
+         crossY/captionY (which the system view uses). -->
 
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
@@ -110,17 +111,47 @@
          (peekIconH) because the peek icons live in the textlist itemTemplate.
          ==================================================================== -->
 
-    <!-- Card vertical anchor: the textlist's middle slot center. v7 widened the
-         uniform row spacing 0.22 -> 0.23 so the now-bigger 90px peeks keep a
-         ~12px gap to the 240px selected card. Row centers are 0.36 / 0.59 /
-         0.82; the card sits at 0.59. -->
-    <cardY>0.59</cardY>
+    <!-- v0.12: slot centres are forced even by <lines>3</lines>:
+         centre_i = glListTop + glListH*(i+0.5)/3 -> 0.335 / 0.585 / 0.835.
+         cardY MUST equal the middle centre. Widened from v0.11's 0.245/0.69
+         to move the peek rows clear of the enlarged card and the caption. -->
+    <glListTop>0.21</glListTop>
+    <glListH>0.75</glListH>
+    <cardY>0.585</cardY>
 
-    <!-- Textlist geometry so its 3 slot centers land at 0.36 / 0.59 / 0.82
-         (uniform 0.23 spacing). slotH = 0.23, glListTop = 0.36 - slotH/2 =
-         0.36 - 0.115 = 0.245; glListH = 3 * 0.23 = 0.69. -->
-    <glListTop>0.245</glListTop>
-    <glListH>0.69</glListH>
+    <!-- v0.12: header moved up so the caption stops colliding with the icon. -->
+    <glLogoY>0.110</glLogoY>
+    <glCaptionY>0.222</glCaptionY>
+
+    <!-- v0.12: screenshot/video block above the title. Fills the region that
+         was dead space, and is the media slot for the screenshot->video
+         handoff. Centred in the card's text column so square-ish sources
+         (10:9 Game Boy) and wide ones (16:9) both read as deliberate. -->
+    <cardMediaX>0.6775</cardMediaX>
+    <cardMediaY>0.290</cardMediaY>
+    <cardMediaW>0.40</cardMediaW>
+    <cardMediaH>0.34</cardMediaH>
+
+    <!-- v0.12: metadata line 1 is three FIXED columns. The star track is
+         always five glyphs wide and {game:stars} is 0-5, so both must be
+         left-aligned at one x; stars cannot flow after a variable-width
+         genre. Side effect: the v0.11 "long genre pushes stars to line 2"
+         fault becomes structurally impossible.
+         Budget at 4:3, cardMetaFontSize 0.030: track spans 0.530-0.645,
+         so genre is clipped at 0.135 and players starts at 0.680. Any
+         per-ratio change to cardMetaFontSize MUST re-check this. -->
+    <cardGenreW>0.135</cardGenreW>
+    <cardStarX>0.530</cardStarX>
+    <cardPlayersX>0.680</cardPlayersX>
+
+    <!-- v0.12: bounded description. v0.11 used size height 0.10, which did
+         NOT clip on-device and ran under the help strip. -->
+    <cardDescY>0.695</cardDescY>
+    <cardDescH>0.175</cardDescH>
+
+    <!-- v0.12: folds the videoAudio subset onto the new media element.
+         The subset previously targeted the hidden legacy md_video (no-op). -->
+    <videoAudioEnabled>false</videoAudioEnabled>
 
     <!-- Selected boxart: 240px square at 4:3 = 0.234 (W of 1024) x 0.3125
          (H of 768). maxSize preserves aspect, so for a square boxart the
@@ -133,7 +164,7 @@
          edge = crossX + cardBoxartW/2 = 0.24 + 0.117 = 0.357; + gap). -->
     <cardTextX>0.385</cardTextX>
     <cardTextW>0.585</cardTextW>
-    <cardTitleY>0.585</cardTitleY>
+    <cardTitleY>0.572</cardTitleY>
     <cardTitleFontSize>0.075</cardTitleFontSize>
 
     <!-- Horizontal line: from cardTextX to the right margin, bisecting the
@@ -141,40 +172,60 @@
     <cardLineW>0.585</cardLineW>
     <cardLineH>0.004</cardLineH>
 
-    <!-- Metadata (left) + scrolling description (right), below the line.
-         v7: cardMetaFontSize is the metadata size; the description has its own
-         smaller font (cardDescFontSize ~18px) so it marquees rather than wraps,
-         and cardDescW is narrowed so typical descriptions overflow and scroll
-         on-device. -->
-    <cardMetaY>0.61</cardMetaY>
-    <cardMetaW>0.22</cardMetaW>
+    <!-- Metadata row, below the line. v7: cardMetaFontSize is the metadata
+         size; the description below it has its own smaller font
+         (cardDescFontSize ~18px) and wraps within cardTextW (the v0.12
+         metadata split moved the description under cardTextX/cardTextW,
+         full-width — it no longer has its own narrower column). -->
+    <cardMetaY>0.602</cardMetaY>
+    <cardMeta2Y>0.643</cardMeta2Y>
     <cardMetaFontSize>0.030</cardMetaFontSize>
     <cardDescFontSize>0.023</cardDescFontSize>
-    <cardDescX>0.62</cardDescX>
-    <cardDescW>0.28</cardDescW>
 
     <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
          peekIconW = 90/1024 = 0.088 (screen width cap); peekIconH = 90/176.6 =
          0.51 (slot height; slot ~176.6px tall at 4:3 = glListH*768/3 with
-         glListH=0.69). Overridden smaller by the Compact subset. peekTextX
-         positions the Friendly peek title right of the peek icon (peek right
-         edge = crossX + peekIconW/2). -->
+         glListH=0.69). Overridden smaller by the Compact subset. -->
     <peekIconW>0.088</peekIconW>
     <peekIconH>0.51</peekIconH>
-    <peekTextX>0.31</peekTextX>
     <peekTitleFontSize>0.030</peekTitleFontSize>
 
     <!-- Title Visibility subset controls ONLY the peek title's opacity:
          Strict (PSP-Faithful) = 0 (icon-only peeks); Friendly = 1. -->
     <titleUnselectedOpacity>0</titleUnselectedOpacity>
 
+    <!-- v0.12 style B (List + Details). Geometry from the approved mockup
+         b-playstation-x.png. Independent of the card's crossX spine. -->
+    <listMediaX>0.765</listMediaX>
+    <listMediaY>0.300</listMediaY>
+    <listMediaW>0.34</listMediaW>
+    <listMediaH>0.30</listMediaH>
+    <listStarX>0.575</listStarX>
+    <listMetaX>0.700</listMetaX>
+    <listDescY>0.600</listDescY>
+    <listDescH>0.280</listDescH>
+
     <!-- Video preview delay, in the units ES's <video><delay> expects (seconds,
          matching the values written by _inc/video-delay-*.xml subsets).
          Default 5 matches the pre-v0.11 default; the four user-facing subsets
          (Instant/2s/5s/10s) override this via the videoDelay variable. -->
     <videoDelay>5</videoDelay>
+
+    <!-- v0.12 style D (Box Art Grid). Geometry from the approved mockup
+         d-boxart-grid.png: 4 columns x 2 visible rows, info bar beneath. -->
+    <gridTileW>0.185</gridTileW>
+    <gridTileH>0.255</gridTileH>
+    <gridInfoY>0.795</gridInfoY>
+    <gridStarX>0.680</gridStarX>
   </variables>
 
+  <!-- NOTE: "grid" is deliberately ABSENT from this list. Declaring it here
+       makes ThemeData::hasView("grid") true unconditionally, which hijacks any
+       user who has pinned ES's own Gamelist View Style to "grid": ES then
+       builds an unstyled GridGameListView instead of falling back to the
+       theme's defaultView. Style D carries its own copy of these elements in
+       _inc/gamelist-grid.xml so the grid view is only registered when that
+       style is actually selected. Keep the two copies in sync. -->
   <view name="system,detailed,gamecarousel,menu">
     <!-- Sounds (replace ES default click sounds) -->
     <sound name="systemscroll">
