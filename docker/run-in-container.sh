@@ -8,6 +8,10 @@ RESOLUTION="${RESOLUTION:-1024x768}"
 COLORSET="${COLORSET:-January Blue}"
 OUTNAME="${OUTNAME:-render.png}"
 HAS_LIBRARY="${HAS_LIBRARY:-0}"
+CAROUSEL_RIGHT="${CAROUSEL_RIGHT:-0}"
+SETTLE="${SETTLE:-0}"
+FRAMES="${FRAMES:-1}"
+FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 
 ES_CFG="/userdata/system/configs/emulationstation"
 
@@ -96,6 +100,8 @@ SUBSET_LINES=""
 [[ -n "${ICON_SIZE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.iconSize\" value=\"${ICON_SIZE}\" />"$'\n'
 [[ -n "${TITLE_VISIBILITY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.titleVisibility\" value=\"${TITLE_VISIBILITY}\" />"$'\n'
 [[ -n "${GAMELIST_STYLE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.gamelistStyle\" value=\"${GAMELIST_STYLE}\" />"$'\n'
+[[ -n "${VIDEO_DELAY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.videoDelay\" value=\"${VIDEO_DELAY}\" />"$'\n'
+[[ -n "${VIDEO_AUDIO:-}" ]] && SUBSET_LINES+="  <string name=\"subset.videoAudio\" value=\"${VIDEO_AUDIO}\" />"$'\n'
 
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
@@ -140,6 +146,9 @@ case "${VIEW}" in
   system)
     : ;;                                   # already on the system carousel
   gamelist|gamecarousel)
+    # Right walks the system carousel; the harness enters whichever system is
+    # selected. Needed to reach a system whose games have scraped video.
+    for _i in $(seq 1 "${CAROUSEL_RIGHT}"); do key Right 1; done
     key Return 4
     for _i in $(seq 1 "${GAMELIST_DOWN:-0}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
   menu)
@@ -147,6 +156,14 @@ case "${VIEW}" in
     key space 3 ;;
 esac
 sleep 2
+
+# Video previews only appear after the theme's <delay> seconds of still
+# snapshot (VideoComponent.cpp:282 converts it to ms), so a capture taken
+# immediately shows the snapshot, never a playing frame. --settle waits it out.
+if (( SETTLE > 0 )); then
+  echo "settling ${SETTLE}s before capture" >&2
+  sleep "${SETTLE}"
+fi
 
 # Fail loudly if ES died before we could screenshot, instead of capturing a
 # blank frame and reporting success.
@@ -158,7 +175,17 @@ if ! kill -0 "${ES_PID}" 2>/dev/null; then
 fi
 
 # --- screenshot ---
-import -window root "/harness-out/${OUTNAME}"
+# One frame by default. --frames captures a sequence FRAME_INTERVAL seconds
+# apart, which is how a *transition* (snapshot -> video) gets verified: a
+# single still cannot show a handoff.
+if (( FRAMES > 1 )); then
+  for i in $(seq 1 "${FRAMES}"); do
+    import -window root "/harness-out/${OUTNAME%.png}-${i}.png"
+    if (( i < FRAMES )); then sleep "${FRAME_INTERVAL}"; fi
+  done
+else
+  import -window root "/harness-out/${OUTNAME}"
+fi
 
 kill "${ES_PID}" 2>/dev/null || true
 kill "${XVFB_PID}" 2>/dev/null || true
