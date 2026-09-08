@@ -28,8 +28,65 @@ reproduce — judge colour-critical changes with that in mind.
 - `--library` — path to a Knulli `userdata`-shaped library; required for the
   `gamelist` and `gamecarousel` views
 - `--out` — host path for the PNG (default `.dev/render.png`)
+- `--carousel-right N` — press Right N times on the system carousel before
+  entering a gamelist, to land on a system other than the first
+- `--settle N` — wait N more seconds after navigating, before capturing
+- `--frames N` / `--frame-interval S` — capture a sequence instead of one still,
+  to `<out>-1.png` … `<out>-N.png`
+- `--video` — use the video-capable image (see below)
+
+Subsets can be pinned per render with the `ICON_SIZE`, `TITLE_VISIBILITY`,
+`GAMELIST_STYLE`, `VIDEO_DELAY` and `VIDEO_AUDIO` environment variables.
 
 The first run builds the Docker image (~5–10 min, ~2–3 GB), cached thereafter.
+
+## Video
+
+There are two images, both built from this one `Dockerfile` at the **same ES
+pin**, selected by the `WITH_VIDEO` build arg:
+
+| image | built by | use it for |
+|---|---|---|
+| `es-xmb-harness:knulli-9bbb16a` | `render.sh` (default) | everything: layout, colorsets, `scripts/tests/` |
+| `es-xmb-harness:knulli-9bbb16a-video` | `render.sh --video` | preview video only (`<video>` elements) |
+
+The default image links `libvlc` but installs none of VLC's plugins, so
+`libvlc_new()` returns an instance that cannot open a single file and every
+`<video>` element stays dark. The video image adds `vlc-plugin-base` and one
+source patch, `docker/patches/vlc-parse-no-block.patch`.
+
+That patch is needed because of a hang, not a missing feature. In this ES build
+`VideoVlcComponent::startVideo()` waits for `libvlc_media_parsed_status_done`
+and *only* that status:
+
+    libvlc_media_parse_with_options(mMedia, libvlc_media_parse_local, 0);
+    while (libvlc_media_get_parsed_status(mMedia) != libvlc_media_parsed_status_done)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+libvlc answers `failed` (2) for anything that is not a media file, so that loop
+never ends and it runs on the **main thread**. A `<video extra="true">` bound to
+`{game:video}` holds the literal string `{game:video}` as its path until
+`BindingManager` resolves it (`VideoComponent.cpp:326` keeps any path starting
+with `{`), and if the view is shown first, ES freezes with the last frame still
+on screen — it looks exactly like a keystroke that did not land. Upstream
+batocera has since replaced the whole blocking wait with an async
+`mIsParsing` poll in `update()`; the patch is the minimal equivalent, leaving
+the loop on any terminal status.
+
+**The patch is why the video image is not authoritative for layout.** Keep
+using the default image for everything else, so layout renders come from an
+unmodified build of what the device runs.
+
+Preview video only starts after the theme's `<delay>`, so a capture has to
+outlast it:
+
+    GAMELIST_STYLE="PSP Card" VIDEO_DELAY=Instant \
+      ./scripts/render-fixtures.sh --video --view gamelist \
+        --carousel-right 1 --settle 4 --out .dev/video.png
+
+`tests/fixtures/library` ships two short clips (psx/ff7, snes/super-metroid)
+alongside games that have a screenshot but no video, which is what exercises
+`showSnapshotNoVideo`. See `tests/fixtures/README.md`.
 
 ## Test library
 
