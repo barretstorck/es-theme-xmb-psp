@@ -105,13 +105,17 @@ case "${VIEW}" in
   *)            GLVIEW="automatic" ;;
 esac
 
-# Optional subset pins (ICON_SIZE / TITLE_VISIBILITY / GAMELIST_STYLE envs).
-# Generic subsets persist as "subset.<name>" (GuiMenu.cpp:3276); empty env =
-# theme default.
+# Optional subset pins (ICON_SIZE / TITLE_VISIBILITY / GAMELIST_STYLE /
+# SCROLL_SPEED envs). Generic subsets persist as "subset.<name>"
+# (GuiMenu.cpp:3276); empty env = theme default.
 SUBSET_LINES=""
 [[ -n "${ICON_SIZE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.iconSize\" value=\"${ICON_SIZE}\" />"$'\n'
 [[ -n "${TITLE_VISIBILITY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.titleVisibility\" value=\"${TITLE_VISIBILITY}\" />"$'\n'
 [[ -n "${GAMELIST_STYLE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.gamelistStyle\" value=\"${GAMELIST_STYLE}\" />"$'\n'
+# scrollSpeed sets the description auto-scroll cadence in ms per pixel step.
+# Unpinned it falls to the subset's first include (Normal, 150ms) — so a
+# render only ever exercises one of the three without this.
+[[ -n "${SCROLL_SPEED:-}" ]] && SUBSET_LINES+="  <string name=\"subset.scrollSpeed\" value=\"${SCROLL_SPEED}\" />"$'\n'
 # videoDelay is pinned rather than left at the theme's own 5s default. Video
 # plays here now, and a capture taken ~6s after entering a gamelist lands
 # mid-playback on an arbitrary frame, so any render of a game with a scraped

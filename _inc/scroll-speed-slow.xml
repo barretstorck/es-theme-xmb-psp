@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   es-theme-xmb-psp - "Scroll Speed: Slow".
-  Sets autoScrollSpeed=300ms on the gamelist description text, giving
-  more time per line. Use if you find the default scrolling too fast.
+  Sets autoScrollSpeed=300ms on the scrolling gamelist descriptions.
+  Half the default rate, for reading rather than skimming.
   Selected via UI Settings > Theme Configuration > Scroll Speed > Slow.
-  v0.11 round 4 (bug 21): retargeted from md_description (old info-panel
-  element, removed in the v0.11 redesign) to tplDesc (per-row description
-  text inside the itemTemplate).
+
+  The value is milliseconds between one-pixel steps, NOT a rate - larger is
+  slower. It is read only by the vertical scroll path
+  (TextComponent.cpp:471,487); the horizontal marquee computes its own speed
+  from font metrics and ignores this property entirely (:449).
+
+  Targets cardDesc (PSP Card) and listDesc (List + Details) - the only two
+  descriptions in the theme. Box Art Grid is deliberately art-first and has no
+  description element, so it has no target here; that is a decision, not an
+  omission (#38). Setting a property on an element the selected style does not
+  define is a silent no-op - which is exactly how this subset stayed dead from
+  v0.11 through v0.12, still naming an element that two redesigns had renamed
+  out from under it. scripts/tests/test-scroll-speed.sh now fails if any name
+  here is absent from every style file.
+
+  Both scrolling styles declare <view name="detailed,gamecarousel">. Do not add
+  the grid view name: any parsed file that registers a view makes hasView()
+  true for it, which is how an unstyled built-in grid got built for users who
+  had pinned that Gamelist View Style (fixed in b5e2063).
+
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
   <formatVersion>7</formatVersion>
   <view name="detailed,gamecarousel">
-    <text name="tplDesc">
+    <text name="cardDesc">
+      <autoScrollSpeed>300</autoScrollSpeed>
+    </text>
+    <text name="listDesc">
       <autoScrollSpeed>300</autoScrollSpeed>
     </text>
   </view>

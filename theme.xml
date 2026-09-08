@@ -26,11 +26,14 @@
        includes. videoAudio moved into this group in v0.12 when it was
        folded onto the new media elements (see its subset comment below) -
        before that it targeted the hidden legacy md_video element and its
-       position didn't matter. scrollSpeed remains declared near the end of
-       this file, unmoved: it targets a named element (tplDesc) that no
-       longer exists in any of the three v0.12 style files, so it is a
-       pre-existing no-op regardless of position (see §8 of the style
-       guide). Gamecount can go anywhere since it only affects element
+       position didn't matter. scrollSpeed stays declared near the end of
+       this file, and that position is load-bearing: it sets
+       autoScrollSpeed on cardDesc / listDesc, so it must be parsed AFTER
+       the gamelistStyle subset that defines them. Element properties
+       merge last-write-wins at parse time, so a style file that later
+       grew its own autoScrollSpeed would silently beat the user's
+       choice from anywhere earlier (§7.4 of the style guide).
+       Gamecount can go anywhere since it only affects element
        visibility, not color variables. -->
 
   <include>./_inc/common.xml</include>
