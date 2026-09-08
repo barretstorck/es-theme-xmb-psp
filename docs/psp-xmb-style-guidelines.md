@@ -1308,23 +1308,50 @@ storyboard, not the halo.
 
 ### 7.4 Description auto-scroll
 
-**Superseded in v0.12.** The old `md_description` `<container>` was
-already gone in v0.11 (see §6.7's style-A metadata table). v0.11's
-`cardDesc` was a small, narrow text box that deliberately overflowed
-and **marqueed**. v0.12 replaced that with a **bounded, non-scrolling
-block** — `cardDesc` (style A) and its style-B equivalent are now
-sized and `<clipRect>`-bound to their full text-column width and a
-fixed line count, so overflow clips instead of marqueeing (§6.7).
-There is no live marquee behaviour left for the `scrollSpeed` subset
-to drive.
+**Settled (#38): descriptions scroll, and they scroll inside their
+bounds.** `cardDesc` (style A) and `listDesc` (style B) each carry
+`<autoScroll>vertical</autoScroll>` alongside the `<clipRect>` that
+bounds them. Box Art Grid has no description element at all — its info
+bar is a caption, not a detail panel — so the setting has **no effect
+in that style**, by decision rather than omission.
 
-**Known drift (Scroll Speed subset is a no-op — unchanged by v0.12):**
-the `scrollSpeed` subset files (`_inc/scroll-speed-*.xml` — Normal
-`150` / Slow `300` / Fast `75`) target a `<text name="tplDesc">`
-element that does not exist in any of the three v0.12 style files (it
-was already absent from the v0.11 card list, having been renamed
-`cardDesc`). This subset predates the description going bounded and
-has had no effective target since v0.11; v0.12 did not fix it (§8).
+**History, because this reversed twice.** The `md_description`
+`<container>` went in v0.11 (§6.7). v0.11's `cardDesc` was a narrow
+box that deliberately overflowed and **marqueed** — and on-device it
+ran *under the help strip*, because `<size>` does not clip on this
+build. v0.12 fixed the overflow by making the block bounded and
+`<clipRect>`-scoped, and removed the scrolling with it, which left
+long descriptions simply cut off. #38 restores the scroll while
+keeping the bounds. Do **not** "fix" a future overflow by reverting to
+the narrow strip.
+
+**Why bounding and scrolling coexist.** A vertically-scrolling text
+pushes its own rect as a clip (`TextComponent.cpp:208`), and
+`Renderer::pushClipRect` *intersects* with whatever is already on the
+clip stack rather than replacing it (`Renderer.cpp:454`) — the two
+nest. The scroll math never reads `mClipRect` (`:471`), so a clipRect
+cannot switch scrolling off. Vertical scroll additionally applies
+`:/shaders/vscrolleffect.glsl`, which fades the top and bottom edges.
+
+**Two properties, not one — this is what kept the subset dead.**
+`mAutoScroll` defaults to `AutoScrollType::NONE`
+(`TextComponent.cpp:15`). `<autoScrollSpeed>` is read only *after* a
+component has left `NONE`, so the `scrollSpeed` subset was inert from
+v0.11 through v0.12 for **two** independent reasons: it named an
+element that had been renamed out from under it (`md_description` →
+`tplDesc` → `cardDesc`), and no element in the theme had ever set
+`<autoScroll>` at all. Fixing only the name would have produced a
+second silent no-op. `scripts/tests/test-scroll-speed.sh` guards both:
+it fails if a subset names an element absent from every style file, and
+if either description loses its `autoScroll` or its `clipRect`.
+
+**`autoScrollSpeed` is milliseconds between one-pixel steps, not a
+rate** — larger is slower. Normal `150` is ES's own default
+(`AUTO_SCROLL_SPEED`, `TextComponent.cpp:9`), Slow `300`, Fast `75`.
+Only the vertical path reads it; the horizontal marquee derives its
+speed from font metrics and ignores the property entirely (`:449`).
+`autoScrollDelay` is left at ES's 6000ms default, so a description
+holds still long enough to start reading before it moves.
 
 ### 7.5 Video preview delay
 
@@ -1397,7 +1424,7 @@ runtime (UI Settings → Theme Configuration). This theme exposes
 | `videoAudio` (Video Audio) | Off / On | Off | Audio on the preview video. Sets `${videoAudioEnabled}`, consumed by `cardMedia`/`listMedia`'s `<audio>` property (styles A and B). Before v0.12 this subset targeted the hidden legacy video element and was a no-op; folded onto the real media elements in v0.12 — §7 of the v0.12 design spec. |
 | `gamelistStyle` (Gamelist Style) | PSP Card / List + Details / Box Art Grid | PSP Card | Selects the whole gamelist layout. Each variant is a full `<view>` definition whose root `defaultView` attribute picks the ES view type, so this subset MUST be declared after `aspect-*.xml` — see §6.7 and §10's Box Art Grid risk. |
 | `gamecount` (Game Count) | Hide / Show | Hide | Whether to show "X GAMES" count caption |
-| `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Description marquee cadence (⚠️ still a no-op — targets `tplDesc`, an itemTemplate element that existed in the pre-v0.11 gamelist but is not present in any of the three v0.12 style files, §7.4) |
+| `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Cadence of the description auto-scroll, in ms per pixel step — larger is slower. Drives `cardDesc` (PSP Card) and `listDesc` (List + Details); **no effect in Box Art Grid**, which has no description (§7.4) |
 
 Each subset variant lives in a small XML file in `_inc/` (colorsets
 in `colors/`). **Rule:** keep subset variants surgical — either a
@@ -1423,7 +1450,7 @@ sat after `gamelistStyle`, targeting a hidden element, so its
 position didn't matter; moving it to set a real variable required
 moving it earlier too). `gamecount` and `scrollSpeed` can stay after
 `gamelistStyle` — `gamecount` only touches system-view visibility,
-and `scrollSpeed` is already a no-op regardless of position.
+and `scrollSpeed` is already positioned after `gamelistStyle`, which is what it needs: element properties merge last-write-wins at parse time, so a subset only overrides a style's own value if it is parsed afterwards (§7.4).
 
 The old `gameListView` subset (Gamelist View Style: detailed /
 gamecarousel / automatic) was **removed in v0.11**, when both ES

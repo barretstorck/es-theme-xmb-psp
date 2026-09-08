@@ -49,6 +49,10 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
     ICON_SIZE=Boxart|Compact
     TITLE_VISIBILITY="PSP-Faithful"|"With Titles"
     GAMELIST_STYLE="PSP Card"|"List + Details"|"Box Art Grid"
+    SCROLL_SPEED=Normal|Slow|Fast
+                (description auto-scroll cadence, ms per pixel step — larger
+                 is slower. Scrolling starts after ES's 6s autoScrollDelay, so
+                 pair with --settle 8 and --frames to see it move.)
     VIDEO_DELAY=Instant|"2 seconds"|"5 seconds"|"10 seconds"
                 (unset pins "10 seconds", so a capture lands on the still —
                  see docker/run-in-container.sh)
@@ -157,7 +161,7 @@ DOCKER_ARGS+=(
   -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
   -e GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
   -e ICON_SIZE="${ICON_SIZE:-}" -e TITLE_VISIBILITY="${TITLE_VISIBILITY:-}"
-  -e GAMELIST_STYLE="${GAMELIST_STYLE:-}"
+  -e GAMELIST_STYLE="${GAMELIST_STYLE:-}" -e SCROLL_SPEED="${SCROLL_SPEED:-}"
   -e VIDEO_DELAY="${VIDEO_DELAY:-}" -e VIDEO_AUDIO="${VIDEO_AUDIO:-}"
   -e CAROUSEL_RIGHT="${CAROUSEL_RIGHT}" -e SETTLE="${SETTLE}"
   -e FRAMES="${FRAMES}" -e FRAME_INTERVAL="${FRAME_INTERVAL}"
