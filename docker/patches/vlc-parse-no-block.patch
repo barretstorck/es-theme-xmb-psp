@@ -1,0 +1,22 @@
+diff --git a/es-core/src/components/VideoVlcComponent.cpp b/es-core/src/components/VideoVlcComponent.cpp
+index 3284a2530..7b8ad0f5b 100644
+--- a/es-core/src/components/VideoVlcComponent.cpp
++++ b/es-core/src/components/VideoVlcComponent.cpp
+@@ -788,7 +788,16 @@ void VideoVlcComponent::startVideo()
+ 			libvlc_media_parse(mMedia);
+ #else
+ 			libvlc_media_parse_with_options(mMedia, libvlc_media_parse_local, 0);
+-			while (libvlc_media_get_parsed_status(mMedia) != libvlc_media_parsed_status_done)
++			// HARNESS PATCH: wait only while the parse is still RUNNING (status 0),
++			// and give up after 3 seconds. The pinned code waits for
++			// libvlc_media_parsed_status_done and nothing else, so any other terminal
++			// status - notably 2/failed, which is what libvlc returns for a path that
++			// is not a media file - spins this loop on the main thread forever and
++			// freezes ES. Upstream batocera replaced the blocking wait with an async
++			// mIsParsing poll in update(); this is the minimal equivalent. If the
++			// parse did not finish, no video track is found below and the element
++			// just keeps showing its snapshot.
++			for (int waited = 0; waited < 300 && (int)libvlc_media_get_parsed_status(mMedia) == 0; waited++)
+ 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+ #endif
+ 			libvlc_media_track_t** tracks;
