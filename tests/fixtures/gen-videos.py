@@ -91,9 +91,20 @@ def encode(frames, out_path, size):
         "-movflags", "+faststart", target,
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    for img in frames:
-        img.save(proc.stdin, format="PNG")
-    proc.stdin.close()
+    try:
+        for img in frames:
+            img.save(proc.stdin, format="PNG")
+    except BrokenPipeError:
+        # ffmpeg exited early (missing encoder, unwritable target, bad docker
+        # mount). Its own stderr is already on the terminal; swallow the pipe
+        # error so the exit status below reports it, rather than burying the
+        # cause under a traceback from the middle of the frame loop.
+        pass
+    finally:
+        try:
+            proc.stdin.close()
+        except BrokenPipeError:
+            pass
     if proc.wait() != 0:
         raise SystemExit(f"ffmpeg failed for {out_path}")
 

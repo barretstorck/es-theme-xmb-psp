@@ -184,14 +184,12 @@
     </image>
 
     <!-- v0.12: the media block is a PAIR, not one element.
-         ES's <video> alone would suffice on hardware. The pair exists because
-         the DEFAULT harness image cannot play video: libvlc is linked but VLC's
-         plugins are not installed, so <video> draws nothing there, not even its
-         snapshot, and this whole region would be unverifiable. (Not "compiled
-         out" — the symbols are present; that diagnosis was wrong, see #40.)
-         The harness plays video since #40, so the pair is no longer load
-         bearing: this image is the always-present screenshot, the video paints
-         over it, and collapsing the two into one <video> is issue #41. -->
+         ES's <video> alone would suffice on hardware, and since #40 the harness
+         image plays video as well (VLC's plugins are installed and the parse
+         wait is patched), so the pair is no longer load bearing. It survives
+         only as history: this image is the always-present screenshot and the
+         video paints over it. Collapsing the two into one <video> is issue #41.
+         -->
     <image name="cardScreenshot" extra="true">
       <path>{game:image}</path>
       <pos>${cardMediaX} ${cardMediaY}</pos>

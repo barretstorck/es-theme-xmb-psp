@@ -99,6 +99,31 @@ check "the settle wait happens before the screenshot" $?
 grep -q 'OUTNAME%.png}-${i}.png' "${REPO_ROOT}/docker/run-in-container.sh"
 check "--frames writes numbered captures" $?
 
+# A --frames run can span minutes. Checking ES is alive only once, up front,
+# turns a mid-sequence crash into blank PNGs and exit 0.
+python3 - "${REPO_ROOT}/docker/run-in-container.sh" <<'FRAMEGUARD'
+import sys
+s = open(sys.argv[1]).read()
+loop = s.index('for i in $(seq 1 "${FRAMES}")')
+shot = s.index('import -window root "/harness-out/${OUTNAME%.png}', loop)
+sys.exit(0 if 'require_es_alive' in s[loop:shot] else 1)
+FRAMEGUARD
+check "every --frames capture re-checks that ES is alive" $?
+
+# `(( 08 ))` is an octal parse error, so a zero-padded --frames/--settle would
+# silently do the wrong thing rather than fail.
+grep -q '10#' "${REPO_ROOT}/scripts/render.sh"
+check "render.sh forces base-10 on its numeric arguments" $?
+
+grep -q '10#' "${REPO_ROOT}/docker/run-in-container.sh"
+check "run-in-container.sh forces base-10 on its numeric envs" $?
+
+# ES silently ignores an unknown subset value and falls back to the theme
+# default, so a typo'd VIDEO_DELAY would quietly reintroduce the very
+# nondeterminism the pin was added to remove.
+grep -q 'check_pin VIDEO_DELAY' "${REPO_ROOT}/scripts/render.sh"
+check "render.sh validates the VIDEO_DELAY pin against theme.xml" $?
+
 echo
 echo "fixture video assets:"
 
@@ -112,8 +137,13 @@ for rel in psx/media/videos/ff7.mp4 snes/media/videos/super-metroid.mp4; do
   check "${rel} is an MP4 container" $?
 done
 
-grep -q '<video>./media/videos/ff7.mp4</video>' "${LIB}/psx/gamelist.xml"
-check "psx/gamelist.xml wires ff7's video" $?
+# Both clips, not just psx: an unwired video is an unreachable fixture, and the
+# snes one is the 8:7 clip that makes the aspect mismatch of #41 visible.
+for rel in psx/media/videos/ff7.mp4 snes/media/videos/super-metroid.mp4; do
+  sys="${rel%%/*}"
+  grep -q "<video>./media/videos/${rel##*/}</video>" "${LIB}/${sys}/gamelist.xml"
+  check "${sys}/gamelist.xml wires ${rel##*/}" $?
+done
 
 # The showSnapshotNoVideo path needs a game with an image and no video.
 python3 - "${LIB}/psx/gamelist.xml" <<'PY'
@@ -133,11 +163,24 @@ echo "docs:"
 grep -q 'knulli-9bbb16a-r2' "${REPO_ROOT}/docker/README.md"
 check "docker/README.md names the current image tag" $?
 
-# The old claim was that video support is compiled out of the binary. The
-# README may now say the opposite; what it must not do is repeat the claim.
-! grep -qE 'support is compiled out|no libvlc linkage|zero .?VideoVlcComponent' \
-    "${REPO_ROOT}/docker/README.md"
-check "docker/README.md does not repeat the 'compiled out' claim" $?
+# Two claims are now dead: that video support is compiled out of the binary,
+# and that the harness image lacks VLC's plugins. A file may say the opposite;
+# what it must not do is repeat either. This covers the live theme XML as well
+# as the READMEs — the comment beside the screenshot/video pair is exactly
+# where the next person reads WHY the pair exists (#41), so a stale claim there
+# does more damage than one in a doc. docs/superpowers/ is deliberately out of
+# scope: those are dated design records of what was believed at the time.
+STALE_RE='support is compiled out|cannot play video|plugins are not installed'
+STALE_RE+='|no libvlc linkage|zero .?VideoVlcComponent'
+STALE_HITS="$(grep -rlE "${STALE_RE}" \
+    "${REPO_ROOT}/README.md" "${REPO_ROOT}/docker/README.md" \
+    "${REPO_ROOT}/theme.xml" "${REPO_ROOT}"/_inc/*.xml 2>/dev/null || true)"
+[[ -z "${STALE_HITS}" ]]
+check "no README or live theme file repeats the 'harness cannot play video' claim" $?
+if [[ -n "${STALE_HITS}" ]]; then
+  echo "         stale in:" >&2
+  sed "s|^${REPO_ROOT}/|           |" <<<"${STALE_HITS}" >&2
+fi
 
 grep -q 'Preview video plays here' "${REPO_ROOT}/docker/README.md"
 check "docker/README.md states that video plays" $?

@@ -12,6 +12,18 @@ CAROUSEL_RIGHT="${CAROUSEL_RIGHT:-0}"
 SETTLE="${SETTLE:-0}"
 FRAMES="${FRAMES:-1}"
 FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
+GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
+
+# These arrive as strings and are all used in `(( ))`, which reads a leading
+# zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
+# re-print base-10 so a zero-padded value cannot silently change behaviour.
+for _n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL GAMELIST_DOWN; do
+  if [[ ! "${!_n}" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: ${_n} must be a non-negative integer (got '${!_n}')" >&2
+    exit 2
+  fi
+  printf -v "${_n}" '%d' "$((10#${!_n}))"
+done
 
 ES_CFG="/userdata/system/configs/emulationstation"
 
@@ -156,7 +168,7 @@ case "${VIEW}" in
     # selected. Needed to reach a system whose games have scraped video.
     for _i in $(seq 1 "${CAROUSEL_RIGHT}"); do key Right 1; done
     key Return 4
-    for _i in $(seq 1 "${GAMELIST_DOWN:-0}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
+    for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;
@@ -171,14 +183,17 @@ if (( SETTLE > 0 )); then
   sleep "${SETTLE}"
 fi
 
-# Fail loudly if ES died before we could screenshot, instead of capturing a
-# blank frame and reporting success.
-if ! kill -0 "${ES_PID}" 2>/dev/null; then
-  echo "ERROR: emulationstation exited before the screenshot. ES log:" >&2
+# Fail loudly if ES died, instead of capturing a blank frame and reporting
+# success. Checked before EVERY capture: a --frames sequence can span minutes,
+# so a single check up front would let a mid-sequence crash through as a run of
+# blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
+require_es_alive() { # require_es_alive <when>
+  kill -0 "${ES_PID}" 2>/dev/null && return 0
+  echo "ERROR: emulationstation exited ${1}. ES log:" >&2
   cat /tmp/es.log >&2 || true
   kill "${XVFB_PID}" 2>/dev/null || true
   exit 1
-fi
+}
 
 # --- screenshot ---
 # One frame by default. --frames captures a sequence FRAME_INTERVAL seconds
@@ -186,13 +201,19 @@ fi
 # single still cannot show a handoff.
 if (( FRAMES > 1 )); then
   for i in $(seq 1 "${FRAMES}"); do
+    require_es_alive "before frame ${i}/${FRAMES}"
     import -window root "/harness-out/${OUTNAME%.png}-${i}.png"
     if (( i < FRAMES )); then sleep "${FRAME_INTERVAL}"; fi
   done
 else
+  require_es_alive "before the screenshot"
   import -window root "/harness-out/${OUTNAME}"
 fi
 
 kill "${ES_PID}" 2>/dev/null || true
 kill "${XVFB_PID}" 2>/dev/null || true
-echo "rendered ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME}"
+if (( FRAMES > 1 )); then
+  echo "rendered ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME%.png}-1.png .. ${OUTNAME%.png}-${FRAMES}.png"
+else
+  echo "rendered ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME}"
+fi

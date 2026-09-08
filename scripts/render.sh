@@ -87,8 +87,49 @@ for n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL; do
   if [[ ! "${!n}" =~ ^[0-9]+$ ]]; then
     echo "bad ${n}: ${!n} (expected a non-negative integer)" >&2; exit 2
   fi
+  # Re-print base-10. `(( ))` reads a leading zero as OCTAL, so without this
+  # `--frames 08` is a parse error the shell swallows into "capture one frame,
+  # exit 0" and `--settle 08` skips the settle entirely.
+  printf -v "${n}" '%d' "$((10#${!n}))"
 done
 if (( FRAMES < 1 )); then echo "--frames must be >= 1" >&2; exit 2; fi
+
+# Env pins must name a real subset value, checked against theme.xml itself so
+# this list cannot drift from the theme.
+# ES silently ignores a subset value it cannot find and falls back to the
+# theme's own default. For VIDEO_DELAY that is the difference between a
+# deterministic capture and a random mid-playback frame, so a typo has to be
+# an error here rather than a puzzling screenshot later.
+subset_values() { # subset_values <subset-name>
+  awk -v want="$1" '
+    $0 ~ "<subset name=\"" want "\"" { inblk = 1; next }
+    inblk && /<\/subset>/ { exit }
+    inblk && match($0, /<include name="[^"]*"/) {
+      print substr($0, RSTART + 15, RLENGTH - 16)
+    }
+  ' "${REPO_ROOT}/theme.xml"
+}
+
+check_pin() { # check_pin <env-var-name> <subset-name>
+  local var="$1" subset="$2" val="${!1:-}" valid
+  [[ -n "${val}" ]] || return 0            # empty = theme default, always fine
+  valid="$(subset_values "${subset}")"
+  if [[ -z "${valid}" ]]; then
+    echo "bad ${var}: theme.xml declares no '${subset}' subset" >&2; exit 2
+  fi
+  if ! grep -Fxq -- "${val}" <<<"${valid}"; then
+    echo "bad ${var}: '${val}' is not a value of the '${subset}' subset." >&2
+    echo "  valid values:" >&2
+    sed 's/^/    /' <<<"${valid}" >&2
+    exit 2
+  fi
+}
+
+check_pin ICON_SIZE        iconSize
+check_pin TITLE_VISIBILITY titleVisibility
+check_pin GAMELIST_STYLE   gamelistStyle
+check_pin VIDEO_DELAY      videoDelay
+check_pin VIDEO_AUDIO      videoAudio
 
 # Build the image on first use.
 if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
