@@ -33,7 +33,6 @@ reproduce — judge colour-critical changes with that in mind.
 - `--settle N` — wait N more seconds after navigating, before capturing
 - `--frames N` / `--frame-interval S` — capture a sequence instead of one still,
   to `<out>-1.png` … `<out>-N.png`
-- `--video` — use the video-capable image (see below)
 
 Subsets can be pinned per render with the `ICON_SIZE`, `TITLE_VISIBILITY`,
 `GAMELIST_STYLE`, `VIDEO_DELAY` and `VIDEO_AUDIO` environment variables.
@@ -42,21 +41,18 @@ The first run builds the Docker image (~5–10 min, ~2–3 GB), cached thereafte
 
 ## Video
 
-There are two images, both built from this one `Dockerfile` at the **same ES
-pin**, selected by the `WITH_VIDEO` build arg:
+Preview video plays here. That took two things, neither of them a rebuild at a
+newer pin:
 
-| image | built by | use it for |
-|---|---|---|
-| `es-xmb-harness:knulli-9bbb16a` | `render.sh` (default) | everything: layout, colorsets, `scripts/tests/` |
-| `es-xmb-harness:knulli-9bbb16a-video` | `render.sh --video` | preview video only (`<video>` elements) |
+**VLC's plugins.** The ES binary always exported `VideoVlcComponent` and always
+linked `libvlc` — video was never "compiled out", whatever older comments in
+this repo said. But `libvlc-dev` ships the library and headers and not one
+demuxer or decoder, so `libvlc_new()` returned an instance that could not open a
+single file and every `<video>` stayed dark. `vlc-plugin-base` fixes that, for
+7 MB.
 
-The default image links `libvlc` but installs none of VLC's plugins, so
-`libvlc_new()` returns an instance that cannot open a single file and every
-`<video>` element stays dark. The video image adds `vlc-plugin-base` and one
-source patch, `docker/patches/vlc-parse-no-block.patch`.
-
-That patch is needed because of a hang, not a missing feature. In this ES build
-`VideoVlcComponent::startVideo()` waits for `libvlc_media_parsed_status_done`
+**One source patch**, `docker/patches/vlc-parse-no-block.patch`, because the
+plugins alone freeze ES. This build waits for `libvlc_media_parsed_status_done`
 and *only* that status:
 
     libvlc_media_parse_with_options(mMedia, libvlc_media_parse_local, 0);
@@ -64,29 +60,45 @@ and *only* that status:
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 libvlc answers `failed` (2) for anything that is not a media file, so that loop
-never ends and it runs on the **main thread**. A `<video extra="true">` bound to
+never ends — on the **main thread**. A `<video extra="true">` bound to
 `{game:video}` holds the literal string `{game:video}` as its path until
 `BindingManager` resolves it (`VideoComponent.cpp:326` keeps any path starting
 with `{`), and if the view is shown first, ES freezes with the last frame still
 on screen — it looks exactly like a keystroke that did not land. Upstream
-batocera has since replaced the whole blocking wait with an async
-`mIsParsing` poll in `update()`; the patch is the minimal equivalent, leaving
-the loop on any terminal status.
+batocera has since replaced the whole blocking wait with an async `mIsParsing`
+poll in `update()`; the patch is the minimal equivalent, leaving the loop on any
+terminal status. It changes no rendering behaviour: it only decides whether ES
+carries on or hangs.
 
-**The patch is why the video image is not authoritative for layout.** Keep
-using the default image for everything else, so layout renders come from an
-unmodified build of what the device runs.
+### Renders stay still by default
 
-Preview video only starts after the theme's `<delay>`, so a capture has to
-outlast it:
+`run-in-container.sh` pins the **Video Delay** subset to `10 seconds` unless
+`VIDEO_DELAY` says otherwise. A capture happens roughly 6s after entering a
+gamelist, which is *after* the theme's own 5s default — so without the pin,
+every render of a game with a scraped video would catch an arbitrary frame and
+differ run to run. To see the video instead, ask for it:
 
     GAMELIST_STYLE="PSP Card" VIDEO_DELAY=Instant \
-      ./scripts/render-fixtures.sh --video --view gamelist \
+      ./scripts/render-fixtures.sh --view gamelist \
         --carousel-right 1 --settle 4 --out .dev/video.png
+
+To watch the handoff itself, capture a sequence across the delay:
+
+    GAMELIST_STYLE="PSP Card" VIDEO_DELAY="10 seconds" \
+      ./scripts/render-fixtures.sh --view gamelist --carousel-right 1 \
+        --frames 3 --frame-interval 4 --out .dev/handoff.png
 
 `tests/fixtures/library` ships two short clips (psx/ff7, snes/super-metroid)
 alongside games that have a screenshot but no video, which is what exercises
 `showSnapshotNoVideo`. See `tests/fixtures/README.md`.
+
+### Rebuilding
+
+`render.sh` builds only when the image is **missing**, so the tag carries a
+harness revision — `es-xmb-harness:knulli-9bbb16a-r2` — that gets bumped
+whenever anything in `docker/` changes what lands in the image. Without that,
+an existing image keeps being reused and the change never takes effect. Older
+tags (`knulli-9bbb16a`, `knulli-9bbb16a-video`) are safe to delete.
 
 ## Test library
 

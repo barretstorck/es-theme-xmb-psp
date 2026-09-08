@@ -100,7 +100,13 @@ SUBSET_LINES=""
 [[ -n "${ICON_SIZE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.iconSize\" value=\"${ICON_SIZE}\" />"$'\n'
 [[ -n "${TITLE_VISIBILITY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.titleVisibility\" value=\"${TITLE_VISIBILITY}\" />"$'\n'
 [[ -n "${GAMELIST_STYLE:-}" ]] && SUBSET_LINES+="  <string name=\"subset.gamelistStyle\" value=\"${GAMELIST_STYLE}\" />"$'\n'
-[[ -n "${VIDEO_DELAY:-}" ]] && SUBSET_LINES+="  <string name=\"subset.videoDelay\" value=\"${VIDEO_DELAY}\" />"$'\n'
+# videoDelay is pinned rather than left at the theme's own 5s default. Video
+# plays here now, and a capture taken ~6s after entering a gamelist lands
+# mid-playback on an arbitrary frame, so any render of a game with a scraped
+# video would differ run to run. 10s outlasts the default capture; ask for a
+# shorter delay (and --settle past it) when the video is what you want to see.
+[[ -n "${VIDEO_DELAY:-}" ]] || VIDEO_DELAY="10 seconds"
+SUBSET_LINES+="  <string name=\"subset.videoDelay\" value=\"${VIDEO_DELAY}\" />"$'\n'
 [[ -n "${VIDEO_AUDIO:-}" ]] && SUBSET_LINES+="  <string name=\"subset.videoAudio\" value=\"${VIDEO_AUDIO}\" />"$'\n'
 
 cat > "${ES_CFG}/es_settings.cfg" <<XML
