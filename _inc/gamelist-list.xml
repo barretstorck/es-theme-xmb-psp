@@ -152,11 +152,12 @@
     </image>
 
     <!-- v0.12: the media block is a PAIR, not one element.
-         ES's <video> alone would suffice on hardware, but the harness ES binary
-         has ZERO VideoVlcComponent symbols and no libvlc linkage — video support
-         is compiled out — so <video> draws nothing there, not even its snapshot,
-         and this whole region would be unverifiable. This image is the
-         always-present screenshot; the video paints over it on device. -->
+         ES's <video> alone would suffice on hardware, and since #40 the harness
+         image plays video as well (VLC's plugins are installed and the parse
+         wait is patched), so the pair is no longer load bearing. It survives
+         only as history: this image is the always-present screenshot and the
+         video paints over it. Collapsing the two into one <video> is issue #41.
+         -->
     <image name="listScreenshot" extra="true">
       <path>{game:image}</path>
       <pos>${listMediaX} ${listMediaY}</pos>

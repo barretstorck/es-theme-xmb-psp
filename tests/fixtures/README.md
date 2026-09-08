@@ -21,6 +21,24 @@ device library.
 | nes | no-genre | ✓ | | ✓ | |
 | nes | zero-metadata | | | | |
 
+The two videos are short synthetic clips (a frame counter and a sweep bar) at
+their systems' native gameplay resolutions — psx 320x240 (4:3), snes 256x224
+(8:7). They are deliberately unmistakable for the still box art, so a render
+proves a `<video>` is *playing* rather than showing its snapshot, and their
+differing aspect ratios exercise `<maxSize>`, which fits each file to its own
+rectangle.
+
+Renders pin the Video Delay to 10s, so an ordinary capture shows the still
+screenshot; pass `VIDEO_DELAY=Instant --settle 4` to catch the video playing.
+See `docker/README.md`.
+
 ## Regenerating thumbnails
 
     python3 tests/fixtures/gen-thumbs.py
+
+## Regenerating videos
+
+    python3 tests/fixtures/gen-videos.py
+
+Needs ffmpeg — from `PATH`, or Docker (`mwader/static-ffmpeg`) if it is not
+installed.
