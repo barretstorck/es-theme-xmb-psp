@@ -336,9 +336,17 @@
          stays empty. If a counter is wanted later it needs an ES-side
          change, not a theme change. -->
 
-    <!-- v0.12: bounded block, full text width. v0.11's narrow marquee strip
-         ran under the help strip on-device because its size height did not
-         clip. If this STILL overflows on hardware, add <clipRect>. -->
+    <!-- Bounded block, full text width, scrolling inside its bounds (#38).
+         v0.11's narrow marquee strip ran under the help strip on-device
+         because <size> does not clip on this build; v0.12 fixed that with the
+         clipRect below and dropped the scrolling along with it. Both belong
+         here. ES pushes the component's own rect around a vertically-scrolling
+         text (TextComponent.cpp:208), and Renderer::pushClipRect INTERSECTS
+         with whatever is already on the clip stack rather than replacing it
+         (Renderer.cpp:454) - so the two nest instead of fighting. The scroll
+         math never reads mClipRect (:471), so clipping cannot switch the
+         scroll off. Net effect: long text scrolls through the box and still
+         cannot reach the help strip. -->
     <text name="cardDesc" extra="true">
       <pos>${cardTextX} ${cardDescY}</pos>
       <size>${cardTextW} ${cardDescH}</size>
@@ -349,6 +357,17 @@
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>
+      <!-- Descriptions longer than the box scroll through it instead of being
+           cut off. This line is what makes the Scroll Speed subset mean
+           anything: mAutoScroll defaults to AutoScrollType::NONE
+           (TextComponent.cpp:15), and <autoScrollSpeed> on its own — all the
+           subset has ever set — is read by nothing until the component leaves
+           NONE. Vertical is also the only mode the subset can drive: the
+           horizontal marquee derives its speed from font metrics and ignores
+           autoScrollSpeed outright (:449). Cadence is deliberately NOT set
+           here; the scrollSpeed subset owns it, and ES's own default already
+           equals the subset's Normal (150ms per pixel step, :9). -->
+      <autoScroll>vertical</autoScroll>
       <!-- <size> alone does NOT clip on this build — v0.11 proved that and this
            task's first attempt reproduced it (text reached y~0.96, inside the
            0.94 help strip). clipRect is normalized SCREEN coords (x y w h),

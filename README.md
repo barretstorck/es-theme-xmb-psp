@@ -65,7 +65,7 @@ Configurable knobs, all under **UI Settings → Theme Configuration**:
 - **Video Delay** — how long a game stays selected before its screenshot becomes a preview video (Instant / 2s / 5s / 10s)
 - **Video Audio** — mute or allow audio on that preview video (also subject to ES's own global "Enable video preview audio" setting)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
-- **Scroll Speed** — currently a no-op; kept for forward compatibility (see the style guide §8)
+- **Scroll Speed** — how fast a long game description scrolls through its box (Normal / Slow / Fast). Applies to the PSP Card and List + Details styles; it has **no effect in Box Art Grid**, which shows a caption rather than a description
 
 ### Gamelist Style
 

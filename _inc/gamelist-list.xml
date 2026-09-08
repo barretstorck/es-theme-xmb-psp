@@ -253,6 +253,11 @@
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>
+      <!-- Scrolls inside its bounds, same as style A's cardDesc — see the long
+           note there for why <autoScroll> is required before the Scroll Speed
+           subset's <autoScrollSpeed> does anything, and why a clipRect does
+           not suppress the scroll. Cadence is owned by the subset. -->
+      <autoScroll>vertical</autoScroll>
       <!-- <size> alone does NOT clip on this build — style A (cardDesc) proved
            that. clipRect is normalized SCREEN coords (x y w h), scaled by
            screenScale and pushed as a render clip (GuiComponent.cpp:885,
