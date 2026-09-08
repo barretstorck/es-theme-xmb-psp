@@ -189,10 +189,9 @@
          plugins are not installed, so <video> draws nothing there, not even its
          snapshot, and this whole region would be unverifiable. (Not "compiled
          out" — the symbols are present; that diagnosis was wrong, see #40.)
-         The harness's video flag selects a second image that does play video;
-         see docker/README.md. This image is the always-present screenshot; the
-         video paints over it on device. Collapsing the pair back to one
-         <video> is issue #41. -->
+         The harness plays video since #40, so the pair is no longer load
+         bearing: this image is the always-present screenshot, the video paints
+         over it, and collapsing the two into one <video> is issue #41. -->
     <image name="cardScreenshot" extra="true">
       <path>{game:image}</path>
       <pos>${cardMediaX} ${cardMediaY}</pos>

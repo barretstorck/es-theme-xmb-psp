@@ -28,8 +28,9 @@ proves a `<video>` is *playing* rather than showing its snapshot, and their
 differing aspect ratios exercise `<maxSize>`, which fits each file to its own
 rectangle.
 
-Video only plays under `render.sh --video`; the default harness image has no
-VLC plugins. See `docker/README.md`.
+Renders pin the Video Delay to 10s, so an ordinary capture shows the still
+screenshot; pass `VIDEO_DELAY=Instant --settle 4` to catch the video playing.
+See `docker/README.md`.
 
 ## Regenerating thumbnails
 

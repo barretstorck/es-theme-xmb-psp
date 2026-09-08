@@ -8,8 +8,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Pinned Knulli batocera-emulationstation commit (must match docker/Dockerfile).
+# HARNESS_REV is bumped whenever docker/ changes the image's contents: the build
+# below only fires when the image is MISSING, so without a new tag everyone
+# keeps silently running whatever they built first. r2 = VLC plugins + the
+# parse patch, i.e. preview video actually plays.
 ES_PIN="9bbb16a"
-IMAGE="es-xmb-harness:knulli-${ES_PIN}"
+HARNESS_REV="r2"
+IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"
 
 VIEW="system"
 RESOLUTION="1024x768"
@@ -17,7 +22,6 @@ COLORSET="January Blue"
 LIBRARY=""
 OUT="${REPO_ROOT}/.dev/render.png"
 CAROUSEL_RIGHT=0
-VIDEO=0
 SETTLE=0
 FRAMES=1
 FRAME_INTERVAL=1
@@ -40,15 +44,14 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
   --frames N    capture N frames instead of one, --frame-interval seconds apart,
                 to <out>-1.png .. <out>-N.png  (default: 1)
   --frame-interval S  seconds between frames when --frames > 1  (default: 1)
-  --video       render with the video-capable image instead of the default one,
-                so <video> elements actually play. Slower, and NOT authoritative
-                for layout — see docker/README.md
 
   Env pins (optional, empty = theme default):
     ICON_SIZE=Boxart|Compact
     TITLE_VISIBILITY="PSP-Faithful"|"With Titles"
     GAMELIST_STYLE="PSP Card"|"List + Details"|"Box Art Grid"
     VIDEO_DELAY=Instant|"2 seconds"|"5 seconds"|"10 seconds"
+                (unset pins "10 seconds", so a capture lands on the still —
+                 see docker/run-in-container.sh)
     VIDEO_AUDIO=On|Off
 EOF
   exit "${1:-0}"
@@ -65,7 +68,6 @@ while [[ $# -gt 0 ]]; do
     --settle)     SETTLE="${2:?}"; shift 2 ;;
     --frames)     FRAMES="${2:?}"; shift 2 ;;
     --frame-interval) FRAME_INTERVAL="${2:?}"; shift 2 ;;
-    --video)      VIDEO=1; shift ;;
     -h|--help)    usage 0 ;;
     *) echo "unknown argument: $1" >&2; usage 1 ;;
   esac
@@ -88,18 +90,10 @@ for n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL; do
 done
 if (( FRAMES < 1 )); then echo "--frames must be >= 1" >&2; exit 2; fi
 
-# Same pin, same Dockerfile; the video image adds VLC's plugins and one ES
-# source patch (docker/patches) on top.
-BUILD_ARGS=( --build-arg ES_PIN="${ES_PIN}" )
-if (( VIDEO )); then
-  IMAGE="${IMAGE}-video"
-  BUILD_ARGS+=( --build-arg WITH_VIDEO=1 )
-fi
-
 # Build the image on first use.
 if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
   echo "Building ${IMAGE} (one-time, ~5-10 min)..."
-  docker build -t "${IMAGE}" "${BUILD_ARGS[@]}" "${REPO_ROOT}/docker"
+  docker build -t "${IMAGE}" --build-arg ES_PIN="${ES_PIN}" "${REPO_ROOT}/docker"
 fi
 
 mkdir -p "$(dirname "${OUT}")"

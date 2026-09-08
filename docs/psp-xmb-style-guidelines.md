@@ -1043,17 +1043,13 @@ the same `(cardMediaX=0.6775, cardMediaY=0.290)` anchor and
 `maxSize ${cardMediaW} ${cardMediaH}` (`0.40 × 0.34` default). ES's
 `<video>` alone does screenshot-then-video natively on hardware
 (`snapshotSource=image`, `showSnapshotDelay=true`,
-`showSnapshotNoVideo=true`), but the **default** render-harness image
-cannot play it: libvlc is linked, and `VideoVlcComponent` is compiled
-in, but VLC's plugins are not installed, so `libvlc_new()` yields an
-instance that opens nothing and a lone `<video>` draws nothing there,
-not even its snapshot. (An earlier note here read "video support is
-compiled out" — that diagnosis was wrong; see issue #40.)
-`render.sh --video` builds a second image, same ES pin plus the
-plugins and one patch, that does play video — use it to verify this
-region, and the default image for everything else. `cardScreenshot` is
-what makes the region renderable in the default harness at all; the
-video paints over it on device. `<delay>` (the **Video Delay**
+`showSnapshotNoVideo=true`), but the harness could not play it until
+issue #40 added VLC's plugins and one patch to the image. (An earlier
+note here read "video support is compiled out" — that diagnosis was
+wrong.) It plays now, with the Video Delay pinned to 10s so ordinary
+renders still capture the still; `cardScreenshot` therefore no longer
+carries this region on its own, and collapsing the pair into a lone
+`<video>` is issue #41. `<delay>` (the **Video Delay**
 subset, in seconds) and `<audio>` (`${videoAudioEnabled}`, the
 **Video Audio** subset — §8) drive the handoff. `<maxSize>` never
 distorts, but it preserves the *video file's* aspect ratio, not the

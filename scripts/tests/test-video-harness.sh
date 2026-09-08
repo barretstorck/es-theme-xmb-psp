@@ -12,31 +12,35 @@ check() { # check <description> <condition-exit-code>
   if [[ "$2" -eq 0 ]]; then echo "  ok   - $1"; else echo "  FAIL - $1"; fail=1; fi
 }
 
-echo "image selection:"
+echo "the image:"
 
-grep -q 'IMAGE="${IMAGE}-video"' "${REPO_ROOT}/scripts/render.sh"
-check "--video selects the -video image tag" $?
-
-grep -q 'WITH_VIDEO=1' "${REPO_ROOT}/scripts/render.sh"
-check "--video builds with WITH_VIDEO=1" $?
-
-# One Dockerfile, two images. A second Dockerfile would drift silently.
+# One image does everything. A second one would mean every screenshot carries a
+# "which image made this?" question.
 [[ ! -e "${REPO_ROOT}/docker/Dockerfile.video" ]]
-check "there is no forked video Dockerfile" $?
+check "there is no second Dockerfile" $?
 
-grep -q 'ARG WITH_VIDEO=0' "${REPO_ROOT}/docker/Dockerfile"
-check "Dockerfile defaults WITH_VIDEO to 0" $?
+! grep -q 'WITH_VIDEO' "${REPO_ROOT}/docker/Dockerfile" "${REPO_ROOT}/scripts/render.sh"
+check "no leftover WITH_VIDEO build-arg plumbing" $?
 
 # vlc-plugin-base is the whole reason <video> was dead in the harness:
 # libvlc-dev ships the library, not a single demuxer or decoder.
 grep -q 'vlc-plugin-base' "${REPO_ROOT}/docker/Dockerfile"
-check "Dockerfile installs vlc-plugin-base for the video image" $?
+check "Dockerfile installs vlc-plugin-base" $?
 
-# Both images must build the SAME ES commit — a different pin would silently
-# stop the video renders from matching the device.
-n_pins="$(grep -c 'ARG ES_PIN=9bbb16a' "${REPO_ROOT}/docker/Dockerfile")"
-[[ "${n_pins}" == "1" ]]
-check "both images build ES pin 9bbb16a (found ${n_pins} pin declarations)" $?
+# The pin is what makes harness renders mean anything about the device.
+grep -q 'ARG ES_PIN=9bbb16a' "${REPO_ROOT}/docker/Dockerfile"
+check "Dockerfile builds ES pin 9bbb16a" $?
+
+grep -q 'ES_PIN="9bbb16a"' "${REPO_ROOT}/scripts/render.sh"
+check "render.sh agrees on the pin" $?
+
+# render.sh builds only when the image is MISSING, so changing docker/ without
+# bumping the tag leaves everyone on their first build forever.
+grep -q 'HARNESS_REV="r2"' "${REPO_ROOT}/scripts/render.sh"
+check "the image tag carries a harness revision" $?
+
+grep -q 'IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"' "${REPO_ROOT}/scripts/render.sh"
+check "the tag is built from pin + revision" $?
 
 echo
 echo "ES source patch:"
@@ -53,10 +57,10 @@ check "the patch targets VideoVlcComponent.cpp" $?
 grep -q 'libvlc_media_get_parsed_status(mMedia) == 0' "${PATCH}"
 check "the patch waits only while the parse is still running" $?
 
-# Applied under WITH_VIDEO only: the default image stays an unmodified build
-# of the pinned source.
-grep -A2 'WITH_VIDEO}" = "1"' "${REPO_ROOT}/docker/Dockerfile" | grep -q 'vlc-parse-no-block.patch'
-check "the patch is applied only when WITH_VIDEO=1" $?
+# Unconditional: an unapplied patch means a harness that freezes on the first
+# gamelist render, which reads as a dropped keystroke rather than a bug.
+grep -qE '^RUN git -C /opt/es apply .*vlc-parse-no-block.patch' "${REPO_ROOT}/docker/Dockerfile"
+check "the Dockerfile applies the patch" $?
 
 echo
 echo "harness plumbing:"
@@ -71,6 +75,15 @@ check "run-in-container.sh writes subset.videoDelay" $?
 
 grep -q 'subset.videoAudio' "${REPO_ROOT}/docker/run-in-container.sh"
 check "run-in-container.sh writes subset.videoAudio" $?
+
+# Video plays now, and the capture lands ~6s after entering a gamelist — past
+# the theme's own 5s default. Without a longer pin, every render of a game with
+# a scraped video would catch a different frame.
+grep -q 'VIDEO_DELAY="10 seconds"' "${REPO_ROOT}/docker/run-in-container.sh"
+check "run-in-container.sh pins a 10s video delay by default" $?
+
+grep -q '\[\[ -n "${VIDEO_DELAY:-}" \]\] || VIDEO_DELAY=' "${REPO_ROOT}/docker/run-in-container.sh"
+check "an explicit VIDEO_DELAY still wins" $?
 
 # A capture taken before the theme's <delay> elapses can only ever show the
 # snapshot, so the settle wait has to happen before the screenshot.
@@ -117,11 +130,17 @@ check "the fixture videos have a generator" $?
 echo
 echo "docs:"
 
-grep -q 'knulli-9bbb16a-video' "${REPO_ROOT}/docker/README.md"
-check "docker/README.md names the video image" $?
+grep -q 'knulli-9bbb16a-r2' "${REPO_ROOT}/docker/README.md"
+check "docker/README.md names the current image tag" $?
 
-! grep -q 'compiled out' "${REPO_ROOT}/docker/README.md"
-check "docker/README.md drops the 'video compiled out' claim" $?
+# The old claim was that video support is compiled out of the binary. The
+# README may now say the opposite; what it must not do is repeat the claim.
+! grep -qE 'support is compiled out|no libvlc linkage|zero .?VideoVlcComponent' \
+    "${REPO_ROOT}/docker/README.md"
+check "docker/README.md does not repeat the 'compiled out' claim" $?
+
+grep -q 'Preview video plays here' "${REPO_ROOT}/docker/README.md"
+check "docker/README.md states that video plays" $?
 
 echo
 if [[ "${fail}" -eq 0 ]]; then echo "all checks passed"; else echo "FAILURES"; fi
