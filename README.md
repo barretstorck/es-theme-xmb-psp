@@ -2,9 +2,32 @@
 
 A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
 
+![Navigating the XMB carousel and a gamelist](docs/screenshots/xmb-navigation.gif)
+
 > Status: **v0.12** — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **Three user-selectable gamelist styles** (see Gamelist Style below): a PSP-card layout where each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description; a ten-row list with metadata and description; and a box-art grid. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. **Status bar with clock, network glyph and battery glyph + percentage**, the battery elements driven by ES's own Show Battery Status setting. Default colorset is January Blue.
 
+## Colorsets
+
+Twelve PSP-month palettes, picked in **UI Settings → Theme Configuration → PSP
+Color**. Every one retints the wave, the icons, the captions and the boot
+splash together. Default is January Blue.
+
+| | | | |
+|:---:|:---:|:---:|:---:|
+| ![](docs/screenshots/colorsets/january-blue.png)<br>**January Blue** | ![](docs/screenshots/colorsets/february-violet.png)<br>**February Violet** | ![](docs/screenshots/colorsets/march-pink.png)<br>**March Pink** | ![](docs/screenshots/colorsets/april-green.png)<br>**April Green** |
+| ![](docs/screenshots/colorsets/may-yellow-green.png)<br>**May Yellow-Green** | ![](docs/screenshots/colorsets/june-yellow.png)<br>**June Yellow** | ![](docs/screenshots/colorsets/july-amber.png)<br>**July Amber** | ![](docs/screenshots/colorsets/august-orange.png)<br>**August Orange** |
+| ![](docs/screenshots/colorsets/september-red.png)<br>**September Red** | ![](docs/screenshots/colorsets/october-crimson.png)<br>**October Crimson** | ![](docs/screenshots/colorsets/november-slate.png)<br>**November Slate** | ![](docs/screenshots/colorsets/december-aqua.png)<br>**December Aqua** |
+
 ## Screenshots
+
+### Gamelist styles (4:3, January Blue)
+
+Three user-selectable layouts, all shown with real scraped media —
+box art, screenshots, ratings and descriptions.
+
+| PSP Card (default) | List + Details | Box Art Grid |
+|:---:|:---:|:---:|
+| ![](docs/screenshots/style-psp-card.png) | ![](docs/screenshots/style-list-details.png) | ![](docs/screenshots/style-box-art-grid.png) |
 
 ### System view (XMB cross + system carousel)
 
@@ -13,11 +36,6 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 | ![](docs/screenshots/system-4x3.png) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/system-8x7.png) |
 
 ### Gamelist — PSP Card style (default: Boxart icons, PSP-Faithful titles)
-
-Screenshots below predate the v0.12 media-block/metadata recomposition
-(§6.7 of the style guide) and the List + Details / Box Art Grid styles;
-they still show the general PSP-card shape. Regenerate before the next
-screenshot refresh.
 
 | 4:3 | 16:9 | 3:2 | 1:1 | 8:7 |
 |:---:|:---:|:---:|:---:|:---:|
@@ -195,6 +213,41 @@ and a carousel means the splash was already over.
 Preview video plays in the harness. Renders pin the Video Delay to 10s so a
 capture lands on the still screenshot rather than an arbitrary video frame;
 pass `VIDEO_DELAY` and `--settle` when the video is what you want to see.
+
+
+### Regenerating the README's screenshots
+
+Every image this README commits is produced by one script, so no one has to
+work out which flag combination made which file:
+
+```
+./scripts/render-readme-assets.sh --library /tmp/library
+./scripts/render-readme-assets.sh --library /tmp/library --only colorsets
+./scripts/render-readme-assets.sh --library /tmp/library --skip-gif
+```
+
+It needs a library with **real scraped media** — box art, screenshots,
+ratings and full-length descriptions. `tests/fixtures/library` is deliberately
+degenerate (its longest description is 74 characters) and would make the
+layout look better than it is; it is the regression corpus, not the marketing
+corpus. The script refuses to run without `--library` for that reason.
+
+The animated GIF comes from `scripts/record.sh`, which drives navigation with
+a scripted key sequence while capturing frames on a uniform interval:
+
+```
+./scripts/record.sh --library /tmp/library --keep-frames
+./scripts/record.sh --library /tmp/library --script "right:1.5,right:1.5" --fps 8
+```
+
+Its defaults reproduce the committed GIF. The capture rate tops out near 11fps
+— a screen grab costs about 90ms at 1280×720 — and the GIF's frame delay is
+derived from the rate actually achieved, so a slower machine produces a longer
+capture rather than a GIF that plays too fast.
+
+`scripts/tests/test-readme-assets.sh` guards the result: it fails if the README
+references an image that is not in the tree, if the colorset gallery drifts
+from `theme.xml`, or if either committed artifact exceeds its size budget.
 
 The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
 
