@@ -124,6 +124,37 @@ SUBSET_LINES=""
 [[ -n "${VIDEO_DELAY:-}" ]] || VIDEO_DELAY="10 seconds"
 SUBSET_LINES+="  <string name=\"subset.videoDelay\" value=\"${VIDEO_DELAY}\" />"$'\n'
 [[ -n "${VIDEO_AUDIO:-}" ]] && SUBSET_LINES+="  <string name=\"subset.videoAudio\" value=\"${VIDEO_AUDIO}\" />"$'\n'
+# buttonGlyphs picks the helpsystem face-button glyph set (PSP / Nintendo /
+# Xbox). Unpinned it falls to the subset's first include (Nintendo, the
+# default — the TrimUI Brick's physical buttons carry the Nintendo layout).
+[[ -n "${BUTTON_GLYPHS:-}" ]] && SUBSET_LINES+="  <string name=\"subset.buttonGlyphs\" value=\"${BUTTON_GLYPHS}\" />"$'\n'
+
+# ShowHelpPrompts gates ES's bottom help strip entirely (HelpComponent.cpp:
+# updateGrid() returns early and clears the grid when it is false). The harness
+# kept it off so the strip never intruded on layout captures; it must be ON to
+# see the helpsystem glyphs at all, so it is now a flag. Default stays "false"
+# so every pre-existing render is byte-for-byte unchanged.
+: "${SHOW_HELP:=false}"
+
+# InvertButtons is load-bearing for anything touching <helpsystem>, not a
+# comfort setting. It decides which physical button confirms
+# (BUTTON_OK = invertButtons ? "a"/east : "b"/south), and therefore which GLYPH
+# the CONFIRM and BACK labels sit next to in the help strip.
+#
+# It does NOT move a glyph between buttons. InputConfig::buttonLabel(), which
+# picks the icon, holds an a/b swap keyed on this setting — but that swap is
+# inside "#ifdef INVERTEDINPUTCONFIG", which InputConfig.h:12-14 defines only
+# "#ifdef WIN32". Here it is dead code and buttonLabel() is the identity, so
+# each of the four face slots stays nailed to a position. Worth stating
+# because the source reads the other way at a glance; both states were
+# rendered with probe glyphs to settle it.
+#
+# ES's own default is false (Settings.cpp:188), but the TrimUI Brick ships
+# "true" in /userdata/system/configs/emulationstation/es_settings.cfg, and the
+# harness exists to predict the device — at ES's default the strip would show
+# the confirm glyph on the wrong side of the two. INVERT_BUTTONS=false renders
+# what a user who flipped Menu > Invert Buttons sees.
+: "${INVERT_BUTTONS:=true}"
 
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
@@ -131,7 +162,8 @@ cat > "${ES_CFG}/es_settings.cfg" <<XML
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
-${SUBSET_LINES}  <bool name="ShowHelpPrompts" value="false" />
+${SUBSET_LINES}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
+  <bool name="InvertButtons" value="${INVERT_BUTTONS}" />
   <bool name="MusicEnabled" value="false" />
 </config>
 XML
@@ -145,10 +177,20 @@ sleep 10
 
 # --- navigate to the requested view ---
 # ES keyboard map (from /usr/share/emulationstation/es_input.cfg):
-#   b (confirm/select) = key id 13 = Return
-#   a (back)           = key id 27 = Escape
-#   start              = key id 32 = space
+#   ES button "b" = key id 13 = Return
+#   ES button "a" = key id 27 = Escape
+#   start         = key id 32 = space
 #   up/down/left/right = arrow keys
+#
+# WHICH of "a"/"b" confirms is decided by InvertButtons, not by the key map:
+# InputConfig::AssignActionButtons() (InputConfig.cpp:404-414) sets
+#   BUTTON_OK = invertButtons ? ABUTTON : BBUTTON
+# on every non-Windows build, INVERTEDINPUTCONFIG being #ifdef WIN32
+# (InputConfig.h:12-14). So confirm is "a"/Escape when InvertButtons is true
+# and "b"/Return when it is false. This used to be hardcoded to Return, which
+# was correct only because the harness had no InvertButtons line and ES's
+# built-in default is false; pinning the device's "true" silently left every
+# gamelist render sitting on the system carousel until this was derived.
 # xdotool sends keystrokes to the Xvfb display.
 key() {
   local sym="$1" wait="${2:-1}"
@@ -163,7 +205,13 @@ key() {
   sleep "${wait}"
 }
 
-echo "navigating: VIEW=${VIEW}" >&2
+if [[ "${INVERT_BUTTONS}" == "true" ]]; then
+  CONFIRM_KEY="Escape"
+else
+  CONFIRM_KEY="Return"
+fi
+
+echo "navigating: VIEW=${VIEW} (confirm=${CONFIRM_KEY})" >&2
 case "${VIEW}" in
   system)
     # Already on the system carousel; Right walks it so a specific system can
@@ -174,7 +222,7 @@ case "${VIEW}" in
     # Right walks the system carousel; the harness enters whichever system is
     # selected. Needed to reach a system whose games have scraped video.
     for _i in $(seq 1 "${CAROUSEL_RIGHT}"); do key Right 1; done
-    key Return 4
+    key "${CONFIRM_KEY}" 4
     for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).

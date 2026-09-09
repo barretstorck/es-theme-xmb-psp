@@ -36,6 +36,29 @@
        Gamecount can go anywhere since it only affects element
        visibility, not color variables. -->
 
+  <!-- v1.0: helpsystem face-button glyph set (audit S4, #8). Declared BEFORE
+       common.xml, unlike every other subset in this file, and that position is
+       load-bearing: these files set variables (${helpIconA}..${helpIconY}) and
+       common.xml's <helpsystem> consumes them, so the subset has to be parsed
+       first or the four face slots resolve to unsubstituted literals and ES
+       silently falls back to its built-in glyphs. Nothing here reads a value
+       common.xml defines, so nothing is lost by going first. Nintendo is the
+       default by being the first include - the TrimUI Brick's buttons carry
+       that layout.
+
+       Variables rather than <helpsystem> overrides on purpose. Box Art Grid
+       declares its own <helpsystem> inside <view name="grid">, and an override
+       file naming that view would make hasView("grid") true for everyone,
+       handing an unstyled built-in grid to any user who had pinned Gamelist
+       View Style = grid (the b5e2063 regression). A <variables> block
+       registers no views, and _inc/gamelist-grid.xml reads the same four
+       names, so the setting reaches all three gamelist styles. -->
+  <subset name="buttonGlyphs" displayName="Button Icons">
+    <include name="Nintendo">./_inc/buttons-nintendo.xml</include>
+    <include name="PSP">./_inc/buttons-psp.xml</include>
+    <include name="Xbox">./_inc/buttons-xbox.xml</include>
+  </subset>
+
   <include>./_inc/common.xml</include>
 
   <!-- v0.11 redesign: per-system media-fallback. Sets ${mediaFallbackPath}

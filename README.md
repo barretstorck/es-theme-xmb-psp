@@ -66,6 +66,36 @@ Configurable knobs, all under **UI Settings → Theme Configuration**:
 - **Video Audio** — mute or allow audio on that preview video (also subject to ES's own global "Enable video preview audio" setting)
 - **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
 - **Scroll Speed** — how fast a long game description scrolls through its box (Normal / Slow / Fast). Applies to the PSP Card and List + Details styles; it has **no effect in Box Art Grid**, which shows a caption rather than a description
+- **Button Icons** — which face-button glyphs the bottom help strip uses: `Nintendo` (default), `PSP` or `Xbox`; see below
+
+### Button Icons
+
+UI Settings → Theme Configuration → **Button Icons** picks the face-button
+glyphs in the help strip along the bottom of the screen:
+
+| | shown on the east / south / north / west buttons |
+|---|---|
+| **Nintendo** (default) | A · B · X · Y |
+| **PSP** | ○ Circle · ✕ Cross · △ Triangle · □ Square |
+| **Xbox** | B · A · Y · X |
+
+Nintendo is the default because the theme's primary target, the TrimUI Brick,
+silkscreens its buttons in that layout — a help strip reading "✕ Enter" tells a
+Brick owner nothing about which button to press. Pick **PSP** for full XMB
+authenticity, or **Xbox** for a controller in the Xbox/SDL layout (most USB and
+Bluetooth gamepads).
+
+Each glyph is pinned to a physical button position rather than to a label, so
+the setting stays correct whichever way **Menu → Invert Buttons** is set. That
+option changes which button confirms and which goes back, and the help strip's
+*text* follows it — but a given shape never moves to a different button.
+
+The d-pad, shoulder, START and SELECT glyphs are shared by all three sets:
+those are the same on every layout. Shoulders stay `L`/`R` rather than becoming
+`LB`/`RB` for the Xbox set, which is also what the Brick's own shoulders say.
+The glyphs are monochrome and tinted with the colorset, so Xbox's green/red/
+blue/yellow colour coding is not reproduced — ES multiplies help icons by the
+theme's icon colour, which cannot preserve four separate hues.
 
 ### Gamelist Style
 
