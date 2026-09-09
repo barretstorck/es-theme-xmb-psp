@@ -153,7 +153,8 @@ Grouping matters for what the carousel looks like: ES folds the children away
 and shows one parent. Where a system of the group's name already exists it is
 reused and keeps its own theme folder (`jaguar` → `atarijaguar`); where none
 exists, ES fabricates one whose name *and* theme folder are the raw group
-string. `atari8bit` is the only such group in batocera/Knulli.
+string. `atari8bit` is the only such group on Knulli; batocera master also
+makes `amiga` synthetic and adds a `windows` group Knulli does not have.
 
 The container also writes a representative `/userdata/system/knulli.conf`
 (language, timezone, LED, background music) rather than an empty file.

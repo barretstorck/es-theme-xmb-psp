@@ -17,10 +17,10 @@
 #      artefact; on hardware sdlpop's theme folder is sdlpop.
 #   2. When a <group> value is NOT itself a system, ES fabricates a carousel
 #      entry whose name AND theme folder are the raw group string
-#      (SystemData::createGroupedSystems, SystemData.cpp:426-475). "atari8bit"
-#      is the only such group in batocera/Knulli, and the theme shipped no
-#      atari8bit.png -- so it rendered with ES's built-in dark logoText and the
-#      caption "ATARI8BIT".
+#      (SystemData::createGroupedSystems, SystemData.cpp:426-475). atari8bit is
+#      the only such group on Knulli (batocera master also makes 'amiga'
+#      synthetic), and the theme shipped no atari8bit.png -- so it rendered with
+#      ES's built-in dark logoText and the caption "ATARI8BIT".
 #
 # Both failures are silent: ES logs nothing for a missing carousel logo, and a
 # wrong <theme> in a generated harness library just renders a different-but-
@@ -100,14 +100,17 @@ check "snes (group == its own name) is unchanged" \
 echo
 echo "every carousel entry a group can produce needs an icon:"
 
-# Theme folder each <group> in batocera/Knulli es_systems.yml resolves to.
-# Where a system of the same name exists, ES reuses it and its OWN theme folder
-# wins (jaguar -> atarijaguar); where none exists, the raw group string is the
-# theme folder (atari8bit, amiga). Verified against Knulli's shipped
-# es_systems.cfg and batocera master's es_systems.yml on 2026-09-08.
+# Theme folder each <group> resolves to. Where a system of the group's name
+# exists ES reuses it and that system's OWN theme folder wins (jaguar ->
+# atarijaguar); where none exists, the raw group string becomes the theme
+# folder. Knulli's shipped es_systems.cfg has 11 groups and exactly ONE
+# synthetic: atari8bit. batocera master differs - 'amiga' is synthetic there
+# (no amiga: system) and it has a 'windows' group Knulli lacks. Verified
+# against Knulli's es_systems.cfg and batocera master's es_systems.yml,
+# 2026-09-08.
 GROUP_THEME_FOLDERS=(
-  amiga        # no 'amiga' system on batocera master; synthetic
-  atari8bit    # synthetic on both — the entry this issue was about
+  amiga        # real system on Knulli, synthetic on batocera master
+  atari8bit    # synthetic on both - the entry this issue was about
   c64
   atarijaguar  # group 'jaguar' reuses the real jaguar system
   lcdgames
@@ -122,6 +125,46 @@ for folder in "${GROUP_THEME_FOLDERS[@]}"; do
   check "art/system-icons/${folder}.png exists" "$([[ -f "${ICONS}/${folder}.png" ]]; echo $?)"
 done
 
+# A group the theme knowingly does not cover, asserted as STILL missing rather
+# than quietly dropped from the list above. 'windows' exists only on batocera
+# master, which the theme does not target - it is one of 81 batocera-only
+# systems with no icon, tracked as a whole in #46 (compatibility matrix). Ship
+# the art and this check fails, telling you to promote it.
+KNOWN_MISSING=(windows)
+for folder in "${KNOWN_MISSING[@]}"; do
+  check "${folder}.png still absent, batocera-only, see #46 - promote it to GROUP_THEME_FOLDERS if you ship one" \
+    "$([[ ! -f "${ICONS}/${folder}.png" ]]; echo $?)"
+done
+
+# knulli-systems.txt is the icon set's manifest, and honouring theme: can remap
+# a system onto a folder the set never had (imageviewer -> screenshots). That
+# turns a working icon into ES's dark logoText fallback - the very symptom #39
+# is about - so sweep the whole manifest rather than spot-checking.
+if [[ -f "${REPO_ROOT}/scripts/es_systems.yml.cache" ]]; then
+  missing="$(python3 - "${REPO_ROOT}" <<'PYEOF'
+import os, re, sys
+root = sys.argv[1]
+text = open(os.path.join(root, "scripts/es_systems.yml.cache")).read()
+themes = {}
+for block in re.split(r"\n(?=\S[^\s:]*:\s*\n)", text):
+    key = re.match(r"([A-Za-z0-9_\-]+):\s*\n", block)
+    if not key:
+        continue
+    th = re.search(r"^\s+theme:\s*(\S+)", block, re.M)
+    themes[key.group(1)] = th.group(1) if th else key.group(1)
+icons = set(os.listdir(os.path.join(root, "art/system-icons")))
+manifest = [l.strip() for l in open(os.path.join(root, "scripts/knulli-systems.txt"))
+            if l.strip() and not l.startswith("#")]
+print(" ".join(f"{s}->{themes[s]}" for s in manifest
+                if s in themes and themes[s] + ".png" not in icons))
+PYEOF
+)"
+  check "every knulli-systems.txt entry still resolves to an icon after theme: remapping${missing:+ (missing: ${missing})}" \
+    "$([[ -z "${missing}" ]]; echo $?)"
+else
+  echo "  skip - theme: remapping sweep (no scripts/es_systems.yml.cache; run make-library-systems.py once)"
+fi
+
 echo
 echo "the atari8bit caption override is wired up:"
 
@@ -130,25 +173,27 @@ check "_inc/group-name/atari8bit.xml exists" "$([[ -f "${OVERRIDE}" ]]; echo $?)
 check "theme.xml includes it conditionally on \${system.theme}" \
   "$(grep -q "system.theme} == 'atari8bit'" "${THEME}"; echo $?)"
 # Property merge is last-write-wins, so an include placed before system.xml is
-# silently overwritten — the exact trap PR #37 documented for the collections.
-check "the include lands AFTER _inc/system.xml in theme.xml" \
-  "$(python3 - "${THEME}" <<'PY'
+# silently overwritten - the exact trap PR #37 documented for the collections.
+#
+# NOTE: these two run python3 as a STATEMENT and read $?. Wrapping a heredoc in
+# $( ... ) captures stdout, which is empty here, and `[[ "" -eq 0 ]]` is true -
+# so both checks passed unconditionally in the first version of this file.
+python3 - "${THEME}" <<'PYEOF'
 import sys
 lines = open(sys.argv[1]).read().splitlines()
 sysline = next(i for i, l in enumerate(lines) if "./_inc/system.xml" in l)
 ovline = next(i for i, l in enumerate(lines) if "group-name/atari8bit.xml" in l)
 sys.exit(0 if ovline > sysline else 1)
-PY
-)"
+PYEOF
+check "the include lands AFTER _inc/system.xml in theme.xml" $?
+
 # Overriding anything but <text> would drop system.xml's geometry and font.
-check "the override sets only <text>, inheriting geometry from system.xml" \
-  "$(python3 - "${OVERRIDE}" <<'PY'
+python3 - "${OVERRIDE}" <<'PYEOF'
 import sys, xml.etree.ElementTree as ET
 el = ET.parse(sys.argv[1]).getroot().find("view/text")
-kids = [c.tag for c in el]
-sys.exit(0 if kids == ["text"] else 1)
-PY
-)"
+sys.exit(0 if [c.tag for c in el] == ["text"] else 1)
+PYEOF
+check "the override sets only <text>, inheriting geometry from system.xml" $?
 
 echo
 if [[ "${fail}" -eq 0 ]]; then echo "all checks passed"; else echo "FAILURES"; fi

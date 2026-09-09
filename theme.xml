@@ -217,8 +217,10 @@
 
   <!-- Friendly caption for ES's synthetic group systems. A <group> that is not
        itself a system in es_systems.cfg makes ES fabricate a carousel entry
-       whose name and theme folder are the raw group string; "atari8bit" is the
-       only one in batocera/Knulli. Same placement rule as the collection
+       whose name and theme folder are the raw group string. atari8bit is the
+       only one on Knulli; batocera master also makes 'amiga' synthetic (it has
+       an icon already, and AMIGA is a real product name). Same placement rule
+       as the collection
        captions above — must load after system.xml to win the property merge. -->
   <include if="${system.theme} == 'atari8bit'">./_inc/group-name/atari8bit.xml</include>
 
