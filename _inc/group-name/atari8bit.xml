@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Caption override for the synthetic "atari8bit" group system.
+
+     ES folds every system carrying <group>X</group> into a single carousel
+     entry (SystemData::createGroupedSystems, SystemData.cpp:400-475). When a
+     system named X already exists it is reused as the parent and keeps its own
+     theme folder; when it does NOT, ES fabricates a SystemData whose name AND
+     themeFolder are the raw group string. "atari8bit" is the only such group in
+     batocera/Knulli's es_systems.yml — atari800 and xegs are grouped under it
+     and no system is named atari8bit — so the carousel showed the internal
+     identifier "ATARI8BIT" and, until art/system-icons/atari8bit.png was added,
+     no icon at all (ES fell back to its built-in dark logoText, "atar...").
+
+     Same class as the AUTO-FAVORITES captions fixed in PR #37: an ES-internal
+     key leaking into the UI, not a product name. Captions like ATARIJAGUAR or
+     WONDERSWANCOLOR are left alone deliberately — those ARE product names, just
+     concatenated, and prettifying them is a separate cosmetic argument.
+
+     Included AFTER _inc/system.xml in theme.xml: ES merges properties per
+     view+element and the last declaration wins, so this replaces only <text>
+     and inherits pos/size/font/color/forceUppercase from system.xml.
+     forceUppercase renders this as "ATARI 8-BIT". -->
+<theme>
+  <view name="system">
+    <text name="systemName" extra="true">
+      <text>Atari 8-bit</text>
+    </text>
+  </view>
+</theme>
