@@ -107,5 +107,90 @@ out="$(timeout 30 "${REC}" --script "confirm:1" --out /tmp/nope.gif 2>&1)"; rc=$
 check "rejects a gamelist script with no --library (got ${rc})" $?
 
 echo
+echo "README asset integrity:"
+
+# The guard that matters most: a renamed or deleted screenshot renders as a
+# broken image on the repo's front page and nothing else in this repo notices.
+python3 - "${REPO_ROOT}" <<'PYEOF'
+import os, re, sys
+root = sys.argv[1]
+text = open(os.path.join(root, "README.md"), encoding="utf-8").read()
+refs = re.findall(r'!\[[^\]]*\]\(([^)]+)\)', text)
+if len(refs) < 20:
+    print(f"only found {len(refs)} image refs — the regex is wrong, or the "
+          "README lost its galleries; the rest of this check would pass "
+          "vacuously")
+    sys.exit(1)
+missing = [r for r in refs
+           if not r.startswith(("http://", "https://"))
+           and not os.path.exists(os.path.join(root, r))]
+for m in missing:
+    print(f"README references a missing image: {m}")
+sys.exit(1 if missing else 0)
+PYEOF
+rc=$?
+check "every image README.md references exists in-tree" "${rc}"
+
+# The gallery and the theme must not drift apart in either direction.
+python3 - "${REPO_ROOT}" <<'PYEOF'
+import os, re, sys
+root = sys.argv[1]
+theme = open(os.path.join(root, "theme.xml"), encoding="utf-8").read()
+block = re.search(r'<subset name="colorset".*?</subset>', theme, re.S)
+if not block:
+    print("theme.xml has no colorset subset — guard cannot run")
+    sys.exit(1)
+names = re.findall(r'<include name="([^"]+)"', block.group(0))
+if len(names) < 2:
+    print(f"parsed only {len(names)} colorsets from theme.xml — guard is wrong")
+    sys.exit(1)
+readme = open(os.path.join(root, "README.md"), encoding="utf-8").read()
+missing = [n for n in names if n not in readme]
+for n in missing:
+    print(f"colorset missing from the README gallery: {n}")
+sys.exit(1 if missing else 0)
+PYEOF
+rc=$?
+check "the gallery names every colorset theme.xml declares" "${rc}"
+
+# Each gallery name also needs its thumbnail on disk. The check above only
+# proves the NAME appears somewhere in the README.
+python3 - "${REPO_ROOT}" <<'PYEOF'
+import os, re, sys
+root = sys.argv[1]
+theme = open(os.path.join(root, "theme.xml"), encoding="utf-8").read()
+block = re.search(r'<subset name="colorset".*?</subset>', theme, re.S)
+names = re.findall(r'<include name="([^"]+)"', block.group(0))
+def slug(n):
+    return re.sub(r'-+', '-', re.sub(r'[^a-z0-9]', '-', n.lower())).strip('-')
+missing = [n for n in names
+           if not os.path.exists(
+               os.path.join(root, "docs/screenshots/colorsets", slug(n) + ".png"))]
+for n in missing:
+    print(f"no thumbnail for colorset: {n} (expected {slug(n)}.png)")
+sys.exit(1 if missing else 0)
+PYEOF
+rc=$?
+check "every colorset has a thumbnail on disk" "${rc}"
+
+gif="${REPO_ROOT}/docs/screenshots/xmb-navigation.gif"
+[[ -f "${gif}" ]] && file -b "${gif}" | grep -q "GIF image data"
+check "the navigation GIF exists and is a GIF" $?
+
+gifkb=$(( $(stat -c%s "${gif}" 2>/dev/null || echo 99999999) / 1024 ))
+[[ "${gifkb}" -le 3072 ]]
+check "the GIF is within the 3MB budget (${gifkb}KB)" $?
+
+thumbkb="$(du -sk "${REPO_ROOT}/docs/screenshots/colorsets" 2>/dev/null | cut -f1)"
+[[ -n "${thumbkb}" && "${thumbkb}" -le 600 ]]
+check "the colorset thumbnails are within the 600KB budget (${thumbkb:-?}KB)" $?
+
+# The README told readers its gamelist shots were stale. Those shots have been
+# regenerated, so that paragraph is now false — and a false disclaimer is worse
+# than none, because it tells readers to distrust accurate screenshots.
+! grep -q "predate the v0.12" "${REPO_ROOT}/README.md"
+check "the stale-screenshot disclaimer is gone" $?
+
+echo
 if [[ "${fail}" -eq 0 ]]; then echo "ALL CHECKS PASSED"; else echo "SOME CHECKS FAILED"; fi
 exit "${fail}"
