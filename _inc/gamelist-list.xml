@@ -186,10 +186,10 @@
     <text name="listStarTrack" extra="true">
       <pos>${listStarX} 0.548</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>0.028</fontSize>
-      <color>${textSecondary}</color>
-      <opacity>0.35</opacity>
+      <color>${textBody}</color>
+      <opacity>${starTrackOpacity}</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
       <zIndex>7</zIndex>
@@ -197,7 +197,7 @@
     <text name="listStars" extra="true">
       <pos>${listStarX} 0.548</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>0.028</fontSize>
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
@@ -210,7 +210,7 @@
       <pos>${listMetaX} 0.548</pos>
       <size>0.27 0.04</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>0.028</fontSize>
       <color>${selectorGlow}</color>
       <text>{game:playercount}P  •  {game:genre}</text>
@@ -224,9 +224,9 @@
       <pos>0.575 ${listDescY}</pos>
       <size>0.395 ${listDescH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>0.024</fontSize>
-      <color>${textSecondary}</color>
+      <color>${textBody}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>

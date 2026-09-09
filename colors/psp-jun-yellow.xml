@@ -10,6 +10,7 @@
     <accent>EAB308</accent>
     <textPrimary>FFFFFF</textPrimary>
     <textSecondary>FEF08A</textSecondary>
+    <textBody>FEF08A</textBody>
     <selectorGlow>FACC15</selectorGlow>
     <helpAccent>FEF08A</helpAccent>
   </variables>

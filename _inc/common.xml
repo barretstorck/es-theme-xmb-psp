@@ -18,9 +18,36 @@
     <selectorGlow>60A5FA</selectorGlow>
     <helpAccent>93C5FD</helpAccent>
 
+    <!-- #42: body text - gamelist metadata and descriptions - is its own
+         scope, separate from textSecondary. textSecondary also paints the
+         system-carousel caption and other chrome, which sits alone on the
+         wave at a large size and does not need the same treatment; body
+         text is small, dense, and sits over a MOVING background. Each
+         colorset overrides textBody; this is the no-colorset fallback. -->
+    <textBody>B0C4DE</textBody>
+
     <fontLight>./fonts/RobotoCondensed-Light.ttf</fontLight>
     <fontRegular>./fonts/RobotoCondensed-Regular.ttf</fontRegular>
     <fontBold>./fonts/RobotoCondensed-Bold.ttf</fontBold>
+
+    <!-- #42: the weight used by every body-text element in all three
+         gamelist styles. One variable rather than a fontPath per element so
+         the whole family moves together - a metadata row in one weight and
+         a description in another reads as a mistake.
+
+         A literal path, NOT ${fontLight}: ThemeData::parseVariable routes any
+         value containing "${" through MathExpr::evaluate first
+         (ThemeData.cpp:1082) and only falls back to placeholder resolution on
+         a domain_error, so a variable defined in terms of another variable is
+         evaluated as an expression before it is ever treated as a string. -->
+    <fontBody>./fonts/RobotoCondensed-Light.ttf</fontBody>
+
+    <!-- #42: the two opacity cuts taken on top of textBody. The star track
+         is the dim half of the rating pair (it must stay below the filled
+         glyphs to read as "empty"), so it keeps a cut; metaSecondaryOpacity
+         is the card's year/developer line. -->
+    <starTrackOpacity>0.35</starTrackOpacity>
+    <metaSecondaryOpacity>0.75</metaSecondaryOpacity>
 
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>

@@ -10,6 +10,7 @@
     <accent>3B82F6</accent>
     <textPrimary>FFFFFF</textPrimary>
     <textSecondary>B0C4DE</textSecondary>
+    <textBody>B0C4DE</textBody>
     <selectorGlow>60A5FA</selectorGlow>
     <helpAccent>93C5FD</helpAccent>
   </variables>
