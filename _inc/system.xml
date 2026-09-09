@@ -91,6 +91,13 @@
       <logoRotation>0</logoRotation>
       <logoAlignment>center</logoAlignment>
       <maxLogoCount>11</maxLogoCount>
+      <!-- The horizontal cross move. NOT a <sound name="systemscroll"> element
+           - no such name exists in this ES build; the carousel plays its own
+           <scrollSound> from CarouselComponent::onCursorChanged
+           (CarouselComponent.cpp:222-223), reading this property at
+           applyTheme (:566). It defaults to EMPTY (:51), so a theme that does
+           not set it navigates in silence. -->
+      <scrollSound>${soundSystemScroll}</scrollSound>
       <textColor>${textSecondary}</textColor>
       <selectedTextColor>${textPrimary}</selectedTextColor>
       <zIndex>5</zIndex>

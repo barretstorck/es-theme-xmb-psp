@@ -40,13 +40,13 @@
          hijacks a user who pinned ES's Gamelist View Style to "grid" into an
          unstyled built-in grid. Declaring it here registers the grid view only
          when this style is active. Keep in sync with common.xml. -->
-    <sound name="systemscroll">
-      <path>${soundNavigate}</path>
+    <!-- The same three names ES actually asks for as common.xml; see the long
+         note there for why "systemscroll", "scroll" and "select" are not among
+         them. Scrolling is the <scrollSound> property on <imagegrid> below. -->
+    <sound name="launch">
+      <path>${soundSelect}</path>
     </sound>
-    <sound name="scroll">
-      <path>${soundNavigate}</path>
-    </sound>
-    <sound name="select">
+    <sound name="menuOpen">
       <path>${soundSelect}</path>
     </sound>
     <sound name="back">
@@ -229,6 +229,11 @@
            also the ONLY selection cue: see the gridtile block below. -->
       <autoLayoutSelectedZoom>1.20</autoLayoutSelectedZoom>
       <animateSelection>true</animateSelection>
+      <!-- The vertical tick, same as the other two styles.
+           ImageGridComponent::onScroll (ImageGridComponent.h:141) plays it.
+           A grid move is still a sub-item move, so it gets the tick and not
+           the carousel's swoosh. -->
+      <scrollSound>${soundNavigate}</scrollSound>
       <zIndex>5</zIndex>
     </imagegrid>
 
