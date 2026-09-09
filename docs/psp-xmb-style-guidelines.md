@@ -353,12 +353,10 @@ tables.)
 Reserved regions (do not place new content here):
 
 - **Top 0.10 vertical strip** — owned by the status bar, which is a
-  four-element cluster, not just the clock (§6.5). The battery glyph
-  pins the right edge at `0.98`; the clock, network glyph and battery
-  percentage sit to its left, and **their x positions differ per aspect
-  ratio** (`${statusClockX}` / `${statusNetX}` / `${statusPctX}`). The
-  cluster reaches furthest left at 1:1, where the clock box starts at
-  `0.650`. Treat everything right of `x=0.65` in the top strip as
+  four-element `<stackpanel>`, not just the clock (§6.5). The panel is
+  declared from `x=0.48` to the `0.98` margin and packs its contents
+  right-to-left, so how far left the cluster actually reaches depends on
+  which elements ES is showing. Treat the whole `0.48–0.98` span as
   occupied; left of that is technically free but conventionally empty —
   PSP doesn't put anything there either.
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
@@ -1074,37 +1072,71 @@ gamecount-show subset variant in `_inc/gamecount-show.xml`.
 ### 6.5 Top-right status cluster
 
 Four elements in one right-anchored cluster, defined in
-`_inc/status-bar.xml`'s `<view name="screen">`. Left to right:
+`_inc/status-bar.xml`'s `<view name="screen">`. Right to left, which is
+also the child order in the XML:
 
-| Element | Pos | Size | Notes |
-|:---|:---:|:---:|:---|
-| Clock | `(0.68, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI), `alignment=right` — right edge at `0.68 + 0.14 = 0.82` |
-| `networkIcon` | `(0.863, 0.0612)` | `maxSize (0.033, 0.030)` | `origin (1, 0.5)`. Theme's own wifi glyph, `art/ui/network.png` |
-| `batteryText` | `(0.876, 0.0612)` | `fontSize 0.030` | `origin (0, 0.5)`. **pos.x is the LEFT edge** — see below |
-| `batteryIcon` | `(0.98, 0.0612)` | `maxSize (0.046, 0.030)` | `origin (1, 0.5)`. Holds the 0.98 right margin |
+| Element | Notes |
+|:---|:---|
+| `batteryIcon` | Battery glyph. `maxSize (0.125, 1)` — panel-relative |
+| `batteryText` | `NN%`, `fontSize 0.030` |
+| `networkIcon` | Theme's own wifi glyph, `art/ui/network.png`, `maxSize (0.09, 1)` |
+| `clock` | `fontSize 0.042`, the largest text in the UI |
 
-**The three left-hand x positions are per-ratio variables.** A
-`<fontSize>` is a fraction of screen HEIGHT while an x position is a
-fraction of screen WIDTH, so the percentage's width *in width-fractions*
-grows as the screen gets squarer — `"100%"` is `0.058` of the width at
-1:1 against `0.045` at 4:3. At the 4:3 literals it runs into the glyph
-at both 1:1 and 8:7. `${statusClockX}` / `${statusNetX}` /
-`${statusPctX}` carry the per-ratio values, overridden in
-`_inc/aspect-*.xml`; the glyph stays at `0.98` everywhere. Same class of
-defect as the v0.11 cardMetadata overflow, and the same fix.
+**The cluster is a `<stackpanel>`, not four positioned elements**, at
+`pos (0.48, 0.0462)`, `size (0.50, 0.030)`, `orientation horizontal`,
+`reverse true`. Its contents are *optional* and ES owns their
+visibility: *Show Battery Status* hides the percentage (ICON) or both
+battery elements (NO), *Show Clock* hides the clock, and the network
+glyph goes when there is no connection. Fixed positions reserve space
+for elements that may not exist — v1.0's first attempt left a 77 px hole
+where the percentage had been, and ~120 px of dead space against the
+right margin at NO. No ordering avoids this; only reflow does.
+`StackPanelComponent::performLayout()` skips invisible children, and its
+`update()` re-runs the layout when the visible children's total size
+changes, so the cluster re-packs itself the moment ES hides one.
 
-**This is why the cluster is not in `_inc/common.xml`.** ES resolves
-`${variables}` at *element-parse* time, and `common.xml` is included
-long before `aspect-*.xml` — a screen view declared there reads the 4:3
-defaults and no per-ratio override can ever reach it. `theme.xml`
-includes `status-bar.xml` after the aspect files, the same ordering rule
-the gamelist style views follow.
+**Five things about the panel are ES's behaviour, not choices:**
+
+- **`<stackpanel>` has no `origin` property** (`ThemeData.cpp:72`).
+  Setting one parses to nothing, `pos` stays the top-left, and the panel
+  lands off the right of the screen — rendering *absolutely nothing*,
+  with no warning. `pos.x + size.x = 0.98` is what anchors the cluster.
+- **The panel is deliberately much wider than its contents.** Unused
+  width extends left and costs nothing, because reverse packing starts
+  at the right edge. That is what lets one set of literals serve all
+  five aspect ratios: a `<fontSize>` is a fraction of screen HEIGHT
+  while positions are fractions of WIDTH, so `"100%"` is `0.058` of the
+  width at 1:1 against `0.045` at 4:3, and any hand-placed layout has to
+  be re-tuned per ratio to stop it colliding. If contents ever *do*
+  exceed the panel, `performLayout` clamps the overflowing child rather
+  than overflowing — a too-narrow panel silently truncates the clock.
+- **Height is `0.030` — one glyph ink-height, not the strip's `0.06`.**
+  `performLayout` top-aligns image children whatever their origin: it
+  sets y to `pos.y - h*origin.y + panelH*origin.y` and the origin then
+  shifts the draw back by `h*origin.y`, so the `h` terms cancel and every
+  value lands at the panel's top. With the panel exactly as tall as the
+  glyphs, top-aligned *is* centred. `pos.y` is `0.0612 - 0.030/2`.
+- **Image children need `maxSize`, never `size`.** `performLayout` only
+  preserves aspect for images whose target is max; with `<size>` ES
+  stretches the art to the panel height.
+- **Text children centre themselves.** `TextComponent` defaults to
+  `ALIGN_CENTER` vertically (`TextComponent.cpp:13`), which is what puts
+  a `0.042` clock on the line of a `0.030`-tall panel. An explicit
+  `verticalAlignment=center` is pixel-identical — it is redundant, not
+  load-bearing.
 
 **`0.0612` is the clock's measured ink centre** at 1024x768 (its glyph
-rows are 36..58 px), not the centre of the clock's `0.06`-tall box. Every
-element in the cluster is anchored to it with `origin y = 0.5`. Guessing
-at this instead of measuring it is what made "the glyph never lines up
-with the clock" unresolvable in v0.10.
+rows are 36..58 px), not the centre of a `0.06`-tall box. The panel is
+centred on it. Guessing at this instead of measuring it is what made
+"the glyph never lines up with the clock" unresolvable in v0.10.
+
+**ES's own Window-owned clock is transparent, not hidden.** The panel's
+`<clock>` child is the one you see. `<text name="clock">` must still be
+declared — with no screen/clock element Window skins `mClock` from the
+helpsystem and parks it *bottom*-right (`Window.cpp:1274-1300`) — and it
+cannot be hidden with `<visible>`, because `ClockComponent::update()`
+calls `setVisible(DrawClock)` every frame and undoes it. Alpha `00` is
+the one property nothing overwrites.
 
 **Three things about this cluster are ES's behaviour, not choices:**
 
