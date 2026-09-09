@@ -132,7 +132,7 @@ check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line
 echo
 echo "shared chrome (help strip + sounds):"
 
-# The shared <helpsystem name="help"> and the four sounds live in ONE <view>
+# The shared <helpsystem name="help"> and the three sounds live in ONE <view>
 # block per file (ThemeData::getElement returns NULL for a view name absent
 # from that list, with no cross-view fallback), so every gamelist view name
 # must appear in some file's chrome block or that view gets ES's built-in

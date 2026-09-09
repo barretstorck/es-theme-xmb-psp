@@ -103,6 +103,30 @@ if [[ "${ENABLE_SOUNDS}" != "true" && "${ENABLE_SOUNDS}" != "false" ]]; then
   echo "bad --enable-sounds: ${ENABLE_SOUNDS} (expected true or false)" >&2; exit 2
 fi
 
+# The colorset name reaches ES as a subset value, and ES silently falls back to
+# the theme default when it cannot find one — so a typo would otherwise produce
+# a perfectly good capture of the wrong palette.
+valid_colorsets="$(subset_values colorset)"
+if ! grep -Fxq -- "${COLORSET}" <<<"${valid_colorsets}"; then
+  echo "bad --colorset: '${COLORSET}' is not a colorset." >&2
+  echo "  valid values:" >&2
+  sed 's/^/    /' <<<"${valid_colorsets}" >&2
+  exit 2
+fi
+
+# Same silent-fallback rule for the env pins, and it bites harder here than in
+# render.sh or record.sh: this tool's entire output is "did a sound play", so a
+# mistyped style pin yields a confident measurement of the wrong style rather
+# than a visibly wrong picture. record.sh shipped without these once and PR #58
+# caught it; this is the same list.
+check_pin GAMELIST_STYLE   gamelistStyle
+check_pin ICON_SIZE        iconSize
+check_pin TITLE_VISIBILITY titleVisibility
+check_pin SCROLL_SPEED     scrollSpeed
+check_pin BUTTON_GLYPHS    buttonGlyphs
+check_bool SHOW_HELP
+check_bool INVERT_BUTTONS
+
 # Validated here as well as in the container so a typo costs a second rather
 # than a two-minute run. xdotool swallows an unknown keysym, which would make a
 # bad step a SILENT no-op — and silence is precisely what this tool measures,
@@ -139,6 +163,12 @@ if [[ -n "${EXPECT}" ]]; then
     echo "--expect lists ${#_want[@]} outcomes but --script has ${STEPS} steps" >&2
     exit 2
   fi
+fi
+
+# Build the image on first use.
+if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
+  echo "Building ${IMAGE} (one-time, ~5-10 min)..."
+  docker build -t "${IMAGE}" --build-arg ES_PIN="${ES_PIN}" "${REPO_ROOT}/docker"
 fi
 
 mkdir -p "$(dirname "${OUT}")"
