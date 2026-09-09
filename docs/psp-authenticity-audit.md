@@ -130,7 +130,7 @@ residual homebrew/port entries overlap with G10's
 branded-item-icon territory).
 
 **Evidence:** `art/system-icons/` listing (198 files);
-`_inc/system.xml:142-146` (per-system icon binding via
+`_inc/system.xml:149-153` (per-system icon binding via
 `${system.theme}`); `libretro/retroarch-assets` →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
 silhouettes); commits f170f40, 0afbb62.
@@ -1222,10 +1222,11 @@ verdict was reached on a false premise and is corrected below.**
 
 **Current theme:** `sounds/navigate.wav`, `sounds/select.wav` and
 `sounds/back.wav` ship, joined in v1.0 by `sounds/system-scroll.wav`
-(A2). The timbres were measured and accepted — navigate 3327 Hz /
-34 ms, select 3596 Hz / 83 ms, matching the ~3 kHz tick this entry
-sketches; `back.wav` is the outlier at 807 ms with a 65 Hz dominant,
-and was kept deliberately.
+(A2). The timbres were measured and accepted: `navigate.wav` peaks at
+6449 Hz over 232 ms and `select.wav` at 6820 Hz over 285 ms — both
+brighter and longer than the ~3 kHz / 5 ms tick this entry sketches,
+but accepted as a pair on that basis; `back.wav` is the outlier at
+807 ms with a 1042 Hz dominant, and was kept deliberately.
 
 **What that verdict missed:** measuring the *files* said nothing about
 whether ES ever played them. It did not. The bindings named

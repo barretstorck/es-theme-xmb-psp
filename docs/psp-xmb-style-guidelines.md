@@ -918,7 +918,7 @@ had pinned Gamelist View Style = grid. Guarded by
 
 ### 6.1 Category icons (system carousel)
 
-Top horizontal row. Defined in `_inc/system.xml:76-97`.
+Top horizontal row. Defined in `_inc/system.xml:76-104`.
 
 ```xml
 <carousel name="systemcarousel">
@@ -956,7 +956,7 @@ Top horizontal row. Defined in `_inc/system.xml:76-97`.
 
 **Selected logo z-order** sits above the carousel container so the
 selected icon paints over its slot reliably. The `<image name="logo">`
-element in `_inc/system.xml:142-146` has `<zIndex>6</zIndex>`; the
+element in `_inc/system.xml:149-153` has `<zIndex>6</zIndex>`; the
 carousel has `<zIndex>5</zIndex>`.
 
 ### 6.2 Selected-icon halo — removed
@@ -1009,7 +1009,7 @@ the two earlier tunes pass review and then fail in the hand.
 
 Below the selected category icon, displaying the system's `theme`
 shortname (e.g., "NES", "SNES", "PSX"). Defined in
-`_inc/system.xml:125-137`.
+`_inc/system.xml:132-144`.
 
 ```xml
 <text name="systemName" extra="true">
@@ -1043,7 +1043,7 @@ shortname (e.g., "NES", "SNES", "PSX"). Defined in
 
 When the user enables Game Count: Show, a second caption appears
 below the system name, cycling between the count text. Defined in
-`_inc/system.xml:103-113` (the carousel's `systemInfo` slot) and the
+`_inc/system.xml:110-120` (the carousel's `systemInfo` slot) and the
 gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ```xml

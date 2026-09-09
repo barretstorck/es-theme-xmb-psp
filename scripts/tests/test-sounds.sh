@@ -231,7 +231,8 @@ def spectrum(rel):
     mag = np.abs(np.fft.rfft(d * np.hanning(d.size)))
     mag[0] = 0.0
     freq = np.fft.rfftfreq(d.size, 1 / p.framerate)
-    return freq, mag, d.size / p.framerate
+    peak = float(np.max(np.abs(d))) / 32768.0
+    return freq, mag, d.size / p.framerate, peak
 
 for rel in ("sounds/system-scroll.wav", "sounds/navigate.wav"):
     if not os.path.isfile(os.path.join(root, rel)):
@@ -239,8 +240,24 @@ for rel in ("sounds/system-scroll.wav", "sounds/navigate.wav"):
 if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
 
-sf, sm, sdur = spectrum("sounds/system-scroll.wav")
-nf, nm, _ = spectrum("sounds/navigate.wav")
+sf, sm, sdur, speak = spectrum("sounds/system-scroll.wav")
+nf, nm, _, npeak = spectrum("sounds/navigate.wav")
+
+# Gate on amplitude BEFORE any of the ratios below. An all-zero file makes
+# `mag.sum()` zero, so every ratio is nan — and in Python every `<` and `>`
+# comparison against nan is False, so each threshold check below silently
+# appends nothing and the guard passes. `np.argmax` on zeros returns index 0,
+# so the peak comparison reads 0 Hz and passes too. Verified: swapping in a
+# same-length silent wav passed this whole suite. analyze-audio.py's measure()
+# gets this right the same way, by checking peak before the derived stats.
+for rel, peak in (("sounds/system-scroll.wav", speak),
+                  ("sounds/navigate.wav", npeak)):
+    if peak < 0.001:
+        bad.append(f"{rel} is silent (peak {peak:.5f} full scale) — every "
+                   f"spectral ratio below would be nan, and nan fails no "
+                   f"comparison, so this guard would pass vacuously")
+if bad:
+    print("\n".join(bad), file=sys.stderr); sys.exit(1)
 
 swoosh_low = sm[sf < 2000].sum() / sm.sum()
 tick_high = nm[nf > 5000].sum() / nm.sum()

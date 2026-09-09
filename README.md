@@ -242,6 +242,21 @@ Preview video plays in the harness. Renders pin the Video Delay to 10s so a
 capture lands on the still screenshot rather than an arbitrary video frame;
 pass `VIDEO_DELAY` and `--settle` when the video is what you want to see.
 
+The harness can also **hear** itself, which a screenshot cannot:
+`scripts/capture-audio.sh` runs ES under SDL's `disk` audio driver and
+measures the mixer's actual output, so a sound binding can be verified rather
+than assumed. `--expect` turns a capture into a pass/fail test.
+
+```
+./scripts/capture-audio.sh --library /tmp/library
+./scripts/capture-audio.sh --library /tmp/library \
+  --script "right:2,confirm:3,down:2" --expect sound,any,sound
+```
+
+Note that ES ships navigation sounds **off**, so the tool pins `EnableSounds`
+on by default — otherwise every capture would be silent and pass vacuously.
+See [`docker/README.md`](docker/README.md) for the details.
+
 
 ### Regenerating the README's screenshots
 
