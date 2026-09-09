@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Button Icons: PSP".
+  Selected via UI Settings > Theme Configuration > Button Icons > PSP.
+
+  The authentic set, and the reason audit S4 exists: the PSP labels its face
+  buttons with shapes, not letters. Not the default only because it is
+  actively misleading on a TrimUI Brick, whose buttons say A/B/X/Y — a strip
+  reading "(x) SELECT" gives that user nothing to press. See the decision on
+  #8.
+
+  Slot -> physical position is fixed by ES (iconA=EAST, iconB=SOUTH,
+  iconX=NORTH, iconY=WEST); the full derivation and the InvertButtons
+  non-caveat are documented once in _inc/buttons-nintendo.xml. Sony's shapes
+  sit on those positions as:
+
+      EAST  = Circle    SOUTH = Cross    NORTH = Triangle    WEST = Square
+
+  Note that Cross lands on iconB and Circle on iconA. Writing the obvious
+  <iconA>cross.png</iconA> — as docs/psp-xmb-style-guidelines.md 5.4 did until
+  this issue, and as the original text of #8 proposed — puts Cross on the east
+  button and Circle on the south one, i.e. exactly backwards, on a theme whose
+  whole point is PSP authenticity. Nothing errors; the glyphs simply appear on
+  the wrong buttons.
+
+  Western PSP firmware confirms with Cross and backs out with Circle, which is
+  what this produces on a Brick: Cross (iconB, south) is BACK and Circle
+  (iconA, east) is CONFIRM under the device's InvertButtons=true. Japanese
+  units use the opposite convention, and a user who flips Invert Buttons gets
+  it. Either way each shape stays on its own physical button.
+
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <helpIconA>./art/help/psp-circle.png</helpIconA>
+    <helpIconB>./art/help/psp-cross.png</helpIconB>
+    <helpIconX>./art/help/psp-triangle.png</helpIconX>
+    <helpIconY>./art/help/psp-square.png</helpIconY>
+  </variables>
+</theme>

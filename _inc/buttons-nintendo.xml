@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Button Icons: Nintendo" (default).
+  Selected via UI Settings > Theme Configuration > Button Icons > Nintendo.
+
+  Default because the theme's primary target, the TrimUI Brick, silkscreens
+  its face buttons in the Nintendo layout. A user who never opens Theme
+  Configuration gets a help strip that matches the hardware in their hands
+  (#8). PSP and Xbox stay one menu away.
+
+  SLOT -> PHYSICAL BUTTON. Confirmed by render, not by reading THEMES.md.
+  ES's four face-button icon slots are fixed to physical positions:
+
+      iconA -> EAST     iconB -> SOUTH     iconX -> NORTH     iconY -> WEST
+
+  Two independent sources agree. Devices configured from SDL's controller DB
+  go through InputManager.cpp's _sdlToEsMapping, whose non-Windows branch maps
+  SDL a(south)->ES "b", b(east)->ES "a", x(west)->ES "y", y(north)->ES "x";
+  the Brick, which has an explicit es_input.cfg entry, records the same thing
+  by evdev code (ES "a"=305/BTN_EAST, "b"=304/BTN_SOUTH, "x"=307/BTN_NORTH,
+  "y"=308/BTN_WEST). InputConfig::buttonDisplayName agrees ("a"->EAST,
+  "b"->SOUTH).
+
+  The mapping does NOT depend on the InvertButtons setting. It is tempting to
+  assume it does, because InputConfig::buttonLabel() — which is what picks the
+  icon — contains an a/b swap keyed on InvertButtons. That swap is inside
+  "#ifdef INVERTEDINPUTCONFIG", and InputConfig.h:12-14 defines
+  INVERTEDINPUTCONFIG only "#ifdef WIN32". On the device and in the harness it
+  is dead code, so buttonLabel() is the identity function and every slot is
+  nailed to a position. InvertButtons still decides which POSITION confirms
+  (BUTTON_OK = invertButtons ? "a" : "b"), so flipping it moves the labels
+  CONFIRM/BACK between glyphs — it never moves a glyph between buttons. Both
+  states were rendered; see scripts/tests/test-button-glyphs.sh.
+
+  So for Nintendo the naive assignment is the correct one: east is A, south is
+  B, north is X, west is Y. That is a coincidence of this layout, not a
+  general rule — see buttons-xbox.xml, where every one of the four moves.
+
+  Variables, not <helpsystem> properties, and deliberately so. A file that
+  declared <view name="grid"> to reach the Box Art Grid's own helpsystem would
+  make hasView("grid") true for every user, and ES would then build an
+  unstyled built-in grid for anyone who had pinned Gamelist View Style = grid
+  — the exact regression fixed in b5e2063. Variables register no views, and
+  both helpsystem declarations (_inc/common.xml, _inc/gamelist-grid.xml) read
+  the same four names, so all three gamelist styles stay in sync.
+
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <helpIconA>./art/help/btn-a.png</helpIconA>
+    <helpIconB>./art/help/btn-b.png</helpIconB>
+    <helpIconX>./art/help/btn-x.png</helpIconX>
+    <helpIconY>./art/help/btn-y.png</helpIconY>
+  </variables>
+</theme>

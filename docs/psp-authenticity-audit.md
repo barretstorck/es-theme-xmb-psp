@@ -303,48 +303,55 @@ shadowless icons.
 
 ### S4. Helpsystem button icons in PSP shapes
 
+**Status: SHIPPED for v1.0 (issue #8), gated behind a subset — and
+delivered wider than this entry originally scoped.**
+
 **PSP behaviour:** Button affordances along the bottom of menus
 use the PSP face-button glyphs: ✕ (cross / confirm), ○ (circle /
 back), □ (square), △ (triangle). They're rendered at small size with
 short labels next to them ("✕ Enter  ○ Back").
 
-**Current theme:** ES's `helpsystem` already renders bottom button
-hints, styled via `<helpsystem name="help">` in `_inc/common.xml` —
-position, font, colors are themed. The button glyphs themselves come
-from ES's built-in icon set: directional pad chevrons, A/B/X/Y or
-generic 1/2/3/4 depending on input device.
+**What shipped:** all twelve of ES's themeable helpsystem icons, drawn
+by `scripts/gen-help-icons.py` into `art/help/`, with the four face
+slots selectable between **three** glyph sets via the `buttonGlyphs`
+subset ("Button Icons"): **Nintendo (default)**, **PSP**, **Xbox**.
 
-**Reference:** Not strongly visible in the provided screenshots
-(PSP's settings/photo views show the buttons sometimes in different
-poses); generic PSP UI behaviour.
+The scope change is deliberate and is the substance of the decision on
+#8. Hardcoding Sony's shapes, as this entry proposed, is maximally
+authentic and actively misleading on the TrimUI Brick, whose buttons
+are silkscreened A/B/X/Y — "✕ Enter" tells that user nothing about
+which button to press. Nintendo is therefore the default and PSP is one
+menu away. The three sets cost only eight face PNGs, because Nintendo
+and Xbox draw the *same* four lettered buttons and differ purely in
+which position each letter occupies.
 
-**Feasibility:** Partial workaround — ES helpsystem accepts custom
-icon paths.
+**Two corrections to what this entry originally said.**
 
-**Workaround sketch:** Override each named helpsystem icon via
-`<helpsystem>` child elements pointing at PSP-glyph PNGs:
+1. *The workaround sketch below had the mapping backwards.* ES's face
+   slots are pinned to physical positions — `iconA`=east, `iconB`=south,
+   `iconX`=north, `iconY`=west — so Cross belongs on `iconB`, not
+   `iconA`. Binding it as sketched puts Cross on the east button and
+   Circle on the south one. Nothing errors. See §5.4 of the style guide
+   for the derivation from `_sdlToEsMapping`, the Brick's
+   `es_input.cfg` evdev codes, and `buttonDisplayName`.
+2. *"Verify against batocera's `THEMES.md`" is the wrong instruction* —
+   that file has been wrong about this codebase before. The names were
+   taken from the pinned build's own property map
+   (`ThemeData.cpp:493-514`) and confirmed by rendering probe glyphs.
+   That map has twelve icon properties and **no `iconLR`**, so ES's
+   `"lr"` prompt is not themeable and keeps its stock glyph.
 
-    <helpsystem name="help">
-      <iconUpDown>./art/help/pad-updown.png</iconUpDown>
-      <iconLeftRight>./art/help/pad-leftright.png</iconLeftRight>
-      <iconA>./art/help/cross.png</iconA>
-      <iconB>./art/help/circle.png</iconB>
-      <iconX>./art/help/square.png</iconX>
-      <iconY>./art/help/triangle.png</iconY>
-      ...
-    </helpsystem>
+**Feasibility:** Ship-it (delivered).
 
-Author 6-10 small PNG glyphs (~32×32 px) matching the shipped
-filled-silhouette icon style. Verify exact attribute names against the
-batocera-emulationstation `THEMES.md` helpsystem section, since some
-forks rename them.
+**Dependencies:** S1 (visual consistency) — met; the glyphs are
+monochrome line art in the shipped icon language. Xbox's colour coding
+is deliberately not reproduced: ES tints help icons with a multiply
+(`ImageComponent::setColorShift`), which cannot preserve four hues.
 
-**Effort:** Small (XML) + Small-Medium (art).
-
-**Dependencies:** S1 (visual consistency).
-
-**Evidence:** `_inc/common.xml:131-137` (current helpsystem block);
-batocera-emulationstation `THEMES.md` helpsystem section.
+**Evidence:** `_inc/common.xml` and `_inc/gamelist-grid.xml`
+(helpsystem blocks); `_inc/buttons-{nintendo,psp,xbox}.xml`;
+`scripts/gen-help-icons.py`; `scripts/tests/test-button-glyphs.sh`;
+`docs/psp-xmb-style-guidelines.md` §5.4.
 
 ---
 

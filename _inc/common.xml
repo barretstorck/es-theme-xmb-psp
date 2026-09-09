@@ -248,6 +248,37 @@
       <iconColor>${helpAccent}</iconColor>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.025</fontSize>
+      <!-- Button glyphs (audit S4, #8). The four face-button slots come from
+           the buttonGlyphs subset (_inc/buttons-{nintendo,psp,xbox}.xml); the
+           rest are layout-independent and shared by all three sets.
+
+           Slots are nailed to PHYSICAL positions, not to letters:
+           iconA=EAST, iconB=SOUTH, iconX=NORTH, iconY=WEST. The derivation is
+           in _inc/buttons-nintendo.xml. Get it wrong and nothing errors - the
+           glyphs just land on the wrong buttons.
+
+           A path that does not resolve is equally silent: HelpComponent.cpp's
+           updateGrid() only uses the themed icon when
+           ResourceManager::fileExists() passes, and otherwise falls back to
+           ES's built-in :/help/*.svg. A typo therefore looks exactly like
+           broken art. scripts/tests/test-button-glyphs.sh checks every path
+           in this block exists on disk.
+
+           There is no iconLR slot - ES's helpsystem property map
+           (ThemeData.cpp:493-514) has 12 icon properties and the "lr" prompt
+           is not among them, so that one prompt keeps ES's stock glyph. -->
+      <iconA>${helpIconA}</iconA>
+      <iconB>${helpIconB}</iconB>
+      <iconX>${helpIconX}</iconX>
+      <iconY>${helpIconY}</iconY>
+      <iconUpDown>./art/help/dpad-updown.png</iconUpDown>
+      <iconLeftRight>./art/help/dpad-leftright.png</iconLeftRight>
+      <iconUpDownLeftRight>./art/help/dpad-all.png</iconUpDownLeftRight>
+      <iconL>./art/help/shoulder-l.png</iconL>
+      <iconR>./art/help/shoulder-r.png</iconR>
+      <iconStart>./art/help/btn-start.png</iconStart>
+      <iconSelect>./art/help/btn-select.png</iconSelect>
+      <iconF1>./art/help/key-f1.png</iconF1>
     </helpsystem>
   </view>
 
