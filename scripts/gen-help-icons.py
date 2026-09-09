@@ -61,10 +61,14 @@ FONT_PATH = ROOT / "fonts" / "RobotoCondensed-Bold.ttf"
 SQUARE = (128, 128)
 PILL = (128, 80)
 
-# Stroke weight at 128px source. 8px reads as a ~1.2px hairline once ES scales
-# the glyph down to ~19px, which matches the line weight of the shipped
-# chevrons (art/ui/chevron-*.png) at their rendered size.
-STROKE = 8
+# Stroke weight, expressed per canvas because ES normalises help icons by
+# HEIGHT, not by width (icon->setResize(0, height)). A 128x128 square is scaled
+# by 19/128 and a 128x80 pill by 19/80, so one shared stroke constant would
+# render the pills ~60% heavier than the squares sitting next to them in the
+# same strip. Both values below land on the same ~1.2px hairline at 19px, which
+# matches the shipped chevrons (art/ui/chevron-*.png) at their rendered size.
+STROKE = 8                                  # 128x128 canvases
+PILL_STROKE = round(STROKE * PILL[1] / SQUARE[1])   # 128x80 canvases -> 5
 WHITE = (255, 255, 255, 255)
 
 
@@ -127,7 +131,7 @@ def lettered_button(path, letter):
 # --- Shoulders, start/select, F1 -------------------------------------------
 
 def _pill(draw, box, radius):
-    draw.rounded_rectangle(box, radius=radius, outline=WHITE, width=STROKE)
+    draw.rounded_rectangle(box, radius=radius, outline=WHITE, width=PILL_STROKE)
 
 
 def shoulder(path, letter):

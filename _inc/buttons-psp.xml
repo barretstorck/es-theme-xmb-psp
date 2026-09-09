@@ -23,11 +23,13 @@
   whole point is PSP authenticity. Nothing errors; the glyphs simply appear on
   the wrong buttons.
 
-  Western PSP firmware confirms with Cross and backs out with Circle, which is
-  what this produces on a Brick: Cross (iconB, south) is BACK and Circle
-  (iconA, east) is CONFIRM under the device's InvertButtons=true. Japanese
-  units use the opposite convention, and a user who flips Invert Buttons gets
-  it. Either way each shape stays on its own physical button.
+  Which shape CONFIRMS is not this file's decision. The Brick ships
+  InvertButtons=true, making east the confirm button, so out of the box this
+  set gives Circle (iconA, east) = CONFIRM and Cross (iconB, south) = BACK —
+  the JAPANESE PSP convention. Western firmware is the other way round, and a
+  user who turns Invert Buttons off gets that instead, because the setting
+  moves the CONFIRM and BACK labels between the two glyphs. Either way each
+  shape stays on its own physical button, which is the part this file fixes.
 
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
