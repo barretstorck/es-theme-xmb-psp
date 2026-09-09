@@ -36,8 +36,9 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
   --out         host path for the captured PNG            (default: .dev/render.png)
-  --carousel-right N  press Right N times on the system carousel before entering
-                      a gamelist  (default: 0 — the first system)
+  --carousel-right N  press Right N times on the system carousel. Selects which
+                      system a --view system capture shows, and which gamelist
+                      the other views enter  (default: 0 — the first system)
   --settle N    extra seconds to wait after navigating, before capturing. Video
                 previews need this: the still shows for <delay> seconds first
                 (default: 0)
