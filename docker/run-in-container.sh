@@ -166,7 +166,10 @@ key() {
 echo "navigating: VIEW=${VIEW}" >&2
 case "${VIEW}" in
   system)
-    : ;;                                   # already on the system carousel
+    # Already on the system carousel; Right walks it so a specific system can
+    # be captured. Without this the system view ignored CAROUSEL_RIGHT and
+    # every position rendered the first system.
+    for _i in $(seq 1 "${CAROUSEL_RIGHT}"); do key Right 1; done ;;
   gamelist|gamecarousel)
     # Right walks the system carousel; the harness enters whichever system is
     # selected. Needed to reach a system whose games have scraped video.
