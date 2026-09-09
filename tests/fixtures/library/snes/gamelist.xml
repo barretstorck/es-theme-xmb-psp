@@ -4,7 +4,7 @@
     <path>./super-metroid.smc</path>
     <name>Super Metroid</name>
     <desc>Side-scrolling action-adventure. Samus explores Zebes.</desc>
-    <image>./media/box/super-metroid.png</image>
+    <image>./media/screenshots/super-metroid.png</image>
     <thumbnail>./media/box/super-metroid.png</thumbnail>
     <video>./media/videos/super-metroid.mp4</video>
     <genre>Action</genre>
@@ -22,6 +22,16 @@
     <releasedate>19911121T000000</releasedate>
     <players>1</players>
     <rating>0.95</rating>
+  </game>
+  <game>
+    <path>./video-no-image.smc</path>
+    <name>Video, No Screenshot</name>
+    <desc>Scraped a video but no still, so the media slot has nothing to show until the video starts.</desc>
+    <video>./media/videos/super-metroid.mp4</video>
+    <genre>Shooter</genre>
+    <releasedate>19950601T000000</releasedate>
+    <players>2</players>
+    <rating>0.8</rating>
   </game>
   <game>
     <path>./unscraped-game.smc</path>
