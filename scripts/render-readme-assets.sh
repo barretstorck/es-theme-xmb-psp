@@ -24,6 +24,12 @@ ONLY=""
 # Colorset tiles are table thumbnails, not full-size shots. 320px keeps twelve
 # of them inside the 600KB budget while staying legible on a phone.
 THUMB_WIDTH=320
+# The three style shots sit in a 3-column table, which GitHub renders about
+# 280px wide, so a full 1024px render is mostly wasted bytes: the Box Art Grid
+# one is a wall of eight detailed covers and weighed 805KB on its own — a fifth
+# of the whole page budget for one image. 640px still gives a reader something
+# worth clicking through to.
+STYLE_WIDTH=640
 
 usage() {
   cat <<EOF
@@ -129,6 +135,7 @@ if want styles; then
     echo "-- ${style} -> style-${slug}.png"
     GAMELIST_STYLE="${style}" "${RENDER}" --view gamelist --resolution 1024x768 \
       --library "${LIBRARY}" --out "${OUT_DIR}/style-${slug}.png" >/dev/null
+    downscale "${OUT_DIR}/style-${slug}.png" "${STYLE_WIDTH}"
   done < <(subset_values gamelistStyle)
 fi
 

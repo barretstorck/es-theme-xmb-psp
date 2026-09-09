@@ -352,6 +352,14 @@ esac
 # SPLASH_AT has already placed the capture deliberately.
 [[ "${VIEW}" == "splash" ]] || sleep 2
 
+# Video previews only appear after the theme's <delay> seconds of still
+# snapshot (VideoComponent.cpp:282 converts it to ms), so a capture taken
+# immediately shows the snapshot, never a playing frame. --settle waits it out.
+if (( SETTLE > 0 )); then
+  echo "settling ${SETTLE}s before capture" >&2
+  sleep "${SETTLE}"
+fi
+
 # --- recording ---
 # A background capture loop plus a foreground key script. They are separate
 # because their timing requirements conflict: the wave animates on 30s/20s/12s
@@ -461,14 +469,6 @@ if [[ "${VIEW}" == "record" ]]; then
   kill "${XVFB_PID}" 2>/dev/null || true
   echo "recorded ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME}"
   exit 0
-fi
-
-# Video previews only appear after the theme's <delay> seconds of still
-# snapshot (VideoComponent.cpp:282 converts it to ms), so a capture taken
-# immediately shows the snapshot, never a playing frame. --settle waits it out.
-if (( SETTLE > 0 )); then
-  echo "settling ${SETTLE}s before capture" >&2
-  sleep "${SETTLE}"
 fi
 
 # --- screenshot ---

@@ -23,7 +23,8 @@ reproduce — judge colour-critical changes with that in mind.
                         [--library PATH] [--out FILE]
 
 - `--view` — `system` (default), `gamelist`, `gamecarousel`, `menu`, or
-  `splash`
+  `splash`. There is also `record`, which is not reached through `render.sh` —
+  see the Recording section below.
 - `--view splash` renders the boot splash, and behaves unlike every other view.
   ES is launched WITHOUT the flag that suppresses the splash (the harness passes
   it for all other views so the splash cannot cover the capture window), and the
@@ -54,6 +55,70 @@ Subsets can be pinned per render with the `ICON_SIZE`, `TITLE_VISIBILITY`,
 `GAMELIST_STYLE`, `VIDEO_DELAY` and `VIDEO_AUDIO` environment variables.
 
 The first run builds the Docker image (~5–10 min, ~2–3 GB), cached thereafter.
+
+## Recording (animated GIF)
+
+`scripts/record.sh` produces the README's navigation GIF. It uses the same
+image, the same pin and the same container script as `render.sh` — recording
+added no image content, so **`HARNESS_REV` was deliberately not bumped and
+nobody has to rebuild** for it. The encode uses the ImageMagick the image has
+shipped all along.
+
+    ./scripts/record.sh --library /tmp/library
+    ./scripts/record.sh --script "right:1.5,right:1.5" --fps 8 --keep-frames
+
+### A background capture loop and a foreground key script
+
+`VIEW=record` starts a capture loop in the background and plays the navigation
+script in the foreground. The two are separate because their timing
+requirements conflict: the wave animates on 30s / 20s / 12s loops and needs
+**evenly spaced** frames or playback speed wobbles, while navigation needs
+**uneven** pauses — dwell on a system, then move. A single loop doing both
+serves neither.
+
+The loop is **deadline-scheduled**: it sleeps until `start + i*period` rather
+than sleeping a fixed period each pass. A screen grab costs about 90 ms at
+1280×720, and a fixed sleep would accumulate that into drift and stretch the
+take well past its intended length.
+
+### The script vocabulary is a closed set
+
+Steps are `key:seconds`, comma-separated. The keys are `up`, `down`, `left`,
+`right`, `start`, `confirm` and `back`; `confirm` and `back` resolve through
+the same `INVERT_BUTTONS` logic every other view uses.
+
+They are **not** raw xdotool keysyms, and that is deliberate. Keysyms are
+case-sensitive — `Right` is the arrow key, `right` is not a keysym at all —
+and the container's `key()` helper swallows an unknown symbol with `|| true`.
+The first take of this feature recorded a flawless GIF in which nothing
+navigated. An unrecognised key is now an error in both `record.sh` and the
+container.
+
+### The frame rate is measured, not assumed
+
+The capture ceiling is about **11 fps** at 1280×720, measured rather than
+guessed: `import -window root` plus the PNG write costs ~90 ms a frame, twice
+measured at 87 ms and 92 ms. The default is 10 fps and a take typically
+achieves ~9.1.
+
+The GIF's frame delay is derived from the rate **actually achieved**, not from
+`--fps`. A delay computed from the requested rate would make a slow machine's
+GIF play faster than the theme really moves; deriving it from measurement keeps
+playback truthful and puts the shortfall in the log instead of inside the
+artifact.
+
+### Size
+
+Take **length** and `--width` are the only real levers. Palette reduction
+barely helps: measured on a 139-frame take, dropping 128 → 64 colours saved 5%
+(2.97 MB → 2.81 MB). Every pixel of the wave changes every frame, so neither
+quantisation nor frame differencing has much to work with. A take also cannot
+be much shorter than ~12 s, because that is the period of the fastest wave
+layer and a shorter one shows no motion.
+
+Note that `-layers OptimizeTransparency` leaves individual frames carrying only
+their changed pixels, so extracting one frame from the GIF shows garbage unless
+you `-coalesce` first. That is an artifact of the extraction, not of playback.
 
 ## Video
 
