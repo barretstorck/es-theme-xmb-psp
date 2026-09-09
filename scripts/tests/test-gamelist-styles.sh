@@ -228,22 +228,22 @@ check "bottom peek title clears the help strip" $?
 # The screenshot->video handoff is ONE <video>, not a paired image swap.
 for prop in 'snapshotSource>image' 'showSnapshotDelay>true' 'showSnapshotNoVideo>true'; do
   grep -q "<${prop}<" "${CARD}"
-  check "cardMedia sets ${prop%%>*}" $?
+  check "card md_video sets ${prop%%>*}" $?
 done
 
 grep -q '<delay>${videoDelay}</delay>' "${CARD}"
-check "cardMedia delay is driven by the videoDelay subset" $?
+check "card md_video delay is driven by the videoDelay subset" $?
 
 # maxSize never breaks aspect ratio; size would stretch the video.
 python3 - "${CARD}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
-v = root.find(".//video[@name='cardMedia']")
-assert v is not None, "no cardMedia video element"
-assert v.find("maxSize") is not None, "cardMedia must use maxSize"
-assert v.find("size") is None, "cardMedia must NOT use size (stretches video)"
+v = root.find(".//video[@name='md_video']")
+assert v is not None, "no md_video element"
+assert v.find("maxSize") is not None, "md_video must use maxSize"
+assert v.find("size") is None, "md_video must NOT use size (stretches video)"
 PY
-check "cardMedia uses maxSize, not size" $?
+check "card md_video uses maxSize, not size" $?
 
 # {game:stars} emits filled glyphs only, so a dim 5-glyph track sits behind it.
 python3 - "${CARD}" <<'PY'
@@ -261,44 +261,28 @@ assert float(stars.findtext("zIndex")) > float(track.findtext("zIndex")), "stars
 PY
 check "star track and filled stars align and layer correctly" $?
 
-# cardScreenshot is the always-present still under cardMedia: it must share the
-# video's anchor/envelope and sit behind it. (The harness plays video since #40;
-# collapsing the pair into one <video> is #41.)
-python3 - "${CARD}" <<'PY'
-import sys, xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-shot = root.find(".//image[@name='cardScreenshot']")
-media = root.find(".//video[@name='cardMedia']")
-assert shot is not None and media is not None, "missing cardScreenshot/cardMedia"
-assert shot.findtext("path").strip() == "{game:image}", "cardScreenshot must bind {game:image}"
-for tag in ("pos", "maxSize", "origin"):
-    assert shot.findtext(tag) == media.findtext(tag), f"{tag} differs between cardScreenshot and cardMedia"
-assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "cardMedia must paint over cardScreenshot"
-PY
-check "cardScreenshot and cardMedia align and layer correctly" $?
-
-# Important-1 fix wave: cardScreenshot has no <visible> guard and no fallback
-# sibling, so an unscraped game (no {game:image}) left the upper-right art
-# slot blank. cardMediaFallback must cover it, at the same anchor/envelope,
-# guarded on !exists({game:image}), and painted UNDER cardScreenshot so a
-# real screenshot still wins when present.
+# cardMediaFallback covers the unscraped case: md_video's snapshot is
+# {game:image}, which an unscraped game does not have, so without this the
+# upper-right art slot sits blank. Same anchor/envelope, guarded on
+# !exists({game:image}), painted UNDER md_video so a real still wins when
+# present.
 python3 - "${CARD}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 fb = root.find(".//image[@name='cardMediaFallback']")
-shot = root.find(".//image[@name='cardScreenshot']")
+media = root.find(".//video[@name='md_video']")
 assert fb is not None, "no cardMediaFallback"
-assert shot is not None, "no cardScreenshot"
+assert media is not None, "no md_video"
 assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
     f"cardMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
 assert fb.findtext("visible") == "!exists({game:image})", \
     f"cardMediaFallback visible guard is {fb.findtext('visible')!r}"
 for tag in ("pos", "maxSize", "origin"):
-    assert fb.findtext(tag) == shot.findtext(tag), f"{tag} differs between cardMediaFallback and cardScreenshot"
-assert float(fb.findtext("zIndex")) < float(shot.findtext("zIndex")), \
-    "cardMediaFallback must sit BELOW cardScreenshot (lower zIndex)"
+    assert fb.findtext(tag) == media.findtext(tag), f"{tag} differs between cardMediaFallback and md_video"
+assert float(fb.findtext("zIndex")) < float(media.findtext("zIndex")), \
+    "cardMediaFallback must sit BELOW md_video (lower zIndex)"
 PY
-check "cardMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under cardScreenshot" $?
+check "cardMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under md_video" $?
 
 # The v0.11 fault: an unbounded description ran under the help strip.
 python3 - "${CARD}" "${COMMON}" <<'PY'
@@ -341,15 +325,15 @@ check "style B textlist shows 10 real rows" $?
 python3 - "${LIST}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
-v = root.find(".//video[@name='listMedia']")
-assert v is not None, "no listMedia"
+v = root.find(".//video[@name='md_video']")
+assert v is not None, "no md_video"
 for tag, want in (("snapshotSource","image"),("showSnapshotDelay","true"),
                   ("showSnapshotNoVideo","true")):
-    assert v.findtext(tag) == want, f"listMedia {tag} is {v.findtext(tag)}, want {want}"
+    assert v.findtext(tag) == want, f"md_video {tag} is {v.findtext(tag)}, want {want}"
 assert v.findtext("delay") == "${videoDelay}"
 assert v.find("maxSize") is not None and v.find("size") is None
 PY
-check "listMedia does screenshot->video at correct aspect" $?
+check "list md_video does screenshot->video at correct aspect" $?
 
 python3 - "${LIST}" <<'PY'
 import sys, xml.etree.ElementTree as ET
@@ -364,47 +348,31 @@ PY
 check "style B star track aligns with filled stars" $?
 
 # Style B does not use the XMB spine; the card elements must be gone.
-! grep -qE 'name="(cardBoxart|cardMedia|cardStars|tplPeekIcon)"' "${LIST}"
+! grep -qE 'name="(cardBoxart|cardMediaFallback|cardStars|tplPeekIcon)"' "${LIST}"
 check "style B does not carry leftover card elements" $?
 
-# Mirrors the style-A cardScreenshot/cardMedia check: listScreenshot is the
-# always-present still under listMedia, sharing its anchor/envelope and sitting
-# behind it.
-python3 - "${LIST}" <<'PY'
-import sys, xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-shot = root.find(".//image[@name='listScreenshot']")
-media = root.find(".//video[@name='listMedia']")
-assert shot is not None and media is not None, "missing listScreenshot/listMedia"
-assert shot.findtext("path").strip() == "{game:image}", "listScreenshot must bind {game:image}"
-for tag in ("pos", "maxSize", "origin"):
-    assert shot.findtext(tag) == media.findtext(tag), f"{tag} differs between listScreenshot and listMedia"
-assert float(media.findtext("zIndex")) > float(shot.findtext("zIndex")), "listMedia must paint over listScreenshot"
-PY
-check "listScreenshot and listMedia align and layer correctly" $?
-
-# Important-1 fix wave: style B has NO OTHER art slot, so an unscraped game
-# (no {game:image}) with an unguarded listScreenshot left the entire right
-# half of the screen blank. listMediaFallback must cover it, at the same
-# anchor/envelope, guarded on !exists({game:image}), and painted UNDER
-# listScreenshot so a real screenshot still wins when present.
+# Style B has NO OTHER art slot, so an unscraped game (no {game:image}, hence
+# no md_video snapshot) would leave the entire right half of the screen blank.
+# listMediaFallback must cover it, at the same anchor/envelope, guarded on
+# !exists({game:image}), and painted UNDER md_video so a real still wins when
+# present.
 python3 - "${LIST}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 fb = root.find(".//image[@name='listMediaFallback']")
-shot = root.find(".//image[@name='listScreenshot']")
+media = root.find(".//video[@name='md_video']")
 assert fb is not None, "no listMediaFallback"
-assert shot is not None, "no listScreenshot"
+assert media is not None, "no md_video"
 assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
     f"listMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
 assert fb.findtext("visible") == "!exists({game:image})", \
     f"listMediaFallback visible guard is {fb.findtext('visible')!r}"
 for tag in ("pos", "maxSize", "origin"):
-    assert fb.findtext(tag) == shot.findtext(tag), f"{tag} differs between listMediaFallback and listScreenshot"
-assert float(fb.findtext("zIndex")) < float(shot.findtext("zIndex")), \
-    "listMediaFallback must sit BELOW listScreenshot (lower zIndex)"
+    assert fb.findtext(tag) == media.findtext(tag), f"{tag} differs between listMediaFallback and md_video"
+assert float(fb.findtext("zIndex")) < float(media.findtext("zIndex")), \
+    "listMediaFallback must sit BELOW md_video (lower zIndex)"
 PY
-check "listMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under listScreenshot" $?
+check "listMediaFallback exists, binds mediaFallbackPath, guards !exists(image), sits under md_video" $?
 
 # Mirrors the style-A cardDesc check: an unbounded description ran under the
 # help strip in v0.11. Style B uses clipRect (not size) to bound it — assert
@@ -464,7 +432,7 @@ PY
 check "style D star track aligns with filled stars" $?
 
 # A grid has no textlist and must not carry the card spine.
-! grep -qE '<textlist|name="(cardBoxart|cardMedia|tplPeekIcon)"' "${GRID}"
+! grep -qE '<textlist|name="(cardBoxart|cardMediaFallback|tplPeekIcon)"' "${GRID}"
 check "style D has no textlist or leftover card elements" $?
 
 echo
@@ -506,6 +474,73 @@ if failures:
     sys.exit(1)
 INNER_PY
 check "every {game:*}-binding text element disables emptyTextDefaults" $?
+
+# #41. snapshotSource / showSnapshotDelay / showSnapshotNoVideo are parsed for
+# ANY <video> (VideoComponent.cpp:285-310) but only ever ACTED ON for the view's
+# built-in md_video: the snapshot's path is fed in by
+# DetailedContainer::updateControls, which only knows about its own mVideo
+# (DetailedContainer.cpp:786-807). An extra video's {game:video} binding reaches
+# setVideo() alone (VideoComponent::setProperty, :589), so its mStaticImage
+# never gets a path and the still simply does not draw -- silently, and only for
+# the delay window, which is exactly the kind of thing a single render misses.
+#
+# Splitting the slot back into an image + a video is the other half of the same
+# trap: <maxSize> preserves each FILE's aspect, so the two land on different
+# rectangles and the still's edges show around the video.
+#
+# So: the media slot is md_video, and no extra video may claim to do snapshots.
+python3 - "${REPO_ROOT}" <<'INNER_PY'
+import sys, xml.etree.ElementTree as ET
+
+SNAPSHOT_PROPS = ("snapshotSource", "showSnapshotDelay", "showSnapshotNoVideo")
+# style file -> does this style show a preview video at all?
+STYLES = {
+    "_inc/gamelist-card.xml": True,
+    "_inc/gamelist-list.xml": True,
+    "_inc/gamelist-grid.xml": False,   # art-first; no media slot
+}
+
+repo_root = sys.argv[1]
+failures = []
+for relpath, has_media in STYLES.items():
+    root = ET.parse(f"{repo_root}/{relpath}").getroot()
+    videos = root.findall(".//video")
+
+    for v in videos:
+        name = v.get("name")
+        claims = [p for p in SNAPSHOT_PROPS if v.findtext(p) is not None]
+        if claims and name != "md_video":
+            failures.append(
+                f"{relpath}: <video name='{name}'> sets {', '.join(claims)}, "
+                "which ES only honours on md_video")
+        if name == "md_video" and v.get("extra") == "true":
+            failures.append(f"{relpath}: md_video must not be extra='true'")
+
+    # An extra video bound to {game:video} is a media slot by another name.
+    strays = [v.get("name") for v in videos
+              if v.get("extra") == "true" and (v.findtext("path") or "").strip() == "{game:video}"]
+    if strays:
+        failures.append(
+            f"{relpath}: extra video(s) {strays} bind {{game:video}} -- the media "
+            "slot must be md_video so the still and the clip share one rectangle")
+
+    md = root.find(".//video[@name='md_video']")
+    if md is None:
+        failures.append(f"{relpath}: no md_video declaration at all")
+    elif has_media:
+        if md.findtext("visible") == "false":
+            failures.append(f"{relpath}: md_video is hidden, but this style has a media slot")
+        for p in SNAPSHOT_PROPS:
+            if md.findtext(p) is None:
+                failures.append(f"{relpath}: md_video does not set {p}")
+    elif md.findtext("visible") != "false":
+        failures.append(f"{relpath}: md_video must stay hidden in a style with no media slot")
+
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+INNER_PY
+check "the media slot is md_video, and no extra video claims snapshot handling" $?
 
 echo
 echo "per-aspect overrides:"

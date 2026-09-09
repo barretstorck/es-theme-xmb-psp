@@ -4,7 +4,7 @@
     <path>./ff7.bin</path>
     <name>Final Fantasy VII</name>
     <desc>JRPG. Cloud Strife, a mercenary, gets pulled into a battle for the planet.</desc>
-    <image>./media/box/ff7.png</image>
+    <image>./media/screenshots/ff7.png</image>
     <thumbnail>./media/box/ff7.png</thumbnail>
     <video>./media/videos/ff7.mp4</video>
     <genre>RPG</genre>
