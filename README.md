@@ -97,6 +97,24 @@ Configurable knobs, all under **UI Settings → Theme Configuration**:
 - **Scroll Speed** — how fast a long game description scrolls through its box (Normal / Slow / Fast). Applies to the PSP Card and List + Details styles; it has **no effect in Box Art Grid**, which shows a caption rather than a description
 - **Button Icons** — which face-button glyphs the bottom help strip uses: `Nintendo` (default), `PSP` or `Xbox`; see below
 
+### Navigation sounds
+
+The theme ships four sounds: a soft low **swoosh** when the system carousel
+moves sideways, a bright **tick** when a gamelist moves up or down, a
+**confirm** on launching a game or opening a gamelist menu, and a **back**
+sound when you leave a subfolder. The swoosh and the tick are deliberately
+different — that horizontal-versus-vertical distinction is how the real PSP
+XMB behaves.
+
+**You will hear none of them until you turn navigation sounds on.** This is
+EmulationStation's own switch, not a theme option, and it ships **off**:
+
+> **Main Menu → Sound Settings → Enable Navigation Sounds**
+
+There is no theme-side toggle, because that switch already gates every sound
+this theme can make — a second control would only be able to turn things off
+that ES had already silenced.
+
 ### Button Icons
 
 UI Settings → Theme Configuration → **Button Icons** picks the face-button
@@ -190,6 +208,16 @@ ssh root@<your-device-ip> 'batocera-settings-set theme.set carbon && batocera-es
 ```
 
 Knulli stores the theme name in two places (`theme.set` in `knulli.conf` and `ThemeSet` in `es_settings.cfg`) — if they diverge, ES enters a restart loop. The Knulli command above updates both atomically.
+
+**No sounds at all?** EmulationStation ships with navigation sounds turned
+**off** — see [Navigation sounds](#navigation-sounds) above. Turn on *Main
+Menu → Sound Settings → Enable Navigation Sounds*.
+
+**Still nothing after turning it on?** Restart EmulationStation. ES skips
+loading a sound file entirely while that setting is off, and switching it on
+does not reload the ones it already skipped — they are only re-read when the
+audio system restarts, which happens at ES startup and on returning from a
+game. Launching and quitting any game works too.
 
 ## Development
 
