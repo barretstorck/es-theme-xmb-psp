@@ -415,8 +415,8 @@ element should reference one of these, not a hardcoded hex.
 | `${waveTint}` | `1E3A8A` | Base wave color; menu panel `${waveTint}F0` |
 | `${accent}` | `3B82F6` | Wave layers 1-3 tint; menu selection bar |
 | `${textPrimary}` | `FFFFFF` | All primary copy: card title (`cardTitle`), the card's horizontal rule (`cardLine`), clock, helpsystem text |
-| `${textSecondary}` | `B0C4DE` | System-name caption, card metadata + description, Friendly-mode peek titles |
-| `${selectorGlow}` | `60A5FA` | Currently unconsumed — the v0.11 peek textlist sets its selector fully transparent. Kept in the colorset contract for future selection chrome. |
+| `${textSecondary}` | `DBE4F0` | System-name caption, **all gamelist body text** (metadata rows + descriptions, all three styles), Friendly-mode peek titles |
+| `${selectorGlow}` | `60A5FA` | Currently unconsumed. It briefly carried the List + Details year/developer and players/genre lines; #42 measured those at **1.82:1** on the wave crest and moved them to `${textSecondary}`. A mid-lightness accent is not a text colour on this background — see §3.5. |
 | `${helpAccent}` | `93C5FD` | Helpsystem icon tint |
 
 Defined at `_inc/common.xml:13-19`; overridden per-colorset by the
@@ -429,6 +429,10 @@ twelve files in `colors/`.
 - `textSecondary` should be a desaturated, lightened variant of
   `accent` (typically `accent` family hue + high luminance). The
   current 12 colorsets follow this convention; new ones should too.
+  #42 lifted every one of them **55% toward white** — this is the
+  theme's body-text ink, and it sits at 16-19px over a *moving*
+  background, which is a harder job than the large static captions the
+  original values were judged against.
 - `waveTint` is the *dark* anchor of the colorset palette; `accent`
   is the *bright* anchor. The wave layers (which are tinted
   `${accent}`) sit on top of the `${waveTint}` base; that contrast
@@ -457,18 +461,18 @@ of the corresponding hue, and `accent` is the `500` shade.
 
 | # | Name | `waveTint` | `accent` | `textSecondary` | `selectorGlow` | `helpAccent` | PS3-era reference hex |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | January Blue | `1E3A8A` | `3B82F6` | `B0C4DE` | `60A5FA` | `93C5FD` | `CBCBCB` (PS3 was grey) |
-| 2 | February Violet | `4C1D95` | `8B5CF6` | `C4B5FD` | `A78BFA` | `C4B5FD` | `D8BF1A` (PS3 was yellow) |
-| 3 | March Pink | `9D174D` | `EC4899` | `FBCFE8` | `F472B6` | `FBCFE8` | `6DB217` (PS3 was green) |
-| 4 | April Green | `14532D` | `22C55E` | `BBF7D0` | `4ADE80` | `BBF7D0` | `E17E9A` (PS3 was pink) |
-| 5 | May Yellow-Green | `3F6212` | `84CC16` | `D9F99D` | `A3E635` | `D9F99D` | `178816` (PS3 was dark green) |
-| 6 | June Yellow | `78350F` | `EAB308` | `FEF08A` | `FACC15` | `FEF08A` | `9A61C8` (PS3 was light-purple) |
-| 7 | July Amber | `7C2D12` | `F59E0B` | `FED7AA` | `FBBF24` | `FED7AA` | `02CDC7` (PS3 was light-blue) |
-| 8 | August Orange | `9A3412` | `F97316` | `FED7AA` | `FB923C` | `FED7AA` | `0C76C0` (PS3 was blue) |
-| 9 | September Red | `7F1D1D` | `EF4444` | `FCA5A5` | `F87171` | `FCA5A5` | `B444C0` (PS3 was purple) |
-| 10 | October Crimson | `881337` | `E11D48` | `FECDD3` | `FB7185` | `FECDD3` | `E5A708` (PS3 was yellow) |
-| 11 | November Slate | `334155` | `64748B` | `CBD5E1` | `94A3B8` | `CBD5E1` | `875B1E` (PS3 was brown) |
-| 12 | December Aqua | `134E4A` | `14B8A6` | `99F6E4` | `2DD4BF` | `99F6E4` | `E3412A` (PS3 was red) |
+| 1 | January Blue | `1E3A8A` | `3B82F6` | `DBE4F0` | `60A5FA` | `93C5FD` | `CBCBCB` (PS3 was grey) |
+| 2 | February Violet | `4C1D95` | `8B5CF6` | `E4DEFE` | `A78BFA` | `C4B5FD` | `D8BF1A` (PS3 was yellow) |
+| 3 | March Pink | `9D174D` | `EC4899` | `FDE9F5` | `F472B6` | `FBCFE8` | `6DB217` (PS3 was green) |
+| 4 | April Green | `14532D` | `22C55E` | `E0FBEA` | `4ADE80` | `BBF7D0` | `E17E9A` (PS3 was pink) |
+| 5 | May Yellow-Green | `3F6212` | `84CC16` | `EEFCD3` | `A3E635` | `D9F99D` | `178816` (PS3 was dark green) |
+| 6 | June Yellow | `78350F` | `EAB308` | `FFF8CA` | `FACC15` | `FEF08A` | `9A61C8` (PS3 was light-purple) |
+| 7 | July Amber | `7C2D12` | `F59E0B` | `FFEDD9` | `FBBF24` | `FED7AA` | `02CDC7` (PS3 was light-blue) |
+| 8 | August Orange | `9A3412` | `F97316` | `FFEDD9` | `FB923C` | `FED7AA` | `0C76C0` (PS3 was blue) |
+| 9 | September Red | `7F1D1D` | `EF4444` | `FED6D6` | `F87171` | `FCA5A5` | `B444C0` (PS3 was purple) |
+| 10 | October Crimson | `881337` | `E11D48` | `FFE8EB` | `FB7185` | `FECDD3` | `E5A708` (PS3 was yellow) |
+| 11 | November Slate | `334155` | `64748B` | `E8ECF2` | `94A3B8` | `CBD5E1` | `875B1E` (PS3 was brown) |
+| 12 | December Aqua | `134E4A` | `14B8A6` | `D1FBF3` | `2DD4BF` | `99F6E4` | `E3412A` (PS3 was red) |
 
 The right-hand column is psdevwiki's documented PS3-firmware-extracted
 filter color per month (https://www.psdevwiki.com/ps3/Template:XMB_colors).
@@ -485,7 +489,7 @@ Defined per file in `colors/psp-*.xml`:
     <waveTint>1E3A8A</waveTint>
     <accent>3B82F6</accent>
     <textPrimary>FFFFFF</textPrimary>
-    <textSecondary>B0C4DE</textSecondary>
+    <textSecondary>DBE4F0</textSecondary>
     <selectorGlow>60A5FA</selectorGlow>
     <helpAccent>93C5FD</helpAccent>
   </variables>
@@ -554,12 +558,40 @@ white glow. Against any colorset's wave tint, white reads as light.
 Against any of the twelve colorsets' wave background, text must
 remain readable. The de-facto contrast minimums:
 
+**Measure against the wave CREST, not `waveTint`.** `waveTint` is the
+darkest pixel on screen; text almost never sits on it. The three wave
+layers are `${accent}` at 0.85 opacity over that base, and a render of
+January Blue puts the background under the card's metadata row at
+`#3370DC` — about **0.75 of the way from `waveTint` to `accent`**. That
+blend is the worst case body text actually meets, and it is the number
+to design against. Contrast quoted against `waveTint` overstates
+legibility by roughly 2x.
+
 - `textPrimary` (white) on `waveTint`: contrast ≥ 7:1 (WCAG AAA).
   All twelve colorsets clear this.
-- `textSecondary` on `waveTint`: contrast ≥ 4.5:1 (WCAG AA-large).
-  Eleven colorsets clear this; November Slate's
-  `textSecondary=CBD5E1` over `waveTint=334155` is ~4.2:1 — at the
-  edge. Acceptable because Slate is a deliberately low-key palette.
+- `textSecondary` on the **wave crest**: target ≥ 3:1. Eight of the
+  twelve clear it after #42; the four that do not are listed below.
+
+| Colorset | `textSecondary` | vs `waveTint` | vs wave crest |
+|:---|:---:|---:|---:|
+| January Blue | `DBE4F0` | 8.1:1 | 3.65:1 |
+| February Violet | `E4DEFE` | 8.4:1 | 4.11:1 |
+| March Pink | `FDE9F5` | 6.8:1 | 3.69:1 |
+| April Green | `E0FBEA` | 8.3:1 | 2.81:1 ⚠ |
+| May Yellow-Green | `EEFCD3` | 6.6:1 | 2.42:1 ⚠ |
+| June Yellow | `FFF8CA` | 8.4:1 | 2.50:1 ⚠ |
+| July Amber | `FFEDD9` | 8.2:1 | 2.60:1 ⚠ |
+| August Orange | `FFEDD9` | 6.4:1 | 3.05:1 |
+| September Red | `FED6D6` | 7.5:1 | 3.56:1 |
+| October Crimson | `FFE8EB` | 8.2:1 | 4.78:1 |
+| November Slate | `E8ECF2` | 8.7:1 | 4.84:1 |
+| December Aqua | `D1FBF3` | 8.5:1 | 2.99:1 ⚠ |
+
+The four flagged colorsets **cannot be fixed by lightening the ink**:
+their accents are light enough that even pure white tops out at
+2.6-3.3:1 on their own crest. Lifting light text on a light wave is the
+wrong direction — the fix there is the palette (a darker `accent`, or
+dark ink), which is a separate piece of work from #42's body-text pass.
 - `accent` on `waveTint` for the wave layers themselves: contrast
   ratio is intentionally low (~1.5-2:1). The wave should be visible
   but not insistent. If you raise it, the wave starts to feel like a
@@ -578,8 +610,16 @@ the system-name caption (which uses `textSecondary`) on each.
 This theme uses **Roboto Condensed** in three weights:
 
 - `RobotoCondensed-Light.ttf` (`fontLight` token) — system-name
-  caption, count caption, card metadata + description, Friendly-mode
-  peek titles.
+  caption, count caption, Friendly-mode peek titles. **No longer any
+  gamelist body text**: #42 found Condensed Light at 16-19px over a
+  moving background to be the single largest contributor to the
+  legibility complaint, ahead of size.
+- `RobotoCondensed-Regular.ttf` via the **`fontBody` token** — every
+  metadata row and description in all three gamelist styles. This is a
+  separate token from `fontRegular` on purpose: it names the *role*, so
+  the whole body-text family moves in one edit and a new element cannot
+  quietly join the family in the wrong weight
+  (`scripts/tests/test-body-legibility.sh` enforces it).
 - `RobotoCondensed-Regular.ttf` (`fontRegular` token) — clock,
   helpsystem, the expanded card's title (`cardTitle`).
 - `RobotoCondensed-Bold.ttf` (`fontBold` token) — currently
@@ -607,11 +647,14 @@ All `<fontSize>` values are normalized to screen height (0.0-1.0):
 | Gamelist system caption (`md_systemName`) | `fontLight` | `0.040` | 31 | Under the pinned system icon in the gamelist header. |
 | System-name caption (system view) | `fontLight` | `0.034` | 26 | Below the selected category icon. |
 | Count caption | `fontLight` | `0.034` | 26 | When Game Count: Show. |
-| Card metadata line 1 (`cardGenre`, `cardStarTrack`/`cardStars`, `cardPlayers`) | `fontLight` | `0.030` / `0.026` (`cardMetaFontSize`) | 23 / 20 | Three fixed columns under the rule — genre, star track + `{game:stars}`, player count. Fixed-width columns since v0.12 (§6.7, §8) so a long genre can't push the stars around. |
-| Card metadata line 2 (`cardMeta2`) | `fontLight` | `0.026` (fixed, not an Icon Size variable) | 20 | `{game:releaseyear} · {game:developer}`, 75% opacity, below line 1. |
+| Card metadata line 1 (`cardGenre`, `cardStarTrack`/`cardStars`, `cardPlayers`) | `fontBody` | `0.033` Boxart / `0.029` Compact (`cardMetaFontSize`) | 25 / 22 | Three fixed columns under the rule — genre, star track + `{game:stars}`, player count. Fixed-width columns since v0.12 (§6.7, §8) so a long genre can't push the stars around. #42 raised the sizes ~10%; the ceiling is the star-track budget, and 1:1 is the binding ratio at `0.0275`. |
+| Card metadata line 2 (`cardMeta2`) | `fontBody` | `0.026`, `0.020` at 1:1 (`cardMeta2FontSize`) | 20 | `{game:releaseyear} · {game:developer}`, below line 1. #42 removed its `opacity 0.75`: with line 1 now at `0.033`, size alone carries the hierarchy, and the opacity was costing 0.7 of a contrast point for nothing. |
 | Peek title (`tplPeekTitle`, Friendly only) | `fontLight` | `0.030` / `0.026` (`peekTitleFontSize`) | 23 / 20 | Dim title beside unselected peek icons. |
 | Helpsystem | `fontRegular` | `0.025` | 19 | Bottom-strip button labels. |
-| Card description (`cardDesc`) | `fontLight` | `0.023` / `0.021` (`cardDescFontSize`) | 18 / 16 | Bounded block below the metadata lines, full text-column width, `<clipRect>`-bounded so it cannot reach the help strip (v0.12; superseded the v0.11 narrow marquee strip — see §10). |
+| List panel metadata (`listYearDev`, `listStarTrack`/`listStars`, `listMeta`) | `fontBody` | `0.030`, `0.028` at 1:1 (`listMetaFontSize`) | 23 / 20 | List + Details info panel. Per-ratio since #42 — the five-glyph star track is height-normalised while `listStarX`/`listMetaX` are width-normalised, so the squarest surface is the binding one. |
+| List description (`listDesc`) | `fontBody` | `0.026` | 20 | Same bounded-and-scrolling treatment as `cardDesc`, same clipped last line. |
+| Grid info bar (`gridMeta`, `gridStarTrack`/`gridStars`) | `fontBody` | `0.029` | 22 | Box Art Grid's single metadata run plus its rating pair. `gridStarW` was widened to `0.165` so the track still clears its bound at 1:1 with the same 0.010 margin its sibling guards demand. |
+| Card description (`cardDesc`) | `fontBody` | `0.025` Boxart / `0.023` Compact (`cardDescFontSize`) | 19 / 18 | Bounded block below the metadata lines, full text-column width, `<clipRect>`-bounded so it cannot reach the help strip (v0.12; superseded the v0.11 narrow marquee strip — see §10). **The box height did not grow with the face**, so the last visible line is clipped mid-glyph until auto-scroll moves it — an accepted trade in #42, not a bug. |
 
 The cluster of secondary sizes between `0.023` and `0.040` reads as
 "PSP-scale UI text" on a 768-line display. The card title (`0.075` /
@@ -1162,7 +1205,27 @@ emits only filled glyphs — `for (i = 0; i < stars; i++)` — with no
 empty-star track. `cardStarTrack` (a dim, always-five-glyph
 `&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;` string at `zIndex 7`) sits
 under `cardStars` (`{game:stars}`, `zIndex 8`), identical in every
-other property (`pos`, `fontPath`, `fontSize`). This works because ES
+other property (`pos`, `fontPath`, `fontSize`). The only thing
+separating the two is the track's `<opacity>${starTrackOpacity}</opacity>`
+— `0.30` since #42, **lowered** from `0.35`.
+
+Lowered, because the track's job is *relative*: it has to sit visibly
+below the filled glyphs, so when #42 lifted the body ink the track got
+brighter for free and the opacity had to come down to compensate. Raising
+it to `0.45` was tried first and measured the pair's separation falling
+from **3.45:1 to 2.61:1** on a render; `0.30` measures **3.23:1**, close
+to what the theme shipped with, while the track still reads against the
+wave behind it (1.29:1, against 1.34:1 before). Both ends are bounded:
+too high and the empty stars stop looking empty, too low and they vanish
+into the wave.
+
+It is the one opacity cut #42 kept. The other, `${metaSecondaryOpacity}`
+on the card's year/developer line, went to `1` because size alone already
+carried that hierarchy — which is exactly why `cardMeta2FontSize` had to
+become a per-ratio variable (as a literal `0.026` it was *larger* than
+line 1 at 1:1). `scripts/tests/test-body-legibility.sh` bounds the
+opacity at both ends, checks all three tracks read the variable, and
+checks the two metadata lines do not invert at any ratio. This works because ES
 does per-glyph font fallback to `:/fontawesome-webfont.ttf`
 (`Font.cpp:274-312`) — a literal `U+F005` resolves to the same glyph
 at the same advance width as the one `{game:stars}` emits. Both
@@ -1228,20 +1291,36 @@ set is overridden wholesale by the Icon Size subset files
 | `cardTextX` / `cardTextW` | `0.385` / `0.585` | narrower | Card text column left edge / width |
 | `cardLineW` (`cardLineH=0.004`) | `0.585` | narrower | Horizontal rule from `cardTextX`, tinted `${textPrimary}` |
 | `cardTitleFontSize` | `0.075` | `0.060` | Title above the rule |
-| `cardMetaFontSize` | `0.030` | `0.026` | Genre / star / player-count line |
+| `cardMetaFontSize` | `0.033` | `0.029` | Genre / star / player-count line |
 | `cardGenreW`, `cardStarX`, `cardPlayersX` | `0.135`, `0.530`, `0.680` | same | Fixed-column budget for metadata line 1 — re-check if `cardMetaFontSize` changes per ratio (§8) |
-| `cardDescFontSize` | `0.023` | `0.021` | Bounded description block |
+| `cardDescFontSize` | `0.025` | `0.023` | Bounded description block |
 | `peekIconW × peekIconH` | `0.088 × 0.51` | `0.073 × 0.425` | Peek icon (screen-w × slot-relative-h — see gotcha below) |
 | `titleUnselectedOpacity` | `0` (Strict) | — | `1` in Friendly; set by the Title Visibility subset, not Icon Size |
 | `cardY`, `cardTitleY`, `cardMetaY`, `cardMeta2Y`, `cardDescY` | `0.585`, `0.572`, `0.602`, `0.643`, `~0.695` | same | Card vertical anchors (subset-independent) |
 | `glLogoY`, `glCaptionY`, `glListTop`, `glListH` | `0.110`, `0.222`, `0.21`, `0.75` | same | Header + peek-list frame |
 
 **Per-aspect tuning:** geometry none — only `crossX` shifts per ratio
-(§2.2). Text fit: `cardMediaW`/`cardMediaH` and `cardMetaFontSize` are
-overridden per ratio (e.g. wider media at 16:9, shrunk at 1:1) so the
-media block, metadata columns and description stay collision-free at
-every ratio; see P3 in §1.3 for the pixel reasoning and the
-subset-vs-aspect include-order precedence this depends on.
+(§2.2). Text fit: `cardMediaW`/`cardMediaH`, `cardMetaFontSize` and
+(since #42) `listMetaFontSize` are overridden per ratio (e.g. wider
+media at 16:9, shrunk at 1:1) so the media block, metadata columns and
+description stay collision-free at every ratio; see P3 in §1.3 for the
+pixel reasoning and the subset-vs-aspect include-order precedence this
+depends on.
+
+**These `card*` font sizes are declared TWICE and both copies are
+live — on different targets.** `_inc/common.xml` sets them and
+`_inc/icon-size-boxart.xml` sets them again to the same values. The
+iconSize subset parses after `common.xml`, so in the render harness
+(where an unselected subset still applies its first `<include>`) the
+subset value wins and `common.xml`'s is dead. On the device it is the
+reverse: ES v39 applies **no** include for a subset the user has never
+opened, so `common.xml`'s value is the live one there. Change one and
+the render shows nothing while a fresh install changes — which is
+exactly how #42's first size attempt measured as a no-op.
+`scripts/tests/test-body-legibility.sh` asserts the two agree. The one
+pair already out of step is `cardBoxartW`/`cardBoxartH` (`0.234 ×
+0.3125` in `common.xml` vs `0.22 × 0.29` in the subset), recorded there
+as a known exception.
 
 **Coordinate gotcha (documented in `_inc/common.xml`):** itemTemplate
 `<pos>` / `<size>` / `<maxSize>` scale by the **row-slot's pixel

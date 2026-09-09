@@ -338,8 +338,8 @@
       <pos>0.05 ${gridMetaY}</pos>
       <size>0.60 ${gridMetaH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.027</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>0.029</fontSize>
       <color>${textSecondary}</color>
       <text>{game:genre}  ·  {game:releaseyear}  ·  {game:developer}  ·  {game:playercount}P</text>
       <alignment>left</alignment>
@@ -369,10 +369,10 @@
       <pos>${gridStarX} ${gridMetaY}</pos>
       <size>${gridStarW} ${gridMetaH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.027</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>0.029</fontSize>
       <color>${textSecondary}</color>
-      <opacity>0.35</opacity>
+      <opacity>${starTrackOpacity}</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
       <zIndex>8</zIndex>
@@ -381,8 +381,8 @@
       <pos>${gridStarX} ${gridMetaY}</pos>
       <size>${gridStarW} ${gridMetaH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.027</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>0.029</fontSize>
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
