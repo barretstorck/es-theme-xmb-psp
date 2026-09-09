@@ -233,9 +233,9 @@
       <pos>${cardTextX} ${cardMetaY}</pos>
       <size>${cardGenreW} 0.04</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textSecondary}</color>
+      <color>${textBody}</color>
       <text>{game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -253,10 +253,10 @@
     <text name="cardStarTrack" extra="true">
       <pos>${cardStarX} ${cardMetaY}</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textSecondary}</color>
-      <opacity>0.35</opacity>
+      <color>${textBody}</color>
+      <opacity>${starTrackOpacity}</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
       <zIndex>7</zIndex>
@@ -264,7 +264,7 @@
     <text name="cardStars" extra="true">
       <pos>${cardStarX} ${cardMetaY}</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
@@ -278,9 +278,9 @@
     <text name="cardPlayers" extra="true">
       <pos>${cardPlayersX} ${cardMetaY}</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textSecondary}</color>
+      <color>${textBody}</color>
       <text>{game:playercount}P</text>
       <alignment>left</alignment>
       <emptyTextDefaults>false</emptyTextDefaults>
@@ -293,10 +293,10 @@
       <pos>${cardTextX} ${cardMeta2Y}</pos>
       <size>${cardTextW} 0.04</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>0.026</fontSize>
-      <color>${textSecondary}</color>
-      <opacity>0.75</opacity>
+      <color>${textBody}</color>
+      <opacity>${metaSecondaryOpacity}</opacity>
       <text>{game:releaseyear} · {game:developer}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -328,9 +328,9 @@
       <pos>${cardTextX} ${cardDescY}</pos>
       <size>${cardTextW} ${cardDescH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
+      <fontPath>${fontBody}</fontPath>
       <fontSize>${cardDescFontSize}</fontSize>
-      <color>${textSecondary}</color>
+      <color>${textBody}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>

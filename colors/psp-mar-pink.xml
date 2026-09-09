@@ -10,6 +10,7 @@
     <accent>EC4899</accent>
     <textPrimary>FFFFFF</textPrimary>
     <textSecondary>FBCFE8</textSecondary>
+    <textBody>FBCFE8</textBody>
     <selectorGlow>F472B6</selectorGlow>
     <helpAccent>FBCFE8</helpAccent>
   </variables>

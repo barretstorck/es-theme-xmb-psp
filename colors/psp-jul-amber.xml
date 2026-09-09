@@ -10,6 +10,7 @@
     <accent>F59E0B</accent>
     <textPrimary>FFFFFF</textPrimary>
     <textSecondary>FED7AA</textSecondary>
+    <textBody>FED7AA</textBody>
     <selectorGlow>FBBF24</selectorGlow>
     <helpAccent>FED7AA</helpAccent>
   </variables>
