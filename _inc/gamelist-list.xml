@@ -139,45 +139,22 @@
       <zIndex>5</zIndex>
     </textlist>
 
-    <!-- Media fallback when the selected game has no screenshot. Style B has
-         no other art slot, so without this an unscraped game leaves the whole
-         right half of the screen empty. -->
+    <!-- Media fallback when the selected game has no art for this slot at
+         all. Style B has no other art slot, so without this an unscraped game
+         leaves the whole right half of the screen empty. The two-part guard
+         matches how ES resolves md_video's snapshot; see the same element in
+         _inc/gamelist-card.xml for the full reasoning. -->
     <image name="listMediaFallback" extra="true">
       <path>${mediaFallbackPath}</path>
       <pos>${listMediaX} ${listMediaY}</pos>
       <maxSize>${listMediaW} ${listMediaH}</maxSize>
       <origin>0.5 0.5</origin>
-      <visible>!exists({game:image})</visible>
+      <visible>!exists({game:image}) &amp;&amp; !exists({game:thumbnail})</visible>
       <zIndex>6</zIndex>
     </image>
 
-    <!-- v0.12: the media block is a PAIR, not one element.
-         ES's <video> alone would suffice on hardware, and since #40 the harness
-         image plays video as well (VLC's plugins are installed and the parse
-         wait is patched), so the pair is no longer load bearing. It survives
-         only as history: this image is the always-present screenshot and the
-         video paints over it. Collapsing the two into one <video> is issue #41.
-         -->
-    <image name="listScreenshot" extra="true">
-      <path>{game:image}</path>
-      <pos>${listMediaX} ${listMediaY}</pos>
-      <maxSize>${listMediaW} ${listMediaH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <zIndex>7</zIndex>
-    </image>
-
-    <video name="listMedia" extra="true">
-      <path>{game:video}</path>
-      <pos>${listMediaX} ${listMediaY}</pos>
-      <maxSize>${listMediaW} ${listMediaH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <snapshotSource>image</snapshotSource>
-      <showSnapshotDelay>true</showSnapshotDelay>
-      <showSnapshotNoVideo>true</showSnapshotNoVideo>
-      <delay>${videoDelay}</delay>
-      <audio>${videoAudioEnabled}</audio>
-      <zIndex>8</zIndex>
-    </video>
+    <!-- The media slot itself is md_video, in the metadata block below. It is
+         NOT an extra: see the comment there (#41). -->
 
     <!-- listYearDev / listMeta merge two semantically distinct fields
          (year+developer, players+genre) into one single-coloured <text>
@@ -294,7 +271,23 @@
     <image name="md_image"><visible>false</visible></image>
     <image name="md_thumbnail"><visible>false</visible></image>
     <image name="md_marquee"><visible>false</visible></image>
-    <video name="md_video"><visible>false</visible></video>
+    <!-- THE MEDIA SLOT (right half). md_video, not an extra — the still and
+         the clip have to be one component or their <maxSize> rectangles differ
+         and the still's edges survive around the video. Full reasoning and the
+         ES source references are in _inc/gamelist-card.xml (#41).
+
+         listMediaFallback above still covers the no-screenshot case. -->
+    <video name="md_video">
+      <pos>${listMediaX} ${listMediaY}</pos>
+      <maxSize>${listMediaW} ${listMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <snapshotSource>image</snapshotSource>
+      <showSnapshotDelay>true</showSnapshotDelay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
+      <delay>${videoDelay}</delay>
+      <audio>${videoAudioEnabled}</audio>
+      <zIndex>8</zIndex>
+    </video>
 
   </view>
 </theme>

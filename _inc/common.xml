@@ -149,8 +149,9 @@
     <cardDescY>0.695</cardDescY>
     <cardDescH>0.175</cardDescH>
 
-    <!-- v0.12: folds the videoAudio subset onto the new media element.
-         The subset previously targeted the hidden legacy md_video (no-op). -->
+    <!-- v0.12: folds the videoAudio subset onto the real media element
+         (md_video, since #41). The subset previously targeted that element
+         while it was hidden, so it was a no-op. -->
     <videoAudioEnabled>false</videoAudioEnabled>
 
     <!-- Selected boxart: 240px square at 4:3 = 0.234 (W of 1024) x 0.3125

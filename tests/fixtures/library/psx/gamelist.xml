@@ -4,7 +4,7 @@
     <path>./ff7.bin</path>
     <name>Final Fantasy VII</name>
     <desc>JRPG. Cloud Strife, a mercenary, gets pulled into a battle for the planet.</desc>
-    <image>./media/box/ff7.png</image>
+    <image>./media/screenshots/ff7.png</image>
     <thumbnail>./media/box/ff7.png</thumbnail>
     <video>./media/videos/ff7.mp4</video>
     <genre>RPG</genre>
@@ -33,6 +33,16 @@
     <releasedate>19990101T000000</releasedate>
     <players>1</players>
     <rating>0.6</rating>
+  </game>
+  <game>
+    <path>./box-only.bin</path>
+    <name>Box-Only Game</name>
+    <desc>Scraped box art but no screenshot, the common result of a box-art-only scrape.</desc>
+    <thumbnail>./media/box/box-only.png</thumbnail>
+    <genre>Platform</genre>
+    <releasedate>19960401T000000</releasedate>
+    <players>1</players>
+    <rating>0.75</rating>
   </game>
   <game>
     <path>./no-thumb.bin</path>
