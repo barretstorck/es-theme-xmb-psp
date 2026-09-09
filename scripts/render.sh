@@ -195,15 +195,8 @@ fi
 # theme's own default. For VIDEO_DELAY that is the difference between a
 # deterministic capture and a random mid-playback frame, so a typo has to be
 # an error here rather than a puzzling screenshot later.
-subset_values() { # subset_values <subset-name>
-  awk -v want="$1" '
-    $0 ~ "<subset name=\"" want "\"" { inblk = 1; next }
-    inblk && /<\/subset>/ { exit }
-    inblk && match($0, /<include name="[^"]*"/) {
-      print substr($0, RSTART + 15, RLENGTH - 16)
-    }
-  ' "${REPO_ROOT}/theme.xml"
-}
+# shellcheck source=lib/theme-subsets.sh
+source "${SCRIPT_DIR}/lib/theme-subsets.sh"
 
 check_pin() { # check_pin <env-var-name> <subset-name>
   local var="$1" subset="$2" val="${!1:-}" valid
