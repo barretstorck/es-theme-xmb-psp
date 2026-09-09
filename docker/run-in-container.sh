@@ -13,12 +13,13 @@ SETTLE="${SETTLE:-0}"
 FRAMES="${FRAMES:-1}"
 FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
+GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
 SPLASH_AT="${SPLASH_AT:-0.4}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
 # zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
 # re-print base-10 so a zero-padded value cannot silently change behaviour.
-for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN; do
+for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN GAMELIST_RIGHT; do
   if [[ ! "${!_n}" =~ ^[0-9]+$ ]]; then
     echo "ERROR: ${_n} must be a non-negative integer (got '${!_n}')" >&2
     exit 2
@@ -277,7 +278,12 @@ case "${VIEW}" in
     # selected. Needed to reach a system whose games have scraped video.
     for _i in $(seq 1 "${CAROUSEL_RIGHT}"); do key Right 1; done
     key "${CONFIRM_KEY}" 4
-    for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done ;;  # diagnostic: move cursor down N times
+    # Diagnostic cursor moves inside the gamelist. Down walks rows in a grid
+    # (and rows in a textlist); Right walks columns, which only the Box Art
+    # Grid has -- it is how a render reaches a tile at a column edge instead of
+    # always photographing the top-left corner.
+    for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done
+    for _i in $(seq 1 "${GAMELIST_RIGHT}"); do key Right 1; done ;;
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;

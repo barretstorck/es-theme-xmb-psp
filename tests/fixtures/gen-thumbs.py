@@ -34,6 +34,10 @@ THUMBS = {
     "nes/media/box/smb3.png":           ("Mario 3",         (220,  50,  50)),
     "nes/media/box/contra.png":         ("Contra",          ( 50,  50,  50)),
     "nes/media/box/no-genre.png":       ("No-Genre Game",   ( 90, 140, 180)),
+    # The only fixture whose TITLE is the point. See the gamelist entry: its
+    # name is long enough to overflow the Box Art Grid's title box, which no
+    # real title in the scraped library slice is (longest there is 44 chars).
+    "nes/media/box/long-title.png":     ("Long Title",      (150,  90, 150)),
     # PORTRAIT, and the only game with a box but no screenshot. ES resolves
     # md_video's snapshot to the THUMBNAIL when <image> is empty
     # (DetailedContainer.cpp:786+), so this game's media slot shows a 3:4 still

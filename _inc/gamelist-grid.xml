@@ -163,15 +163,59 @@
       <zIndex>6</zIndex>
     </text>
 
+    <!-- Geometry (issue #43). The tiles occupy a fixed CELL BAND of
+         0.04 0.16 0.92 0.60 - unchanged since v0.12. The rect declared here is
+         that band grown by the zoom overhang on every side, with <padding>
+         equal to the growth:
+
+           tile      = (band - margin * (n - 1)) / n
+                     = 0.2120 wide x 0.2840 high
+           overhang  = (zoom - 1) * tile / 2   -> 0.0212 x 0.0284
+           pos       = band origin - overhang
+           size      = band size   + 2 * overhang
+
+         Two separate ES behaviours force this shape:
+
+         * The grid rect is its own render clip - render() pushes it before
+           drawing any tile (ImageGridComponent.h:733). Without the growth the
+           selected tile in the top row is CUT FLAT at the band edge: measured
+           254x238 instead of 254x254 at zoom 1.14, i.e. the shipped v0.12
+           value was already being clipped.
+         * <padding> is subtracted before the tile size is derived, and added
+           to the first tile's centre (:1444 and :283). So growing the rect and
+           padding by the same amount leaves tile size and cell positions bit
+           for bit unchanged - the grown rect is purely extra clip room.
+
+         The margin is what buys NEIGHBOUR clearance, and it is the binding
+         constraint on the zoom. Clearance between the enlarged tile and its
+         neighbour is (tile + margin) - tile * (zoom + 1) / 2, so the smallest
+         margin that avoids contact is
+
+           margin_min = (zoom - 1) * W_band / 2 / (n + (n - 1) * (zoom - 1) / 2)
+
+         = 0.0214 horizontally and 0.0286 vertically at zoom 1.20. v0.12's
+         0.012/0.020 put the ceiling at zoom 1.146 / 1.138, so its 1.14 sat ON
+         the limit and could not be raised at all without more margin. The
+         values below clear margin_min by 0.0028/0.0036 - about 3px at
+         1024x768 - deliberately, since a threshold-exact margin leaves the
+         gutter a sub-pixel wide and anti-aliases into contact. The cost is a
+         tile 4.1% narrower and 2.1% shorter than v0.12's.
+
+         Every number is a fraction of the same screen dimension, so these
+         thresholds are IDENTICAL at all five aspect ratios - no per-ratio
+         override is needed or wanted. scripts/tests/test-grid-selection.sh
+         recomputes all of it and fails on any inconsistency. -->
     <imagegrid name="gamegrid">
-      <pos>0.04 0.16</pos>
-      <size>0.92 0.60</size>
-      <margin>0.012 0.020</margin>
+      <pos>0.0188 0.1316</pos>
+      <size>0.9624 0.6568</size>
+      <padding>0.0212 0.0284 0.0212 0.0284</padding>
+      <margin>0.024 0.032</margin>
       <scrollDirection>vertical</scrollDirection>
       <autoLayout>4 2</autoLayout>
       <!-- Real properties on this build (ThemeData.cpp imagegrid map);
-           this is how the selected tile grows, not a hand-rolled border. -->
-      <autoLayoutSelectedZoom>1.14</autoLayoutSelectedZoom>
+           this is how the selected tile grows, not a hand-rolled border. It is
+           also the ONLY selection cue: see the gridtile block below. -->
+      <autoLayoutSelectedZoom>1.20</autoLayoutSelectedZoom>
       <animateSelection>true</animateSelection>
       <zIndex>5</zIndex>
     </imagegrid>
@@ -181,26 +225,58 @@
     <!-- GridTileComponent looks these up by the element NAMES "default" and
          "selected" (GridTileComponent.cpp:797,806). An unnamed <gridtile>
          is not the same thing — name it explicitly. -->
+    <!-- Selection is SIZE ONLY (issue #43): unselected tiles are not dimmed,
+         and the selected one gets no fill. Both properties below are explicit
+         on purpose.
+
+         imageColor FFFFFFFF on "default" replaces v0.12's FFFFFF9E, whose 62%
+         alpha faded every unselected tile.
+
+         backgroundColor must be set to a TRANSPARENT value rather than simply
+         deleted. Omitting it does not remove the background: the nine-patch
+         falls back to :/frame.png, tinted 0xAAAAEEFF on the default tile and
+         0xFFFFFFFF on the selected one, because resetProperties assigns that
+         pale tint to mDefaultProperties alone (GridTileComponent.cpp:67) and
+         renderBackground() draws unconditionally (:325). Deleting the property
+         would therefore have swapped the coloured box for a white frame glow.
+
+         "selected" repeats the transparent background because the theme lookup
+         applies the "default" element to BOTH property sets and then the
+         "selected" element to the selected set (GridTileComponent.cpp:797-807)
+         - so anything selected-only must be restated here, and anything the
+         selected state should share is inherited. backgroundCornerSize is gone
+         with the box it rounded. -->
     <gridtile name="default">
+      <!-- Inert while <autoLayout> is set; see the note on gridTileW in
+           _inc/common.xml. Kept as the fallback if autoLayout ever goes. -->
       <size>${gridTileW} ${gridTileH}</size>
       <padding>0.008 0.008 0.008 0.008</padding>
       <selectionMode>image</selectionMode>
       <imageSizeMode>maxSize</imageSizeMode>
-      <imageColor>FFFFFF9E</imageColor>
+      <imageColor>FFFFFFFF</imageColor>
+      <backgroundColor>FFFFFF00</backgroundColor>
     </gridtile>
     <gridtile name="selected">
       <imageColor>FFFFFFFF</imageColor>
-      <backgroundColor>${selectorGlow}FF</backgroundColor>
-      <backgroundCornerSize>4 4</backgroundCornerSize>
+      <backgroundColor>FFFFFF00</backgroundColor>
     </gridtile>
 
     <!-- Info bar. GridGameListView derives from ISimpleGameListView and calls
          updateThemeExtrasBindings() (GridGameListView.cpp:228), so these
          {game:*} extras rebind to the selected tile on cursor change. -->
+    <!-- The fill MUST be panel-fill.png, not line-1px.png (issue #43).
+         line-1px.png is 256x4 with rows 0 and 3 fully transparent - bleed rows
+         that keep it a crisp hairline where it is used as a rule, as in style
+         A's cardLine and style B's listRule. Stretched to a 0.110-tall panel,
+         only its opaque middle band drew: measured 0.8229-0.8776 against the
+         0.795-0.905 declared here, i.e. half height, vertically centred, with
+         soft edges. gridMeta ends at 0.902 and so fell outside the bar
+         entirely. That was the whole "the box does not wrap its text" report;
+         no geometry was wrong. -->
     <image name="gridInfoPanel" extra="true">
-      <path>./art/line-1px.png</path>
+      <path>./art/ui/panel-fill.png</path>
       <pos>0.03 ${gridInfoY}</pos>
-      <size>0.94 0.110</size>
+      <size>0.94 ${gridInfoH}</size>
       <origin>0 0</origin>
       <color>000000</color>
       <opacity>0.40</opacity>
@@ -208,8 +284,8 @@
     </image>
 
     <text name="gridTitle" extra="true">
-      <pos>0.05 0.808</pos>
-      <size>0.90 0.055</size>
+      <pos>0.05 ${gridTitleY}</pos>
+      <size>0.90 ${gridTitleH}</size>
       <origin>0 0</origin>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.046</fontSize>
@@ -217,6 +293,10 @@
       <text>{game:name}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
+      <!-- Bounded like its siblings. <size> alone does not clip on this build,
+           so without this a long title ran to the screen edge and out of the
+           panel, which ends at 0.97. Stops at 0.95 for a visual margin. -->
+      <clipRect>0.05 ${gridTitleY} 0.90 ${gridTitleH}</clipRect>
       <!-- emptyTextDefaults=false: TextComponent.cpp:625 defaults extra="true"
            text bindings to substitute "Unknown"/"None" for an empty binding
            (BindingManager.cpp:126), regardless of ThemeData.cpp:252's comment
@@ -227,8 +307,8 @@
     </text>
 
     <text name="gridMeta" extra="true">
-      <pos>0.05 0.862</pos>
-      <size>0.60 0.04</size>
+      <pos>0.05 ${gridMetaY}</pos>
+      <size>0.60 ${gridMetaH}</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.027</fontSize>
@@ -243,13 +323,19 @@
            clipRect is normalized SCREEN coords (x y w h), scaled by
            screenScale and pushed as a render clip (GuiComponent.cpp:885,
            1269). -->
-      <clipRect>0.05 0.862 0.60 0.04</clipRect>
+      <clipRect>0.05 ${gridMetaY} 0.60 ${gridMetaH}</clipRect>
       <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
+    <!-- Rating: a dim five-glyph track with the bound value drawn over it.
+         Both are bounded to gridStarW. The pair must keep identical pos, size,
+         font and alignment or the filled glyphs drift off the track -
+         {game:stars} emits FILLED glyphs only (FileData.cpp:1924), so the
+         track is what supplies the empty ones. -->
     <text name="gridStarTrack" extra="true">
-      <pos>${gridStarX} 0.862</pos>
+      <pos>${gridStarX} ${gridMetaY}</pos>
+      <size>${gridStarW} ${gridMetaH}</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.027</fontSize>
@@ -257,16 +343,19 @@
       <opacity>0.35</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
+      <clipRect>${gridStarX} ${gridMetaY} ${gridStarW} ${gridMetaH}</clipRect>
       <zIndex>8</zIndex>
     </text>
     <text name="gridStars" extra="true">
-      <pos>${gridStarX} 0.862</pos>
+      <pos>${gridStarX} ${gridMetaY}</pos>
+      <size>${gridStarW} ${gridMetaH}</size>
       <origin>0 0</origin>
       <fontPath>${fontLight}</fontPath>
       <fontSize>0.027</fontSize>
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
+      <clipRect>${gridStarX} ${gridMetaY} ${gridStarW} ${gridMetaH}</clipRect>
       <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>9</zIndex>
     </text>
