@@ -206,10 +206,12 @@
   </subset>
 
   <!-- v0.12: videoAudio moved here, into the variable-only group, when it
-       was folded onto the new media elements (cardMedia / listMedia). It
-       now sets ${videoAudioEnabled}, consumed by those views' <audio>
-       property, instead of overriding the hidden legacy md_video element
-       (a no-op). Leaving it declared after the gamelistStyle subset would
+       was folded onto the real media slot. It now sets ${videoAudioEnabled},
+       consumed by that element's <audio> property, instead of overriding a
+       video element while it was hidden (a no-op). The slot is md_video
+       itself as of #41, which changes nothing here — the coupling is through
+       the variable, not the element name. Leaving it declared after the
+       gamelistStyle subset would
        make it a no-op again — variables resolve at element-parse time, and
        the style views parse before anything declared later in this file. -->
   <subset name="videoAudio" displayName="Video Audio">

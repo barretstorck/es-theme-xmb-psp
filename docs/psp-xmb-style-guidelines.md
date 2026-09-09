@@ -196,9 +196,9 @@ Four principles govern when a value should differ per aspect ratio:
   corrections must win (before v0.11.1 they were silently clobbered
   by `icon-size-*.xml`).
 - **P4 — Video aspect.** Largely superseded in v0.11, carried into
-  v0.12: the media block's `cardMedia`/`listMedia` `<video>` elements
-  use `<maxSize>` (not `<size>`), which letterboxes the video inside
-  their own `cardMediaW × cardMediaH` / `listMediaW × listMediaH`
+  v0.12: the media slot's `md_video` element
+  uses `<maxSize>` (not `<size>`), which letterboxes the video inside
+  its own `cardMediaW × cardMediaH` / `listMediaW × listMediaH`
   envelope while preserving its native aspect ratio — no per-ratio
   W/H arithmetic needed, though `<maxSize>` preserves the *video
   file's* aspect ratio, not the system's canonical one (§6.7, §8).
@@ -338,7 +338,7 @@ shift when vertical real estate changes, principally at 1:1.
 | Cross top row (system view) | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
 | Gamelist header (style A) | `0.0235 – 0.282` (rendered text ends ~`0.262`) | `crossX ± 0.07` | Pinned icon: `origin 0.5 0.5`, `pos.y=glLogoY=0.110`, `maxSize` height `0.173` → spans `0.110 ± 0.0865` = `0.0235–0.1965`. Caption (`md_systemName`): `origin 0.5 0`, `pos.y=glCaptionY=0.222`, `size.y=0.06` → declared box `0.222–0.282`; its `fontSize=0.040` single line of rendered text only reaches ~`0.262`, the remainder being unused box (`_inc/gamelist-card.xml`) |
 | Peek list (style A, icon column) | `0.21 – 0.96` | container full width; icons at `crossX` | `textlist name="gamelist"` — 3 slots (`glListTop=0.21`, `glListH=0.75`), row centers at y `0.335 / 0.585 / 0.835` |
-| Media block (style A) | `0.120 – 0.460` | centred at `x=0.6775` | `cardScreenshot`/`cardMedia` pair, `maxSize 0.40 × 0.34`, screenshot-then-video (§6.7, §8) |
+| Media block (style A) | `0.120 – 0.460` | centred at `x=0.6775` | `md_video`, `maxSize 0.40 × 0.34`, screenshot-then-video in one element (§6.7, §8) |
 | Selected card (style A) | `~0.44 – 0.87` (boxart, Boxart size) | boxart at `crossX`; text column `0.385 – 0.97` | `cardBoxart`/`cardFallback` at `(crossX, cardY=0.585)`; `cardTitle` above the line, `cardLine` at `cardY`, metadata/stars/players from `cardMetaY=0.602`, `cardDesc` bounded block from `~0.695` |
 | Bottom help strip | `0.94 – 1.00` | `0.02 – 0.98` | Helpsystem buttons |
 
@@ -379,9 +379,8 @@ ES renders elements in `<zIndex>` order. The stack:
 | 5 | `systemcarousel` (system view); gamelist peek `textlist` | Foreground content |
 | 6 | `logo` (selected category icon, both views), `systemInfo` (count caption), gamelist `md_systemName` caption | One above carousel/list, so the icon paints over the centered slot reliably |
 | 7 | `systemName` (system-view extra caption) | Above systemInfo for the Hide subset |
-| 7 | `cardScreenshot` (style A media pair, always-present half) | Sits under the video; paints over the peek list it replaces |
 | 8 | Selected-card extras (`cardBoxart`, `cardFallback`, `cardTitle`, `cardLine`, `cardGenre`, `cardStars`, `cardPlayers`, `cardMeta2`, `cardDesc`) | The expanded card must paint over the peek list it replaces |
-| 9 | `cardMedia` (style A media pair, video half) | Video paints over `cardScreenshot` once it starts, after `${videoDelay}` |
+| 9 | `md_video` (style A media slot) | Still then video, one element; paints over `cardMediaFallback` at `6` |
 
 (`cardStarTrack`, the dim five-glyph rating backing track, sits at
 `zIndex 7` — one below its paired `cardStars` at `8` — so the filled
@@ -1112,24 +1111,43 @@ own XMB. Two cooperating halves:
    anchor `(crossX, cardY=0.585)` binding `{game:*}`; ES rebinds
    them to the selected game on every cursor change.
 
-**The media block is a pair, not a lone `<video>`.** `cardScreenshot`
-(an `<image>` bound to `{game:image}`, `zIndex 7`) sits under
-`cardMedia` (a `<video>` bound to `{game:video}`, `zIndex 9`), both at
-the same `(cardMediaX=0.6775, cardMediaY=0.290)` anchor and
-`maxSize ${cardMediaW} ${cardMediaH}` (`0.40 × 0.34` default). ES's
-`<video>` alone does screenshot-then-video natively on hardware
-(`snapshotSource=image`, `showSnapshotDelay=true`,
-`showSnapshotNoVideo=true`), but the harness could not play it until
-issue #40 added VLC's plugins and one patch to the image. (An earlier
-note here read "video support is compiled out" — that diagnosis was
-wrong.) It plays now, with the Video Delay pinned to 10s so ordinary
-renders still capture the still; `cardScreenshot` therefore no longer
-carries this region on its own, and collapsing the pair into a lone
-`<video>` is issue #41. `<delay>` (the **Video Delay**
-subset, in seconds) and `<audio>` (`${videoAudioEnabled}`, the
-**Video Audio** subset — §8) drive the handoff. `<maxSize>` never
-distorts, but it preserves the *video file's* aspect ratio, not the
-system's canonical one — a padded clip keeps its padding.
+**The media block is `md_video` — one element, and the only `md_*`
+element the theme uses rather than hides.** It sits at
+`(cardMediaX=0.6775, cardMediaY=0.290)` with
+`maxSize ${cardMediaW} ${cardMediaH}` (`0.40 × 0.34` default),
+`zIndex 9`, and does screenshot-then-video by itself:
+`snapshotSource=image`, `showSnapshotDelay=true`,
+`showSnapshotNoVideo=true`. `<delay>` (the **Video Delay** subset, in
+seconds) and `<audio>` (`${videoAudioEnabled}`, the **Video Audio**
+subset — §8) drive the handoff.
+
+Through v0.12 this was a **pair** — a `cardScreenshot` `<image>` bound
+to `{game:image}` at `zIndex 7` under a `cardMedia` `<video>` at
+`zIndex 9` — and that is what issue #41 fixed. `<maxSize>` never
+distorts, but it preserves *each file's* aspect ratio, not the system's
+canonical one, so a 16:9 still and a 4:3 clip fitted into the same
+envelope land on **different rectangles**; wherever the still's
+rectangle was the larger one, its edges stayed visible around the
+video. One element has one rectangle at a time and nothing to leak.
+
+**It has to be `md_video` specifically, not a lone
+`<video extra="true">`.** `snapshotSource` / `showSnapshotDelay` /
+`showSnapshotNoVideo` are parsed for any `<video>`
+(`VideoComponent.cpp:285-310`), but the snapshot's *path* is only ever
+supplied by `DetailedContainer::updateControls`, and only to its own
+`mVideo` — which is `md_video` (`DetailedContainer.cpp:786-807`). An
+extra video's `{game:video}` binding reaches `setVideo()` alone
+(`VideoComponent::setProperty`, `:589`), so its `mStaticImage` never
+gets a path and the still simply does not draw. On an extra those three
+properties are **inert**. ES creates `md_video` whenever the theme
+declares it without `visible=false` and applies `ALL^PATH`
+(`DetailedContainer.cpp:440-444`), so the theme owns
+`pos`/`maxSize`/`origin`/`zIndex` while the path stays bound to the
+selected game.
+
+`cardMediaFallback` (`${mediaFallbackPath}`, `zIndex 6`,
+`!exists({game:image})`) still backs the slot: `md_video`'s snapshot is
+`{game:image}`, which an unscraped game does not have.
 
 **The rating is a pair too.** `{game:stars}` (`FileData.cpp:1924`)
 emits only filled glyphs — `for (i = 0; i < stars; i++)` — with no
@@ -1237,12 +1255,13 @@ in any of the three v0.12 style files; the `gameCol*` variables are
 likewise unconsumed (§2.2). Neither affects rendering.
 
 **The right info panel remains removed.** `_inc/gamelist-card.xml`
-explicitly hides every built-in `md_*` metadata element (including
-`md_video`) so ES doesn't paint them at unstyled default positions.
-Their information lives on the expanded card instead: `md_name` →
-`cardTitle`; `md_rating` → the `cardStarTrack`/`cardStars` pair;
-`md_video` → the `cardScreenshot`/`cardMedia` pair; `md_description`
-→ `cardDesc`. Not carried over: `{game:lastplayed}` (epoch-leak on
+explicitly hides every built-in `md_*` metadata element so ES doesn't
+paint them at unstyled default positions. Their information lives on
+the expanded card instead: `md_name` → `cardTitle`; `md_rating` → the
+`cardStarTrack`/`cardStars` pair; `md_description` → `cardDesc`.
+`md_video` is the **one exception** — it is not hidden but restyled
+into the media slot, because it is the only video component ES feeds a
+snapshot path to (§6.7). Not carried over: `{game:lastplayed}` (epoch-leak on
 this build) and a per-game position counter — there is no
 `{game:index}` binding; `{system:total}` (`SystemData.cpp:2162`) is a
 whole-library count, not a cursor position, so a "2 / 10" style
@@ -1258,9 +1277,8 @@ what keep it recognisably part of the theme. `<textlist>` at
 row at `selectorColor = ${textPrimary}` at 30% alpha (hex `4D`).
 **Never `${accent}` for text here** — it's the wave-layer tint
 (1.65:1 contrast on this build); use `${selectorGlow}` or
-`${textSecondary}` instead. `listMedia` is the same
-screenshot/video pair as style A's `cardMedia`, and shares its
-`${videoAudioEnabled}` binding. Same fixed-column star track as style
+`${textSecondary}` instead. The media slot is `md_video`, exactly as
+in style A (§6.7), and shares its `${videoAudioEnabled}` binding. Same fixed-column star track as style
 A. Full geometry: `docs/superpowers/specs/2026-09-05-v0.12-gamelist-styles-design.md` §5.
 
 #### Style D — Box Art Grid (`_inc/gamelist-grid.xml`)
@@ -1434,8 +1452,8 @@ holds still long enough to start reading before it moves.
 **Superseded in v0.12.** The selected media block now shows a
 **screenshot**, not the boxart, until `<delay>${videoDelay}</delay>`
 elapses, then plays the scraped preview video at its own aspect ratio
-inside the media envelope (`cardMedia` in style A, `listMedia` in
-style B — §6.7, §8). `${videoDelay}` is still in **seconds** and is
+inside the media envelope (`md_video` in both style A and style B —
+§6.7, §8). `${videoDelay}` is still in **seconds** and is
 still set by the user-facing Video Delay subset, whose variant files
 just set the variable:
 
@@ -1457,8 +1475,8 @@ resolve at parse time (§8).
 `md_video` element, which the v0.11 redesign already hid — so the
 subset had no visible target and the media element followed ES's
 global "Enable video preview audio" setting alone. v0.12 retargets it:
-the subset files now set `${videoAudioEnabled}`, which `cardMedia` and
-`listMedia` consume via their own `<audio>` property. Because this is
+the subset files now set `${videoAudioEnabled}`, which the media slot
+consumes via its own `<audio>` property. Because this is
 now a real variable dependency, the `videoAudio` subset had to move
 into the variable-only group in `theme.xml` (before `aspect-*.xml`,
 alongside `videoDelay`) — leaving it declared after the `gamelistStyle`
@@ -1496,8 +1514,8 @@ runtime (UI Settings → Theme Configuration). This theme exposes
 | `colorset` (PSP Color) | 12 monthly palettes | January Blue | Color scheme |
 | `iconSize` (Icon Size) | Boxart / Compact | Boxart | Card + peek icon scale (swaps the whole `card*`/`peek*` variable set — §6.7, style A only) |
 | `titleVisibility` (Title Visibility) | PSP-Faithful / With Titles | PSP-Faithful | Whether unselected peek rows show a dim title (`titleUnselectedOpacity` 0/1; style A only) |
-| `videoDelay` (Video Delay) | 5 seconds / Instant / 2 seconds / 10 seconds | 5 seconds | Screenshot → video timing in **seconds** (`${videoDelay}` variable, consumed by `cardMedia`/`listMedia`'s `<delay>` — §7.5) |
-| `videoAudio` (Video Audio) | Off / On | Off | Audio on the preview video. Sets `${videoAudioEnabled}`, consumed by `cardMedia`/`listMedia`'s `<audio>` property (styles A and B). Before v0.12 this subset targeted the hidden legacy video element and was a no-op; folded onto the real media elements in v0.12 — §7 of the v0.12 design spec. |
+| `videoDelay` (Video Delay) | 5 seconds / Instant / 2 seconds / 10 seconds | 5 seconds | Screenshot → video timing in **seconds** (`${videoDelay}` variable, consumed by `md_video`'s `<delay>` — §7.5) |
+| `videoAudio` (Video Audio) | Off / On | Off | Audio on the preview video. Sets `${videoAudioEnabled}`, consumed by `md_video`'s `<audio>` property (styles A and B). Before v0.12 this subset targeted the video element while it was hidden, so it was a no-op; folded onto the real media element in v0.12 — §7 of the v0.12 design spec. |
 | `gamelistStyle` (Gamelist Style) | PSP Card / List + Details / Box Art Grid | PSP Card | Selects the whole gamelist layout. Each variant is a full `<view>` definition whose root `defaultView` attribute picks the ES view type, so this subset MUST be declared after `aspect-*.xml` — see §6.7 and §10's Box Art Grid risk. |
 | `gamecount` (Game Count) | Hide / Show | Hide | Whether to show "X GAMES" count caption |
 | `scrollSpeed` (Scroll Speed) | Normal / Slow / Fast | Normal | Cadence of the description auto-scroll, in ms per pixel step — larger is slower. Drives `cardDesc` (PSP Card) and `listDesc` (List + Details); **no effect in Box Art Grid**, which has no description (§7.4) |
