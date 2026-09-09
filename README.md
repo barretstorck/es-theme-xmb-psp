@@ -178,7 +178,7 @@ Theme development and verification use the **Docker render harness** — it runs
 ./scripts/render.sh --view system
 ./scripts/render.sh --view gamelist --library <path> --resolution 1280x720
 VIDEO_DELAY=Instant ./scripts/render.sh --view gamelist --library <path> --settle 4
-SPLASH_AT=0.4 ./scripts/render.sh --view splash --library <path>
+./scripts/render.sh --view splash --library <path>          # SPLASH_AT=0.4 by default
 ```
 
 `--view splash` is the odd one out: it launches ES *with* the boot splash the

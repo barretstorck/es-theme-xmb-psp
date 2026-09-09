@@ -86,7 +86,7 @@ sys.exit(1)
 check "declares <image name=\"background\"> with a <path> (else ES draws :/logo.png)" $?
 
 # A background <path> that does not resolve puts us back on the ES logo:
-# Splash.cpp:50-53 only adopts the themed path if the file actually exists.
+# Splash.cpp:50-55 only adopts the themed path if the file actually exists.
 python3 - <<PY 2>/dev/null
 import xml.etree.ElementTree as ET, os, sys
 root = "${REPO_ROOT}"
@@ -170,7 +170,7 @@ echo "== the splash tracks the user's colorset =="
 # mColorset comes from the global "ThemeColorSet" setting (ThemeData.cpp:684),
 # which a freshly constructed ThemeData reads, so the chosen colorset does
 # reach the splash — but only if this file declares the subset itself.
-# splash.xml is parsed standalone (Splash.cpp:40 passes it to loadFile directly),
+# splash.xml is parsed standalone (Splash.cpp:41 passes it to loadFile directly),
 # so it inherits NOTHING from theme.xml.
 grep -q '<subset name="colorset"' "${SPLASH}"
 check "splash.xml declares the colorset subset itself (it inherits nothing from theme.xml)" $?
@@ -350,7 +350,7 @@ echo
 echo "== the mark keeps clear of ES's own two slots =="
 
 # ES owns two bands of this screen and the theme cannot move them meaningfully:
-# the label at y = 0.78*H (Splash.cpp:102) and, because SplashScreenProgress
+# the label at y = 0.78*H (Splash.cpp:104) and, because SplashScreenProgress
 # also defaults true (Settings.cpp:130), the progress bar at y = H - 3*0.036*H
 # = 0.892*H with height 0.036*H (Splash.cpp:143-147). Art that strays below
 # 0.75 collides with text drawn AFTER it, and the collision only appears on a

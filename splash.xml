@@ -10,7 +10,7 @@
   defaults true (Settings.cpp:128), so this is genuinely on screen.
 
   THIS FILE IS PARSED STANDALONE. Splash::loadTheme hands it to
-  ThemeData::loadFile directly (Splash.cpp:40) on a throwaway ThemeData, so it
+  ThemeData::loadFile directly (Splash.cpp:41) on a throwaway ThemeData, so it
   inherits NOTHING from theme.xml - not a variable, not a font, not the
   colorset. Everything it needs is declared here. It is also parsed inside
   `try { } catch(...) { }` (Splash.cpp:38-42): any error here is swallowed in

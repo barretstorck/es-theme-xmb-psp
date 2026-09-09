@@ -25,7 +25,7 @@ CAROUSEL_RIGHT=0
 SETTLE=0
 FRAMES=1
 FRAME_INTERVAL=1
-SPLASH_AT="${SPLASH_AT:-3}"
+SPLASH_AT="${SPLASH_AT:-0.4}"
 
 usage() {
   cat <<EOF
@@ -35,8 +35,11 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
   --view        system | gamelist | gamecarousel | menu | splash
                 (default: system). "splash" is the boot splash: ES is launched
                 WITHOUT the flag that suppresses it, and the frame is grabbed
-                SPLASH_AT seconds in. It is transient, so that moment is a
-                race - use --frames to sweep the window if it lands wrong.
+                SPLASH_AT seconds in (default 0.4, and it must stay well under
+                a second - the splash is gone by ~1s, so a larger default would
+                quietly photograph the carousel instead). It is transient, so
+                that moment is a race: smaller resolutions boot faster and need
+                a smaller value. Use --frames to sweep if it lands wrong.
   --resolution  Xvfb geometry, e.g. 1024x768 (4:3) or 1280x720 (16:9)
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
