@@ -122,13 +122,13 @@ import os, sys, xml.etree.ElementTree as ET
 # component navigates in silence. Each entry is the file, the element tag, its
 # name attribute, and which variable it must reference.
 #
-# The carousel gets the swoosh and the three list components get the tick:
-# that IS the horizontal-vs-vertical distinction issue #21 asked for. Binding
-# both to one variable is the state the theme shipped in, and it is why A2 was
-# filed, so the variable is pinned per component rather than merely required
-# to be non-empty.
+# All four take the SAME tick, a deliberate reversal of audit A2: a distinct
+# horizontal swoosh was built, shipped to hardware and rejected by ear (style
+# guide section 10). The variable is still pinned per component rather than
+# merely required to be non-empty, so a future edit cannot quietly point one
+# of them somewhere else.
 REQUIRED = [
-    ("_inc/system.xml",        "carousel",  "systemcarousel", "${soundSystemScroll}"),
+    ("_inc/system.xml",        "carousel",  "systemcarousel", "${soundNavigate}"),
     ("_inc/gamelist-card.xml", "textlist",  "gamelist",       "${soundNavigate}"),
     ("_inc/gamelist-list.xml", "textlist",  "gamelist",       "${soundNavigate}"),
     ("_inc/gamelist-grid.xml", "imagegrid", "gamegrid",       "${soundNavigate}"),
@@ -158,7 +158,7 @@ if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
 PY
 rc=$?
-check "carousel takes the swoosh; all three gamelist styles take the tick" "${rc}"
+check "carousel and all three gamelist styles take the one shared tick" "${rc}"
 
 echo
 echo "the sound variables resolve to files that exist:"
@@ -171,7 +171,6 @@ import os, sys, xml.etree.ElementTree as ET
 # one that does not exist (Sound.cpp:67). Both are silent, which is the exact
 # failure mode this whole issue was about.
 WANT = {
-    "soundSystemScroll": "sounds/system-scroll.wav",
     "soundNavigate":     "sounds/navigate.wav",
     "soundSelect":       "sounds/select.wav",
     "soundBack":         "sounds/back.wav",
@@ -203,100 +202,65 @@ if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
 PY
 rc=$?
-check "all four sound variables exist and point at real files" "${rc}"
+check "all three sound variables exist and point at real files" "${rc}"
 
 echo
-echo "the swoosh is distinguishable from the tick:"
+echo "the rejected swoosh has not grown back:"
 
-python3 - "${REPO_ROOT}" <<'PY'
-import os, sys, wave
-import numpy as np
+python3 - "${REPO_ROOT}" <<'GUARD'
+import glob, os, sys, xml.etree.ElementTree as ET
 
-# The point of A2 is that a user can TELL the two apart. Two sounds that are
-# both correctly wired and both bright ticks would pass every check above and
-# still not deliver the issue. So this measures them.
+# Audit A2 asked for a distinct horizontal swoosh. One was built
+# (scripts/gen-swoosh.py -> sounds/system-scroll.wav, 870 Hz over 200 ms),
+# deployed to the TrimUI Brick and rejected by ear as out of place against
+# Ant's existing set. Both axes now share sounds/navigate.wav.
 #
-# Thresholds are loose on purpose: they are asserting "these occupy different
-# ends of the spectrum", not pinning gen-swoosh.py's exact output, which would
-# turn any retune into a test edit.
+# This guard exists because the #34 halo went round the same loop three
+# times: a leftover asset and its generator read as an unfinished feature
+# rather than a settled decision. Deleting an asset means deleting its
+# generator - the gen-*.py scripts cite each other as the pattern to copy,
+# so a surviving one would recreate the asset.
 root = sys.argv[1]
 bad = []
 
-def spectrum(rel):
-    with wave.open(os.path.join(root, rel)) as w:
-        p = w.getparams()
-        d = np.frombuffer(w.readframes(p.nframes), dtype="<i2").astype(np.float64)
-    if p.nchannels == 2:
-        d = d.reshape(-1, 2).mean(axis=1)
-    mag = np.abs(np.fft.rfft(d * np.hanning(d.size)))
-    mag[0] = 0.0
-    freq = np.fft.rfftfreq(d.size, 1 / p.framerate)
-    peak = float(np.max(np.abs(d))) / 32768.0
-    return freq, mag, d.size / p.framerate, peak
+for gone in ("sounds/system-scroll.wav", "scripts/gen-swoosh.py"):
+    if os.path.exists(os.path.join(root, gone)):
+        bad.append(f"{gone} is back - a distinct horizontal swoosh is a "
+                   f"settled will-not-do, rejected on hardware (style guide 10)")
 
-for rel in ("sounds/system-scroll.wav", "sounds/navigate.wav"):
-    if not os.path.isfile(os.path.join(root, rel)):
-        bad.append(f"{rel} is missing")
-if bad:
-    print("\n".join(bad), file=sys.stderr); sys.exit(1)
+# Keyed on the PROPERTY rather than the spelling: a second scroll sound under
+# any name is the same decision being re-litigated. Every scrollSound in the
+# tree must resolve to the one shared variable.
+files = sorted(glob.glob(os.path.join(root, "_inc", "**", "*.xml"), recursive=True))
+if len(files) < 20:
+    bad.append(f"only found {len(files)} _inc XML files - glob is wrong, and "
+               f"the rest of this check would pass vacuously")
+found = 0
+for path in files:
+    rel = os.path.relpath(path, root)
+    for el in ET.parse(path).iter("scrollSound"):
+        found += 1
+        value = (el.text or "").strip()
+        if value != "${soundNavigate}":
+            bad.append(f"{rel}: a <scrollSound> resolves to {value!r}, not "
+                       f"the shared soundNavigate - a second scroll sound "
+                       f"was tried on hardware and rejected (style guide 10)")
+if found < 4:
+    bad.append(f"found {found} <scrollSound> properties, expected 4 (the "
+               f"carousel plus one per gamelist style)")
 
-sf, sm, sdur, speak = spectrum("sounds/system-scroll.wav")
-nf, nm, _, npeak = spectrum("sounds/navigate.wav")
-
-# Gate on amplitude BEFORE any of the ratios below. An all-zero file makes
-# `mag.sum()` zero, so every ratio is nan — and in Python every `<` and `>`
-# comparison against nan is False, so each threshold check below silently
-# appends nothing and the guard passes. `np.argmax` on zeros returns index 0,
-# so the peak comparison reads 0 Hz and passes too. Verified: swapping in a
-# same-length silent wav passed this whole suite. analyze-audio.py's measure()
-# gets this right the same way, by checking peak before the derived stats.
-for rel, peak in (("sounds/system-scroll.wav", speak),
-                  ("sounds/navigate.wav", npeak)):
-    if peak < 0.001:
-        bad.append(f"{rel} is silent (peak {peak:.5f} full scale) — every "
-                   f"spectral ratio below would be nan, and nan fails no "
-                   f"comparison, so this guard would pass vacuously")
-if bad:
-    print("\n".join(bad), file=sys.stderr); sys.exit(1)
-
-swoosh_low = sm[sf < 2000].sum() / sm.sum()
-tick_high = nm[nf > 5000].sum() / nm.sum()
-swoosh_peak = sf[int(np.argmax(sm))]
-tick_peak = nf[int(np.argmax(nm))]
-
-if swoosh_low < 0.60:
-    bad.append(f"system-scroll.wav has only {swoosh_low:.0%} of its energy "
-               f"under 2 kHz — A2 calls for a low swoosh, not another tick")
-if tick_high < 0.50:
-    bad.append(f"navigate.wav has only {tick_high:.0%} of its energy over "
-               f"5 kHz — it is meant to be the bright one")
-if swoosh_peak > tick_peak / 2:
-    bad.append(f"the two peaks are {swoosh_peak:.0f} Hz and {tick_peak:.0f} Hz "
-               f"— less than an octave apart, so they will not read as "
-               f"different sounds")
-# A2 asks for "about 200 ms". Anything much longer overruns the dwell between
-# two fast carousel presses and the sounds pile up on each other.
-if not 0.10 <= sdur <= 0.35:
-    bad.append(f"system-scroll.wav is {sdur * 1000:.0f}ms; A2 specifies about "
-               f"200ms and over ~350ms consecutive moves overlap")
+# And no variable may point at a second scroll asset.
+for block in ET.parse(os.path.join(root, "_inc", "common.xml")).iter("variables"):
+    for el in block:
+        if el.tag == "soundSystemScroll":
+            bad.append("_inc/common.xml still declares <soundSystemScroll> - "
+                       "removed with the swoosh")
 
 if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
-PY
+GUARD
 rc=$?
-check "the swoosh is low and short, the tick is bright, an octave-plus apart" "${rc}"
-
-echo
-echo "the generator for the shipped asset is present:"
-
-# Deleting a generated asset means deleting its generator, and keeping one
-# means keeping the other — the reverse of the lesson gen-halo.py taught in
-# #34, where the generator outlived the asset and could have recreated it.
-[[ -f "${REPO_ROOT}/scripts/gen-swoosh.py" ]]
-check "scripts/gen-swoosh.py accompanies sounds/system-scroll.wav" $?
-
-grep -q 'system-scroll.wav' "${REPO_ROOT}/CREDITS.md"
-check "CREDITS.md accounts for system-scroll.wav" $?
+check "no second scroll sound, and its generator is gone too" "${rc}"
 
 echo
 echo "ES's own master switch is documented:"

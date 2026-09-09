@@ -96,8 +96,14 @@
            <scrollSound> from CarouselComponent::onCursorChanged
            (CarouselComponent.cpp:222-223), reading this property at
            applyTheme (:566). It defaults to EMPTY (:51), so a theme that does
-           not set it navigates in silence. -->
-      <scrollSound>${soundSystemScroll}</scrollSound>
+           not set it navigates in silence.
+
+           Deliberately the SAME tick as vertical moves. Audit A2 asked for a
+           distinct horizontal swoosh; one was built, shipped to the TrimUI
+           Brick and rejected by ear as sounding out of place (style guide
+           §10). Do not re-introduce a second scroll sound without hardware
+           listening first. -->
+      <scrollSound>${soundNavigate}</scrollSound>
       <textColor>${textSecondary}</textColor>
       <selectedTextColor>${textPrimary}</selectedTextColor>
       <zIndex>5</zIndex>
