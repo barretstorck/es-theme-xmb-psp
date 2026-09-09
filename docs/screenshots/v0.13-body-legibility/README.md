@@ -40,5 +40,29 @@ guide for why that distinction is worth two full contrast points.
   out at 2.6–3.3:1 on their own wave crest. Lifting light ink on a light wave
   is the wrong direction; the fix is a palette change, out of #42's scope.
 
-Harness renders are desktop GL21 and the device is GLES2, so these are
-evidence, not a release gate — see `docker/README.md`.
+## Device verification — TrimUI Brick (.52), 2026-09-09
+
+| File | What it shows |
+|:---|:---|
+| `device-grid-before-after.png` | The device's own configuration (April Green, Box Art Grid), captured before and after the change. |
+| `device-card-4x3.png` | PSP Card on hardware. |
+| `device-list-4x3.png` | List + Details on hardware, including the two lines that were at 1.82:1. |
+
+Measured on the device pixels, grid info bar: **7.96 → 10.16:1**, metadata
+glyph band **15 → 17px**, ink coverage **+38%**.
+
+That 15 → 17px is the part only hardware could show. The device has no
+`subset.iconSize` in `es_settings.cfg`, so ES v39 applies no include for the
+Icon Size subset and `_inc/common.xml`'s `cardMetaFontSize` is the live value
+there — while the harness renders `icon-size-boxart.xml`'s. Had the size been
+raised in only one of the two files, one of these two targets would have
+shown no change at all. It measured as exactly that no-op the first time
+round; see `scripts/tests/test-body-legibility.sh`.
+
+April Green is one of the four colorsets flagged above as unreachable by
+lightening, and it is what the device happens to be set to — so these shots
+are the *weakest* case for the colour half of the change, not the strongest.
+Settings were restored byte-identical afterwards.
+
+Harness renders are desktop GL21 and the device is GLES2, so the harness
+shots are evidence, not a release gate — see `docker/README.md`.
