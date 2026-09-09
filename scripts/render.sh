@@ -25,13 +25,18 @@ CAROUSEL_RIGHT=0
 SETTLE=0
 FRAMES=1
 FRAME_INTERVAL=1
+SPLASH_AT="${SPLASH_AT:-3}"
 
 usage() {
   cat <<EOF
 Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
                  [--library PATH] [--out FILE]
 
-  --view        system | gamelist | gamecarousel | menu   (default: system)
+  --view        system | gamelist | gamecarousel | menu | splash
+                (default: system). "splash" is the boot splash: ES is launched
+                WITHOUT the flag that suppresses it, and the frame is grabbed
+                SPLASH_AT seconds in. It is transient, so that moment is a
+                race - use --frames to sweep the window if it lands wrong.
   --resolution  Xvfb geometry, e.g. 1024x768 (4:3) or 1280x720 (16:9)
   --colorset    PSP colorset name, e.g. "August Orange"   (default: January Blue)
   --library     path to a Knulli userdata-shaped library  (gamelist views need this)
@@ -88,7 +93,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "${VIEW}" in
-  system|gamelist|gamecarousel|menu) ;;
+  system|gamelist|gamecarousel|menu|splash) ;;
   *) echo "bad --view: ${VIEW}" >&2; exit 2 ;;
 esac
 if [[ "${VIEW}" == gamelist || "${VIEW}" == gamecarousel ]] && [[ -z "${LIBRARY}" ]]; then
@@ -97,7 +102,7 @@ fi
 if [[ ! "${RESOLUTION}" =~ ^[0-9]+x[0-9]+$ ]]; then
   echo "bad --resolution: ${RESOLUTION} (expected WxH)" >&2; exit 2
 fi
-for n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL; do
+for n in CAROUSEL_RIGHT SETTLE FRAMES; do
   if [[ ! "${!n}" =~ ^[0-9]+$ ]]; then
     echo "bad ${n}: ${!n} (expected a non-negative integer)" >&2; exit 2
   fi
@@ -105,6 +110,16 @@ for n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL; do
   # `--frames 08` is a parse error the shell swallows into "capture one frame,
   # exit 0" and `--settle 08` skips the settle entirely.
   printf -v "${n}" '%d' "$((10#${!n}))"
+done
+# These two are only ever handed to `sleep`, never to `(( ))`, so they take
+# fractions - and need to. The boot splash is on screen for well under a second
+# in the harness, so an integer-only --frame-interval cannot sweep it at all:
+# every frame of a back-to-back burst lands before ES has opened its window,
+# and one second later the carousel has already replaced the splash.
+for n in FRAME_INTERVAL SPLASH_AT; do
+  if [[ ! "${!n}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "bad ${n}: ${!n} (expected a non-negative number)" >&2; exit 2
+  fi
 done
 if (( FRAMES < 1 )); then echo "--frames must be >= 1" >&2; exit 2; fi
 
@@ -194,6 +209,7 @@ DOCKER_ARGS+=(
   -e INVERT_BUTTONS="${INVERT_BUTTONS:-true}"
   -e CAROUSEL_RIGHT="${CAROUSEL_RIGHT}" -e SETTLE="${SETTLE}"
   -e FRAMES="${FRAMES}" -e FRAME_INTERVAL="${FRAME_INTERVAL}"
+  -e SPLASH_AT="${SPLASH_AT}"
 )
 
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \

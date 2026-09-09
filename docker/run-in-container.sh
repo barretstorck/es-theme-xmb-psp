@@ -13,16 +13,26 @@ SETTLE="${SETTLE:-0}"
 FRAMES="${FRAMES:-1}"
 FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
+SPLASH_AT="${SPLASH_AT:-3}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
 # zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
 # re-print base-10 so a zero-padded value cannot silently change behaviour.
-for _n in CAROUSEL_RIGHT SETTLE FRAMES FRAME_INTERVAL GAMELIST_DOWN; do
+for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN; do
   if [[ ! "${!_n}" =~ ^[0-9]+$ ]]; then
     echo "ERROR: ${_n} must be a non-negative integer (got '${!_n}')" >&2
     exit 2
   fi
   printf -v "${_n}" '%d' "$((10#${!_n}))"
+done
+# FRAME_INTERVAL and SPLASH_AT reach nothing but `sleep`, and the boot splash
+# needs sub-second resolution to catch at all - so they are validated as
+# numbers, not integers, and deliberately not re-printed through `(( ))`.
+for _n in FRAME_INTERVAL SPLASH_AT; do
+  if [[ ! "${!_n}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "ERROR: ${_n} must be a non-negative number (got '${!_n}')" >&2
+    exit 2
+  fi
 done
 
 ES_CFG="/userdata/system/configs/emulationstation"
@@ -169,11 +179,31 @@ ${SUBSET_LINES}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
 XML
 
 # --- launch ES ---
-emulationstation --no-splash --windowed >/tmp/es.log 2>&1 &
+# Every view but one wants the boot splash gone: it would otherwise cover the
+# opening seconds of the capture window. VIEW=splash is the exception - it is
+# the splash we are here to photograph, so ES is launched without the flag that
+# suppresses it. (Settings.cpp:128 has SplashScreen defaulting to true, which is
+# also why the device shows it; the harness was the only thing turning it off.)
+ES_FLAGS=( --no-splash --windowed )
+if [[ "${VIEW}" == "splash" ]]; then
+  ES_FLAGS=( --windowed )
+fi
+emulationstation "${ES_FLAGS[@]}" >/tmp/es.log 2>&1 &
 ES_PID=$!
 
-# Wait for the theme to load and the first frame to settle.
-sleep 10
+if [[ "${VIEW}" == "splash" ]]; then
+  # The splash is TRANSIENT. It lives from main.cpp:566 to main.cpp:628 and
+  # then goToStart replaces it with the carousel, so unlike every other view
+  # there is no settled state to wait for - the capture is a race against ES
+  # finishing its own boot, and SPLASH_AT picks the moment. How long the window
+  # actually is depends on how much there is to preload, so a library makes it
+  # longer and more device-like. Use --frames to sweep if a single grab misses.
+  echo "splash: capturing ${SPLASH_AT}s after launch (transient frame)" >&2
+  sleep "${SPLASH_AT}"
+else
+  # Wait for the theme to load and the first frame to settle.
+  sleep 10
+fi
 
 # --- navigate to the requested view ---
 # ES keyboard map (from /usr/share/emulationstation/es_input.cfg):
@@ -227,6 +257,10 @@ fi
 
 echo "navigating: VIEW=${VIEW} (confirm=${CONFIRM_KEY})" >&2
 case "${VIEW}" in
+  splash)
+    # Nothing to navigate to: the frame is already on screen, and any keystroke
+    # would only be queued for the carousel that replaces it.
+    : ;;
   system)
     # Already on the system carousel; Right walks it so a specific system can
     # be captured. Without this the system view ignored CAROUSEL_RIGHT and
@@ -242,7 +276,10 @@ case "${VIEW}" in
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;
 esac
-sleep 2
+# Settling time for a view that just finished navigating. Skipped for splash:
+# two more seconds there is two seconds nearer to the splash being gone, and
+# SPLASH_AT has already placed the capture deliberately.
+[[ "${VIEW}" == "splash" ]] || sleep 2
 
 # Video previews only appear after the theme's <delay> seconds of still
 # snapshot (VideoComponent.cpp:282 converts it to ms), so a capture taken
