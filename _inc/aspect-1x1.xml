@@ -34,6 +34,9 @@
          the narrower metadata columns here. 0.023 x 720 = 16.6px keeps the
          same pixel proportion 4:3 used (225px-wide box : 23px font). -->
     <cardMetaFontSize>0.025</cardMetaFontSize>
+    <!-- #42: keeps metadata line 2 below line 1 at this ratio. Scaled from
+         the base pair (0.026/0.033) against 0.025. -->
+    <cardMeta2FontSize>0.020</cardMeta2FontSize>
 
     <!-- v0.12 gamelist styles: square screen means vertical space is the
          constraint; shrink the media envelope or it collides with the

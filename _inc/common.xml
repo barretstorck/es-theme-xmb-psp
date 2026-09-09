@@ -46,8 +46,15 @@
          1 - it was a legibility tax for no hierarchy the 0.026 size was not
          already carrying. starTrackOpacity cannot go to 1: the track is the
          EMPTY half of the rating pair and has to stay visibly below the
-         filled glyphs, so it is raised 0.35 -> 0.45 rather than removed. -->
-    <starTrackOpacity>0.45</starTrackOpacity>
+         filled glyphs, and that is a RELATIVE job - so when #42 lifted the
+         body ink, this had to come DOWN, not up. It was first raised to 0.45,
+         which brightened the track a second time and measured the pair's
+         separation falling from 3.45:1 to 2.61:1 on a render. 0.30 measures
+         3.23:1 with the lifted ink, holding roughly the relationship the
+         theme shipped with, while the track still reads against the wave
+         (1.29:1 vs 1.34:1 before). It cannot go much lower without the empty
+         stars disappearing into the background entirely. -->
+    <starTrackOpacity>0.30</starTrackOpacity>
     <metaSecondaryOpacity>1</metaSecondaryOpacity>
 
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
@@ -212,6 +219,11 @@
     <cardMetaY>0.602</cardMetaY>
     <cardMeta2Y>0.643</cardMeta2Y>
     <cardMetaFontSize>0.033</cardMetaFontSize>
+    <!-- Metadata line 2 is subordinate to line 1 and, since #42 dropped its
+         opacity cut, size is the ONLY thing that says so. It has to be a
+         variable for that reason: as a literal 0.026 it was LARGER than
+         line 1 at 1:1, where cardMetaFontSize is 0.025. -->
+    <cardMeta2FontSize>0.026</cardMeta2FontSize>
     <cardDescFontSize>0.025</cardDescFontSize>
 
     <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
@@ -287,7 +299,7 @@
          glyphs only (FileData.cpp:1924), so the track is a fixed five-glyph
          literal today, but nothing structural stopped it growing. -->
     <gridStarX>0.680</gridStarX>
-    <gridStarW>0.155</gridStarW>
+    <gridStarW>0.165</gridStarW>
   </variables>
 
   <!-- NOTE: "grid" is deliberately ABSENT from this list. Declaring it here
