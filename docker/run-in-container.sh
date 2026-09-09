@@ -15,11 +15,17 @@ FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
 GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
 SPLASH_AT="${SPLASH_AT:-0.4}"
+RECORD_SCRIPT="${RECORD_SCRIPT:-}"
+RECORD_FPS="${RECORD_FPS:-10}"
+RECORD_WIDTH="${RECORD_WIDTH:-640}"
+RECORD_COLORS="${RECORD_COLORS:-128}"
+KEEP_FRAMES="${KEEP_FRAMES:-0}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
 # zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
 # re-print base-10 so a zero-padded value cannot silently change behaviour.
-for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN GAMELIST_RIGHT; do
+for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN GAMELIST_RIGHT \
+         RECORD_FPS RECORD_WIDTH RECORD_COLORS KEEP_FRAMES; do
   if [[ ! "${!_n}" =~ ^[0-9]+$ ]]; then
     echo "ERROR: ${_n} must be a non-negative integer (got '${!_n}')" >&2
     exit 2
@@ -35,6 +41,16 @@ for _n in FRAME_INTERVAL SPLASH_AT; do
     exit 2
   fi
 done
+
+# Zero would divide by zero when the frame period is computed, and a 1px-wide
+# GIF or a 1-colour palette is a silently useless artifact rather than an
+# error. The octal loop above only proves they are digits.
+if [[ "${VIEW}" == "record" ]]; then
+  (( RECORD_FPS >= 1 ))    || { echo "ERROR: RECORD_FPS must be >= 1" >&2; exit 2; }
+  (( RECORD_WIDTH >= 16 )) || { echo "ERROR: RECORD_WIDTH must be >= 16" >&2; exit 2; }
+  (( RECORD_COLORS >= 2 && RECORD_COLORS <= 256 )) \
+    || { echo "ERROR: RECORD_COLORS must be 2..256" >&2; exit 2; }
+fi
 
 ES_CFG="/userdata/system/configs/emulationstation"
 
@@ -286,6 +302,21 @@ else
   CONFIRM_KEY="Return"
 fi
 
+# Fail loudly if ES died, instead of capturing a blank frame and reporting
+# success. Checked before EVERY capture: a --frames sequence can span minutes,
+# so a single check up front would let a mid-sequence crash through as a run of
+# blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
+#
+# Defined up here rather than beside the capture below because VIEW=record
+# starts its capture loop BEFORE the navigation script runs, and needs this.
+require_es_alive() { # require_es_alive <when>
+  kill -0 "${ES_PID}" 2>/dev/null && return 0
+  echo "ERROR: emulationstation exited ${1}. ES log:" >&2
+  cat /tmp/es.log >&2 || true
+  kill "${XVFB_PID}" 2>/dev/null || true
+  exit 1
+}
+
 echo "navigating: VIEW=${VIEW} (confirm=${CONFIRM_KEY})" >&2
 case "${VIEW}" in
   splash)
@@ -308,6 +339,10 @@ case "${VIEW}" in
     # always photographing the top-left corner.
     for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done
     for _i in $(seq 1 "${GAMELIST_RIGHT}"); do key Right 1; done ;;
+  record)
+    # Handled after this case: recording drives its own navigation, because
+    # the keys have to be pressed WHILE the capture loop is already running.
+    : ;;
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;
@@ -317,6 +352,103 @@ esac
 # SPLASH_AT has already placed the capture deliberately.
 [[ "${VIEW}" == "splash" ]] || sleep 2
 
+# --- recording ---
+# A background capture loop plus a foreground key script. They are separate
+# because their timing requirements conflict: the wave animates on 30s/20s/12s
+# loops and needs EVENLY spaced frames or playback speed wobbles, while
+# navigation needs UNEVEN pauses (dwell on a system, then move). One loop doing
+# both serves neither.
+if [[ "${VIEW}" == "record" ]]; then
+  mkdir -p /harness-out/frames
+  rm -f /harness-out/frames/f-*.png
+
+  period="$(awk -v f="${RECORD_FPS}" 'BEGIN{printf "%.4f", 1/f}')"
+  echo "recording at ${RECORD_FPS}fps (period ${period}s)" >&2
+
+  # The loop is DEADLINE-scheduled: it sleeps until start + i*period rather
+  # than sleeping a fixed period each pass. `import` costs ~90ms at 1280x720,
+  # so a fixed sleep would accumulate that into drift and stretch a 12s
+  # recording well past its intended length — and the wave would then play
+  # back slower than it really moves.
+  capture_loop() {
+    local i=0 start now target remain
+    start="$(date +%s.%N)"
+    while [[ ! -e /tmp/record.stop ]]; do
+      i=$((i + 1))
+      import -window root "$(printf '/harness-out/frames/f-%04d.png' "${i}")" \
+        2>/dev/null || break
+      target="$(awk -v s="${start}" -v i="${i}" -v p="${period}" \
+                    'BEGIN{printf "%.4f", s + i*p}')"
+      now="$(date +%s.%N)"
+      # Command substitution, NOT a pipe into `read` — a pipeline runs `read`
+      # in a subshell and the value would never reach this loop.
+      remain="$(awk -v t="${target}" -v n="${now}" \
+                    'BEGIN{d = t - n; printf "%.4f", (d > 0 ? d : 0)}')"
+      [[ "${remain}" != "0.0000" ]] && sleep "${remain}"
+    done
+    echo "${i}" > /tmp/record.count
+  }
+
+  rm -f /tmp/record.stop /tmp/record.count
+  record_start="$(date +%s.%N)"
+  capture_loop &
+  CAPTURE_PID=$!
+
+  # Navigation script: comma-separated `key:seconds` steps. `confirm` and
+  # `back` resolve through CONFIRM_KEY so the INVERT_BUTTONS inversion is
+  # handled in exactly one place, the same as every other view.
+  IFS=',' read -ra _steps <<< "${RECORD_SCRIPT}"
+  for _step in "${_steps[@]}"; do
+    [[ -z "${_step}" ]] && continue
+    _sym="${_step%%:*}"
+    _wait="${_step#*:}"
+    [[ "${_sym}" == "${_wait}" ]] && _wait=1
+    if [[ ! "${_wait}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      echo "ERROR: bad wait '${_wait}' in step '${_step}'" >&2
+      touch /tmp/record.stop; exit 2
+    fi
+    case "${_sym}" in
+      confirm) _sym="${CONFIRM_KEY}" ;;
+      back)    _sym="$([[ "${CONFIRM_KEY}" == "Return" ]] && echo Escape || echo Return)" ;;
+    esac
+    require_es_alive "during the recording script"
+    key "${_sym}" "${_wait}"
+  done
+
+  touch /tmp/record.stop
+  wait "${CAPTURE_PID}" 2>/dev/null || true
+  record_end="$(date +%s.%N)"
+  frame_count="$(cat /tmp/record.count 2>/dev/null || echo 0)"
+  require_es_alive "after the recording script"
+
+  if (( frame_count < 2 )); then
+    echo "ERROR: captured ${frame_count} frames — nothing to encode" >&2
+    exit 1
+  fi
+
+  # The GIF delay comes from the MEASURED elapsed time, not from RECORD_FPS.
+  # If the harness under-delivers (slower host, larger resolution) a delay
+  # derived from the requested rate plays the GIF faster than the theme
+  # actually moves. Measuring keeps playback truthful and puts the shortfall
+  # in the log instead of silently inside the artifact.
+  elapsed="$(awk -v a="${record_start}" -v b="${record_end}" 'BEGIN{printf "%.3f", b-a}')"
+  actual_fps="$(awk -v n="${frame_count}" -v e="${elapsed}" 'BEGIN{printf "%.2f", n/e}')"
+  delay_cs="$(awk -v n="${frame_count}" -v e="${elapsed}" 'BEGIN{d=100*e/n; printf "%d", (d<1?1:d+0.5)}')"
+  echo "captured ${frame_count} frames in ${elapsed}s = ${actual_fps}fps (requested ${RECORD_FPS}); GIF delay ${delay_cs}cs" >&2
+
+  convert -delay "${delay_cs}" -loop 0 /harness-out/frames/f-*.png \
+          -resize "${RECORD_WIDTH}" -colors "${RECORD_COLORS}" \
+          -layers OptimizeTransparency \
+          "/harness-out/${OUTNAME}"
+
+  (( KEEP_FRAMES == 1 )) || rm -rf /harness-out/frames
+
+  kill "${ES_PID}" 2>/dev/null || true
+  kill "${XVFB_PID}" 2>/dev/null || true
+  echo "recorded ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME}"
+  exit 0
+fi
+
 # Video previews only appear after the theme's <delay> seconds of still
 # snapshot (VideoComponent.cpp:282 converts it to ms), so a capture taken
 # immediately shows the snapshot, never a playing frame. --settle waits it out.
@@ -324,18 +456,6 @@ if (( SETTLE > 0 )); then
   echo "settling ${SETTLE}s before capture" >&2
   sleep "${SETTLE}"
 fi
-
-# Fail loudly if ES died, instead of capturing a blank frame and reporting
-# success. Checked before EVERY capture: a --frames sequence can span minutes,
-# so a single check up front would let a mid-sequence crash through as a run of
-# blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
-require_es_alive() { # require_es_alive <when>
-  kill -0 "${ES_PID}" 2>/dev/null && return 0
-  echo "ERROR: emulationstation exited ${1}. ES log:" >&2
-  cat /tmp/es.log >&2 || true
-  kill "${XVFB_PID}" 2>/dev/null || true
-  exit 1
-}
 
 # --- screenshot ---
 # One frame by default. --frames captures a sequence FRAME_INTERVAL seconds
