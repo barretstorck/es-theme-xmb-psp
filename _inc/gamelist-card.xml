@@ -235,7 +235,7 @@
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textBody}</color>
+      <color>${textSecondary}</color>
       <text>{game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -255,7 +255,7 @@
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textBody}</color>
+      <color>${textSecondary}</color>
       <opacity>${starTrackOpacity}</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
@@ -280,7 +280,7 @@
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
       <fontSize>${cardMetaFontSize}</fontSize>
-      <color>${textBody}</color>
+      <color>${textSecondary}</color>
       <text>{game:playercount}P</text>
       <alignment>left</alignment>
       <emptyTextDefaults>false</emptyTextDefaults>
@@ -295,7 +295,7 @@
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
       <fontSize>0.026</fontSize>
-      <color>${textBody}</color>
+      <color>${textSecondary}</color>
       <opacity>${metaSecondaryOpacity}</opacity>
       <text>{game:releaseyear} · {game:developer}</text>
       <alignment>left</alignment>
@@ -330,7 +330,7 @@
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
       <fontSize>${cardDescFontSize}</fontSize>
-      <color>${textBody}</color>
+      <color>${textSecondary}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>
       <verticalAlignment>top</verticalAlignment>

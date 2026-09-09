@@ -20,7 +20,7 @@
          1024px width but is taller, so the height-normalized 0.030 font
          inflates to ~27px — too large for the metadata row at this ratio.
          0.026 x 896 = 23px, matching the 4:3 pixel size exactly. -->
-    <cardMetaFontSize>0.026</cardMetaFontSize>
+    <cardMetaFontSize>0.029</cardMetaFontSize>
 
     <!-- v0.12 gamelist styles -->
     <cardMediaW>0.40</cardMediaW>

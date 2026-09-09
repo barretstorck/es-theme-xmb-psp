@@ -22,8 +22,8 @@
     <cardTextW>0.585</cardTextW>
     <cardLineW>0.585</cardLineW>
     <cardTitleFontSize>0.075</cardTitleFontSize>
-    <cardMetaFontSize>0.030</cardMetaFontSize>
-    <cardDescFontSize>0.023</cardDescFontSize>
+    <cardMetaFontSize>0.033</cardMetaFontSize>
+    <cardDescFontSize>0.025</cardDescFontSize>
     <peekIconW>0.088</peekIconW>
     <peekIconH>0.51</peekIconH>
     <peekTitleFontSize>0.030</peekTitleFontSize>
