@@ -97,6 +97,30 @@ Configurable knobs, all under **UI Settings → Theme Configuration**:
 - **Scroll Speed** — how fast a long game description scrolls through its box (Normal / Slow / Fast). Applies to the PSP Card and List + Details styles; it has **no effect in Box Art Grid**, which shows a caption rather than a description
 - **Button Icons** — which face-button glyphs the bottom help strip uses: `Nintendo` (default), `PSP` or `Xbox`; see below
 
+### Navigation sounds
+
+The theme ships three sounds: a **tick** whenever the selection moves, in any
+direction and in any view; a **confirm** on launching a game or opening a
+gamelist menu; and a **back** sound when you leave a subfolder.
+
+The real PSP XMB uses a lower, softer sweep for sideways moves than for
+up/down ones. That was built and tried on hardware, and it sounded out of
+place against the rest of this set — so both axes share the one tick. See
+[`docs/psp-authenticity-audit.md`](docs/psp-authenticity-audit.md) entry A2.
+
+Note that `back` is narrower than it sounds: EmulationStation only plays it
+when you leave a **subfolder** inside a gamelist, not when you leave a
+gamelist for the system carousel. Most libraries never trigger it.
+
+**You will hear none of them until you turn navigation sounds on.** This is
+EmulationStation's own switch, not a theme option, and it ships **off**:
+
+> **Main Menu → Sound Settings → Enable Navigation Sounds**
+
+There is no theme-side toggle, because that switch already gates every sound
+this theme can make — a second control would only be able to turn things off
+that ES had already silenced.
+
 ### Button Icons
 
 UI Settings → Theme Configuration → **Button Icons** picks the face-button
@@ -191,6 +215,16 @@ ssh root@<your-device-ip> 'batocera-settings-set theme.set carbon && batocera-es
 
 Knulli stores the theme name in two places (`theme.set` in `knulli.conf` and `ThemeSet` in `es_settings.cfg`) — if they diverge, ES enters a restart loop. The Knulli command above updates both atomically.
 
+**No sounds at all?** EmulationStation ships with navigation sounds turned
+**off** — see [Navigation sounds](#navigation-sounds) above. Turn on *Main
+Menu → Sound Settings → Enable Navigation Sounds*.
+
+**Still nothing after turning it on?** Restart EmulationStation. ES skips
+loading a sound file entirely while that setting is off, and switching it on
+does not reload the ones it already skipped — they are only re-read when the
+audio system restarts, which happens at ES startup and on returning from a
+game. Launching and quitting any game works too.
+
 ## Development
 
 Theme development and verification use the **Docker render harness** — it runs batocera-emulationstation headless in Docker and screenshots the theme at any resolution, with no physical device required. See [`docker/README.md`](docker/README.md):
@@ -213,6 +247,21 @@ and a carousel means the splash was already over.
 Preview video plays in the harness. Renders pin the Video Delay to 10s so a
 capture lands on the still screenshot rather than an arbitrary video frame;
 pass `VIDEO_DELAY` and `--settle` when the video is what you want to see.
+
+The harness can also **hear** itself, which a screenshot cannot:
+`scripts/capture-audio.sh` runs ES under SDL's `disk` audio driver and
+measures the mixer's actual output, so a sound binding can be verified rather
+than assumed. `--expect` turns a capture into a pass/fail test.
+
+```
+./scripts/capture-audio.sh --library /tmp/library
+./scripts/capture-audio.sh --library /tmp/library \
+  --script "right:2,confirm:3,down:2" --expect sound,any,sound
+```
+
+Note that ES ships navigation sounds **off**, so the tool pins `EnableSounds`
+on by default — otherwise every capture would be silent and pass vacuously.
+See [`docker/README.md`](docker/README.md) for the details.
 
 
 ### Regenerating the README's screenshots

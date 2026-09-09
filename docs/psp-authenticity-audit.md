@@ -130,7 +130,7 @@ residual homebrew/port entries overlap with G10's
 branded-item-icon territory).
 
 **Evidence:** `art/system-icons/` listing (198 files);
-`_inc/system.xml:142-146` (per-system icon binding via
+`_inc/system.xml:149-153` (per-system icon binding via
 `${system.theme}`); `libretro/retroarch-assets` →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
 silhouettes); commits f170f40, 0afbb62.
@@ -1217,11 +1217,34 @@ short bright "tick" on horizontal cross moves, a soft mid-pitch
 synthesized — not sampled — and have a recognizable PSP/Sony
 sound-design signature.
 
-**Current theme:** `sounds/navigate.wav` (41 KB), `sounds/select.wav`
-(50 KB), `sounds/back.wav` (71 KB) ship today. Bindings are wired
-via `<sound name="systemscroll">`, `name="scroll"`, `name="select"`,
-`name="back"` in `_inc/common.xml:117-128`. The audit question is:
-how PSP-authentic are the current sounds?
+**Status: SHIPPED in v1.0 (issue #21) — but the earlier "accepted"
+verdict was reached on a false premise and is corrected below.**
+
+**Current theme:** `sounds/navigate.wav`, `sounds/select.wav` and
+`sounds/back.wav` ship — the same three as before v1.0; a fourth was
+added for A2 and then removed again after listening to it on hardware.
+The timbres were measured and accepted: `navigate.wav` peaks at
+6449 Hz over 232 ms and `select.wav` at 6820 Hz over 285 ms — both
+brighter and longer than the ~3 kHz / 5 ms tick this entry sketches,
+but accepted as a pair on that basis; `back.wav` is the outlier at
+807 ms with a 1042 Hz dominant, and was kept deliberately.
+
+**What that verdict missed:** measuring the *files* said nothing about
+whether ES ever played them. It did not. The bindings named
+`systemscroll`, `scroll` and `select`, and `Sound::getFromTheme` is
+never called with any of those — it is called with `launch`, `back`
+and `menuOpen` and nothing else. `navigate.wav` and `select.wav` had
+therefore never made a sound in any release. Fixed in v1.0; see A2 for
+the mechanism and §9.1 of the style guide for the full rule.
+
+Compounding it, `EnableSounds` defaults to **false**
+(`Settings.cpp:168`) and a stock TrimUI Brick carries no such key, so
+the whole subsystem is off until the user turns on *Main Menu → Sound
+Settings → Enable Navigation Sounds*.
+
+**Lesson for this document:** an audio entry cannot be closed by
+inspecting the asset. `scripts/capture-audio.sh` measures what ES
+actually sends to the mixer; use it.
 
 **Reference:** Audio, not visual — no screenshot reference.
 
@@ -1247,7 +1270,9 @@ needed).
 **Dependencies:** A2 (`systemscroll` may want a distinct "swoosh"
 rather than reusing `navigate.wav`).
 
-**Evidence:** `_inc/common.xml:117-128`; `sounds/` directory listing.
+**Evidence:** `_inc/common.xml` `<view name="system,detailed,gamecarousel,menu">`
+sound block; `Sound.cpp:30-38, 70, 97`; `Settings.cpp:168`; `sounds/`
+directory listing.
 
 ---
 
@@ -1258,10 +1283,65 @@ categories) sound different from vertical sub-item moves — the
 horizontal is more of a soft "swoosh" with a low-frequency
 component, the vertical is the bright tick.
 
-**Current theme:** `_inc/common.xml:117-119` binds *both*
-`systemscroll` and `scroll` to the same `${soundNavigate}` file. So
-horizontal carousel scroll and vertical menu scroll use the same
-audio.
+**Status: WON'T DO — built, deployed to hardware, and rejected by ear
+(issue #21). The mechanism it proposed was also wrong; both findings
+below stand.**
+
+**Current theme:** one scroll sound for both axes.
+`sounds/navigate.wav` is bound to `<scrollSound>` on
+`<carousel name="systemcarousel">` **and** on the `<textlist>` /
+`<imagegrid>` of all three gamelist styles. Before v1.0 it was bound to
+neither and made no sound at all (see below).
+
+**What was tried:** `scripts/gen-swoosh.py` produced
+`sounds/system-scroll.wav` — 870 Hz dominant over 200 ms, band-passed
+noise gliding 1100→600 Hz with a quiet sine under it, RMS-matched to
+`navigate.wav`, and spectrally disjoint from it (97% of its energy under
+2 kHz against the tick's 79% over 5 kHz). Harness-measured at
+872 Hz/199 ms on carousel moves against 6450 Hz on gamelist moves,
+across all three styles.
+
+**Why it was rejected:** deployed to the TrimUI Brick (hammer,
+2026-09-09) and listened to. Both sounds were clearly audible and
+clearly distinguishable — the measurement held up on hardware — but the
+swoosh *sounded out of place* against Ant's existing set. The asset and
+its generator were deleted.
+
+**The lesson, recorded because it cost the work:** every number here
+only ever showed the two sounds were *different*. None of them could
+show the difference was *good*. Spectral separation is necessary and
+nowhere near sufficient for an aesthetic decision, and there is no
+harness substitute for listening on the device. Do not re-introduce a
+second scroll sound without hardware listening first; style guide §10
+and `scripts/tests/test-sounds.sh` both guard it.
+
+**Why the sketch below did not work:** it proposed rewiring
+`<sound name="systemscroll">`. No such element name exists in this ES
+build — scroll sounds are a **`<scrollSound>` property on the scrolling
+component**, read by `CarouselComponent` (`cpp:566`, played at
+`:222-223`), `TextListComponent` (`h:727`, played at `h:127`) and
+`ImageGridComponent` (`h:141`), and defaulting to empty in each. The
+theme set it nowhere, so neither direction made any sound at all;
+the entry's premise that the two shared one file was wrong in a way
+that understated the problem.
+
+**Measured separation of the rejected pair**, kept because it is the
+evidence for the lesson above — the two were genuinely distinct, and it
+still was not the right sound:
+
+| | dominant | energy < 2 kHz | energy > 5 kHz | duration |
+|---|---|---|---|---|
+| `system-scroll.wav` (removed) | 870 Hz | 97% | 0% | 200 ms |
+| `navigate.wav` (shipped, both axes) | 6449 Hz | 5% | 79% | 232 ms |
+
+**Device-verified 2026-09-09** on the TrimUI Brick (hammer, Knulli, ES
+v39 built 2026-05-11), gamelist style Box Art Grid: navigation sounds
+audible on both axes, confirmed by ear. `grid.menuOpen` was observed
+resolving in the device's own ES log, so `select.wav` reaches the
+`<imagegrid>` view's bindings too — a different call site
+(`GridGameListView.cpp:104`) from the one the harness exercises.
+
+**Superseded sketch, kept for the record:**
 
 **Reference:** Audio, not visual — PSP behaviour.
 
@@ -1279,7 +1359,9 @@ center frequency ~800 Hz, with a slight pitch bend).
 
 **Dependencies:** A1 (consistent timbre across the set).
 
-**Evidence:** `_inc/common.xml:117-119`.
+**Evidence:** `CarouselComponent.cpp:51, 222-223, 566`;
+`TextListComponent.h:127, 727`; `ImageGridComponent.h:141`;
+`_inc/system.xml` `<carousel name="systemcarousel">`.
 
 ---
 

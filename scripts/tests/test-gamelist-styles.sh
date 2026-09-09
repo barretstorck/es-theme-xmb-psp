@@ -132,7 +132,7 @@ check "gamelistStyle subset (line ${style_line}) parses after aspect-*.xml (line
 echo
 echo "shared chrome (help strip + sounds):"
 
-# The shared <helpsystem name="help"> and the four sounds live in ONE <view>
+# The shared <helpsystem name="help"> and the three sounds live in ONE <view>
 # block per file (ThemeData::getElement returns NULL for a view name absent
 # from that list, with no cross-view fallback), so every gamelist view name
 # must appear in some file's chrome block or that view gets ES's built-in
@@ -173,10 +173,20 @@ assert grid is not None, (
 assert grid.get("name", "").strip() == "grid", (
     f"gamelist-grid.xml chrome must be in <view name='grid'>, got "
     f"{grid.get('name')!r}")
-sounds = {s.get("name") for s in grid.findall("sound")}
-assert sounds == {"systemscroll", "scroll", "select", "back"}, (
-    f"gamelist-grid.xml is missing sounds: "
-    f"{sorted({'systemscroll','scroll','select','back'} - sounds)}")
+# Derived from common.xml rather than hardcoded. This assertion used to name
+# the four sounds literally, and three of them ("systemscroll", "scroll",
+# "select") were names ES never asks for — so the guard was pinning a bug in
+# place and would have failed the fix for it (#21). Reading the expected set
+# from the shared chrome view means the two copies cannot drift, and there is
+# no third list to forget to update. scripts/tests/test-sounds.sh is what
+# checks that the names are ones ES actually plays.
+shared_sounds = {s.get("name") for s in shared.findall("sound")}
+grid_sounds = {s.get("name") for s in grid.findall("sound")}
+assert shared_sounds, "common.xml's chrome view declares no <sound> elements"
+assert grid_sounds == shared_sounds, (
+    f"gamelist-grid.xml's sounds have drifted from common.xml's — "
+    f"missing {sorted(shared_sounds - grid_sounds)}, "
+    f"extra {sorted(grid_sounds - shared_sounds)}")
 PY
 check "grid chrome is in gamelist-grid.xml, NOT in common.xml's shared list" $?
 
