@@ -247,6 +247,19 @@ first_include="$(awk '/<subset name="buttonGlyphs"/ { inblk = 1; next }
 check "Nintendo is the first include, i.e. the default" \
   "$([[ "${first_include}" == *'name="Nintendo"'* ]]; echo $?)"
 
+# The device build does NOT fall back to a subset's first <include> when the
+# setting has never been chosen, so include order alone does not make Nintendo
+# the default there — it made a fresh install render stock glyphs everywhere.
+# A plain include of the default file, before the subset, is what actually
+# guarantees the variables resolve. See the comment in theme.xml.
+default_line="$(grep -n '<include>./_inc/buttons-nintendo.xml</include>' "${THEME}" | cut -d: -f1)"
+check "the default set is also included outright, not just first in the subset" \
+  "$([[ -n "${default_line}" ]]; echo $?)"
+check "that include lands BEFORE the subset (${default_line:-none} < ${subset_line})" \
+  "$([[ -n "${default_line}" && "${default_line}" -lt "${subset_line}" ]]; echo $?)"
+check "and before the common.xml include (${default_line:-none} < ${common_line})" \
+  "$([[ -n "${default_line}" && "${default_line}" -lt "${common_line}" ]]; echo $?)"
+
 check "all three sets are wired into the subset" \
   "$([[ "$(awk '/<subset name="buttonGlyphs"/ { inblk = 1; next }
                 inblk && /<\/subset>/ { exit }

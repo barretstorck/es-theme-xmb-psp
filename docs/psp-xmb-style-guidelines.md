@@ -834,6 +834,30 @@ Icons are tinted at render time by
 come out darker — which is why the Xbox set is monochrome rather than
 carrying Xbox's green/red/blue/yellow coding.
 
+#### The default must be an outright include, not just include order
+
+**A harness-invisible device divergence, found on hardware.** Everywhere else
+in this theme, "the first `<include>` in a subset is the default" holds. On the
+device's ES (**Version 39, built 2026-05-11** — not the same build as the
+pinned harness commit `9bbb16a`), a subset value that has *never been chosen*
+does **not** fall back to the first include, so `${helpIconA}`..`${helpIconY}`
+stay unresolved on a fresh install.
+
+The blast radius is larger than the four face glyphs. An unresolved variable in
+the first icon property drops **every** icon property on that element —
+including the eight shared ones that are plain literal paths — while `pos`,
+`fontPath`, `fontSize` and the colours, which parse earlier, survive. The
+result is ES's stock glyphs in the theme's own position, font and colour, which
+looks like broken art rather than an unresolved variable.
+
+`theme.xml` therefore includes `_inc/buttons-nintendo.xml` outright, *before*
+the subset that can override it. Costs nothing when the subset does resolve —
+same four variables, parsed earlier, overwritten by the selected set.
+
+Generalise this: **for any subset whose values feed `${variables}` consumed by a
+later element, include the default file outright.** Relying on first-include
+ordering is a harness-only guarantee.
+
 Two `<helpsystem>` declarations exist and must stay in step:
 `_inc/common.xml` (`system,detailed,gamecarousel,menu`) and
 `_inc/gamelist-grid.xml`, which declares its own inside
