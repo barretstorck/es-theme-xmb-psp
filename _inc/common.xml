@@ -57,6 +57,12 @@
     <starTrackOpacity>0.30</starTrackOpacity>
     <metaSecondaryOpacity>1</metaSecondaryOpacity>
 
+    <!-- The PSP tells horizontal cross moves apart from vertical sub-item
+         moves: the horizontal is a soft low swoosh, the vertical a bright
+         tick (audit A2). soundSystemScroll is the swoosh, soundNavigate the
+         tick — measured 870 Hz with 97% of its energy under 2 kHz against
+         6449 Hz with 79% over 5 kHz, so the pair never collides. -->
+    <soundSystemScroll>./sounds/system-scroll.wav</soundSystemScroll>
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>
@@ -287,16 +293,30 @@
        _inc/gamelist-grid.xml so the grid view is only registered when that
        style is actually selected. Keep the two copies in sync. -->
   <view name="system,detailed,gamecarousel,menu">
-    <!-- Sounds (replace ES default click sounds) -->
-    <sound name="systemscroll">
-      <path>${soundNavigate}</path>
-    </sound>
-    <sound name="scroll">
-      <path>${soundNavigate}</path>
-    </sound>
-    <sound name="select">
+    <!-- Sounds. Sound::getFromTheme is only ever called with THREE element
+         names in this ES build - "launch", "back" and "menuOpen" - and only
+         from the gamelist views (ISimpleGameListView.cpp:231, 335-371, 401-422;
+         GridGameListView.cpp:104). Any other name here is inert: the theme
+         previously declared "systemscroll", "scroll" and "select", none of
+         which ES asks for, so navigate.wav and select.wav never played at all.
+         Scrolling is NOT a <sound> element - it is a <scrollSound> property on
+         the carousel / textlist / imagegrid itself. See _inc/system.xml and the
+         three _inc/gamelist-*.xml files.
+
+         Every one of these is additionally gated on ES's own EnableSounds
+         setting, which Sound::init and Sound::play both check (Sound.cpp:70,
+         97) and Settings.cpp:168 defaults to FALSE. A stock device is silent
+         until Menu > Sound Settings > "Enable Navigation Sounds" is turned on;
+         that is ES's switch, not the theme's, and it governs all of these. -->
+    <sound name="launch">
       <path>${soundSelect}</path>
     </sound>
+    <sound name="menuOpen">
+      <path>${soundSelect}</path>
+    </sound>
+    <!-- Fires only when backing out of a SUBFOLDER within a gamelist: both
+         call sites are inside an `if (!mCursorStack.empty())` branch. Leaving
+         a gamelist for the system carousel is not one of them. -->
     <sound name="back">
       <path>${soundBack}</path>
     </sound>
