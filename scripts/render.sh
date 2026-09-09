@@ -12,9 +12,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # below only fires when the image is MISSING, so without a new tag everyone
 # keeps silently running whatever they built first. r2 = VLC plugins + the
 # parse patch, i.e. preview video actually plays.
-ES_PIN="9bbb16a"
-HARNESS_REV="r2"
-IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"
+# shellcheck source=lib/harness-image.sh
+source "${SCRIPT_DIR}/lib/harness-image.sh"
 
 VIEW="system"
 RESOLUTION="1024x768"
@@ -198,21 +197,6 @@ fi
 # shellcheck source=lib/theme-subsets.sh
 source "${SCRIPT_DIR}/lib/theme-subsets.sh"
 
-check_pin() { # check_pin <env-var-name> <subset-name>
-  local var="$1" subset="$2" val="${!1:-}" valid
-  [[ -n "${val}" ]] || return 0            # empty = theme default, always fine
-  valid="$(subset_values "${subset}")"
-  if [[ -z "${valid}" ]]; then
-    echo "bad ${var}: theme.xml declares no '${subset}' subset" >&2; exit 2
-  fi
-  if ! grep -Fxq -- "${val}" <<<"${valid}"; then
-    echo "bad ${var}: '${val}' is not a value of the '${subset}' subset." >&2
-    echo "  valid values:" >&2
-    sed 's/^/    /' <<<"${valid}" >&2
-    exit 2
-  fi
-}
-
 check_pin ICON_SIZE        iconSize
 check_pin TITLE_VISIBILITY titleVisibility
 check_pin GAMELIST_STYLE   gamelistStyle
@@ -226,13 +210,6 @@ check_pin BUTTON_GLYPHS    buttonGlyphs
 # silently. A rejected value is better than a render that quietly shows the
 # wrong thing. See the es_as_bool note in docker/run-in-container.sh for why
 # only these two spellings are allowed through.
-check_bool() { # check_bool <env-var-name>
-  local var="$1" val="${!1:-}"
-  [[ -z "${val}" ]] && return 0
-  if [[ "${val}" != "true" && "${val}" != "false" ]]; then
-    echo "bad ${var}: '${val}' — expected true or false" >&2; exit 2
-  fi
-}
 check_bool SHOW_HELP
 check_bool INVERT_BUTTONS
 

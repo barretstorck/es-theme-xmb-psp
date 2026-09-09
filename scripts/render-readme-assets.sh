@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
-# render-readme-assets.sh — regenerate EVERY image the README commits.
+# render-readme-assets.sh — regenerate the images the README commits.
 #
 # One entry point on purpose. The README's screenshots are its documentation,
 # and a future contributor should not have to work out which of render.sh's
-# flag combinations produced which file. Running this reproduces the whole set.
+# flag combinations produced which file. Running this reproduces the colorset
+# gallery, the aspect rows, the per-style shots, the boot-splash table and the
+# navigation GIF.
+#
+# The exception is docs/screenshots/v0.11/*, three toggle mockups kept as a
+# point-in-time record of that redesign. They are deliberately NOT regenerated:
+# re-rendering them against today's theme would silently change what they
+# document.
 #
 # Needs a real scraped library for the gamelist shots. /tmp/library (the KNULLI
 # slice) has real art and descriptions up to 1252 chars; tests/fixtures/library
@@ -34,7 +41,7 @@ STYLE_WIDTH=640
 usage() {
   cat <<EOF
 Usage: render-readme-assets.sh --library PATH [--out-dir DIR] [--skip-gif]
-                               [--only colorsets|aspects|styles|gif]
+                               [--only colorsets|aspects|styles|splash|gif]
 
   --library PATH  Knulli userdata-shaped library with REAL scraped media.
                   Use the KNULLI slice, e.g. /tmp/library.
@@ -66,8 +73,8 @@ fi
 if [[ ! -d "${LIBRARY}" ]]; then
   echo "ERROR: --library '${LIBRARY}' is not a directory" >&2; exit 2
 fi
-if [[ -n "${ONLY}" && ! "${ONLY}" =~ ^(colorsets|aspects|styles|gif)$ ]]; then
-  echo "ERROR: --only must be colorsets, aspects, styles or gif" >&2; exit 2
+if [[ -n "${ONLY}" && ! "${ONLY}" =~ ^(colorsets|aspects|styles|splash|gif)$ ]]; then
+  echo "ERROR: --only must be colorsets, aspects, styles, splash or gif" >&2; exit 2
 fi
 
 want() { [[ -z "${ONLY}" || "${ONLY}" == "$1" ]]; }
@@ -81,11 +88,9 @@ mkdir -p "${OUT_DIR}"
 slugify() { tr '[:upper:]' '[:lower:]' <<<"$1" | tr -c 'a-z0-9' '-' | sed 's/-\+/-/g; s/^-//; s/-$//'; }
 
 # ImageMagick lives in the harness image, not necessarily on the host, so the
-# downscale runs in the same container everything else does. Must match
-# docker/Dockerfile, render.sh and record.sh.
-ES_PIN="9bbb16a"
-HARNESS_REV="r2"
-IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"
+# downscale runs in the same container everything else does.
+# shellcheck source=lib/harness-image.sh
+source "${SCRIPT_DIR}/lib/harness-image.sh"
 downscale() { # downscale <file> <width>
   docker run --rm -v "$(cd "$(dirname "$1")" && pwd):/w" "${IMAGE}" \
     convert "/w/$(basename "$1")" -resize "$2" "/w/$(basename "$1")"
@@ -95,9 +100,10 @@ downscale() { # downscale <file> <width>
 # The names come from theme.xml's own subset, so a thirteenth palette cannot
 # ship alongside a twelve-row gallery.
 #
-# The system view takes --library too, even though it shows no games: without
-# it the carousel falls back to the fixture corpus and the gallery advertises
-# placeholder icons instead of the real 199-icon set.
+# The system view takes --library too, even though it shows no games. Without
+# it run-in-container.sh synthesizes a single dummy `snes` system with a
+# touched placeholder ROM, so the gallery would advertise a one-icon carousel
+# instead of the real spread of system icons.
 if want colorsets; then
   mkdir -p "${OUT_DIR}/colorsets"
   echo "== colorset gallery (system view, 1024x768 -> ${THUMB_WIDTH}px) =="
@@ -139,7 +145,86 @@ if want styles; then
   done < <(subset_values gamelistStyle)
 fi
 
-# --- 4. the navigation GIF ---------------------------------------------------
+# --- 4. boot splash ----------------------------------------------------------
+# The three shots the README's Boot splash table commits. Without these the
+# script's "regenerates every committed image" claim was false: they were added
+# by #53 and had no path through here, so a splash change would have left the
+# README showing the old one with nothing to catch it.
+#
+# The splash is transient — gone within about a second — so render.sh grabs it
+# SPLASH_AT seconds in. That default is tuned for 1024x768; smaller screens
+# boot faster.
+if want splash; then
+  echo "== boot splash =="
+  # Bursts land in a temp dir, never in OUT_DIR: OUT_DIR is docs/screenshots by
+  # default, and a failed run would otherwise leave a dozen stray frames in a
+  # tracked directory.
+  TMP_SPLASH="$(mktemp -d)"
+  trap 'rm -rf "${TMP_SPLASH}"' EXIT
+  for spec in "splash-4x3:January Blue:1024x768" \
+              "splash-4x3-august-orange:August Orange:1024x768" \
+              "splash-1x1:December Aqua:720x720"; do
+    name="${spec%%:*}"; rest="${spec#*:}"
+    colorset="${rest%%:*}"; res="${rest#*:}"
+    echo "-- ${name} (${colorset}, ${res})"
+    # The splash capture is a RACE, and it loses under load: the first run of
+    # this group produced three all-black frames and overwrote three good
+    # committed screenshots without a word. render.sh cannot tell the
+    # difference — an all-black grab means ES had not opened its window yet,
+    # which is a successful screenshot of nothing.
+    #
+    # So retry with a later SPLASH_AT until the frame has actual content, and
+    # fail loudly rather than commit black.
+    # ONE boot, then a fast burst of frames — not a ladder of separate boots.
+    # The window is narrower than a ladder can aim at: at 720x720 SPLASH_AT=0.25
+    # was still black and 0.40 was already the carousel, so the splash lives in
+    # a ~0.15s gap and six boots probing single instants kept missing it. A
+    # burst costs one boot and samples the whole window at the capture rate
+    # (~90ms), which is finer than the window is wide.
+    burst="${TMP_SPLASH}/${name}"
+    rm -rf "${burst}"; mkdir -p "${burst}"
+    SPLASH_AT=0.20 "${RENDER}" --view splash --resolution "${res}" \
+      --colorset "${colorset}" --library "${LIBRARY}" \
+      --frames 14 --frame-interval 0.01 --out "${burst}/f.png" >/dev/null
+
+    # Two failure modes, and a brightness test alone only catches one.
+    #   luma ~0      -> ES had not opened its window; an all-black grab.
+    #   corner busy  -> the splash was already over and this is the CAROUSEL,
+    #                   which draws a CLOCK in the top-right. The splash draws
+    #                   no status bar at all, so its top-right corner is flat
+    #                   wave gradient. Measured: splash 5e-09, carousel 0.11.
+    # Checking brightness alone silently committed a carousel frame as the 1:1
+    # splash screenshot, so this asserts what the splash IS, not merely that
+    # something rendered.
+    #
+    # Metrics are captured as one string and split, NOT `read ... < <(...)`:
+    # ImageMagick's -format output has no trailing newline, so `read` returns 1
+    # even though it assigned both variables, and `set -e` killed the run with
+    # no message at all.
+    ok=0
+    for f in "${burst}"/f-*.png; do
+      metrics="$(docker run --rm -v "${burst}:/w" "${IMAGE}" bash -c \
+        "convert /w/$(basename "${f}") -colorspace Gray -format '%[fx:mean] ' info:; \
+         convert /w/$(basename "${f}") -gravity NorthEast -crop 22%x9%+0+0 +repage \
+                 -colorspace Gray -format '%[fx:standard_deviation]' info:")"
+      luma="${metrics%% *}"; corner="${metrics##* }"
+      if awk -v l="${luma}" -v c="${corner}" 'BEGIN{exit !(l > 0.05 && c < 0.01)}'; then
+        cp "${f}" "${OUT_DIR}/${name}.png"
+        echo "   (caught the splash in $(basename "${f}"), luma=${luma})"
+        ok=1; break
+      fi
+    done
+    if (( ok == 0 )); then
+      echo "ERROR: no SPLASH_AT attempt for ${name} caught the splash." >&2
+      echo "  It is gone within ~1s, so the capture is a race this machine is" >&2
+      echo "  losing. Re-run when it is quieter, or sweep by hand:" >&2
+      echo "    ./scripts/render.sh --view splash --frames 20 --frame-interval 0.01" >&2
+      exit 1
+    fi
+  done
+fi
+
+# --- 5. the navigation GIF ---------------------------------------------------
 if want gif && (( SKIP_GIF == 0 )); then
   echo "== navigation GIF (16:9) =="
   "${RECORD}" --library "${LIBRARY}" --resolution 1280x720 \

@@ -18,7 +18,10 @@ SPLASH_AT="${SPLASH_AT:-0.4}"
 RECORD_SCRIPT="${RECORD_SCRIPT:-}"
 RECORD_FPS="${RECORD_FPS:-10}"
 RECORD_WIDTH="${RECORD_WIDTH:-640}"
-RECORD_COLORS="${RECORD_COLORS:-128}"
+# Must match record.sh's COLORS default; this fallback only applies to a
+# direct `VIEW=record docker run`, which is exactly why the drift went
+# unnoticed — record.sh always passes the value explicitly.
+RECORD_COLORS="${RECORD_COLORS:-96}"
 KEEP_FRAMES="${KEEP_FRAMES:-0}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
@@ -307,8 +310,11 @@ fi
 # so a single check up front would let a mid-sequence crash through as a run of
 # blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
 #
-# Defined up here rather than beside the capture below because VIEW=record
-# starts its capture loop BEFORE the navigation script runs, and needs this.
+# Defined up here rather than beside the capture below because the VIEW=record
+# block sits above the screenshot section and calls it from the navigation
+# script. (The capture loop itself inlines the same `kill -0` test, because it
+# runs in a background subshell where this function's `exit` would kill only
+# the subshell.)
 require_es_alive() { # require_es_alive <when>
   kill -0 "${ES_PID}" 2>/dev/null && return 0
   echo "ERROR: emulationstation exited ${1}. ES log:" >&2
@@ -367,8 +373,15 @@ fi
 # navigation needs UNEVEN pauses (dwell on a system, then move). One loop doing
 # both serves neither.
 if [[ "${VIEW}" == "record" ]]; then
-  mkdir -p /harness-out/frames
-  rm -f /harness-out/frames/f-*.png
+  # Frames are written INSIDE the container, never to /harness-out. That
+  # directory is a bind mount of whatever the caller passed to --out, so a
+  # hardcoded "frames" subdirectory under it meant `--out ~/captures/x.gif`
+  # would `rm -rf ~/captures/frames` as root — and render-readme-assets.sh
+  # points --out at docs/screenshots, so a failed take left 100-200MB of PNGs
+  # sitting inside the repo. Keeping them container-side makes both impossible.
+  FRAMES_DIR=/tmp/record-frames
+  rm -rf "${FRAMES_DIR}"
+  mkdir -p "${FRAMES_DIR}"
 
   period="$(awk -v f="${RECORD_FPS}" 'BEGIN{printf "%.4f", 1/f}')"
   echo "recording at ${RECORD_FPS}fps (period ${period}s)" >&2
@@ -383,8 +396,29 @@ if [[ "${VIEW}" == "record" ]]; then
     start="$(date +%s.%N)"
     while [[ ! -e /tmp/record.stop ]]; do
       i=$((i + 1))
-      import -window root "$(printf '/harness-out/frames/f-%04d.png' "${i}")" \
-        2>/dev/null || break
+      # The rule above this function says the liveness check runs before EVERY
+      # capture, and a recording is a few hundred captures. Without this, ES
+      # dying between the last keystroke and the end of the take produced a run
+      # of blank frames that the post-take check could only reject wholesale.
+      # Recorded as a flag rather than exiting: this runs in a background
+      # subshell, so `exit` here would kill only the subshell.
+      if ! kill -0 "${ES_PID}" 2>/dev/null; then
+        echo "ERROR: emulationstation exited during the recording" >&2
+        touch /tmp/record.grabfail
+        break
+      fi
+      # NOT `|| break` with stderr discarded. A swallowed failure used to end
+      # the loop silently while the key script ran on, so `elapsed` covered the
+      # whole take but `frame_count` covered only part of it — a break at frame
+      # 5 of a 15s take produced a 5-frame GIF at 3 SECONDS per frame, written
+      # to docs/screenshots and reported as success with exit 0. Record the
+      # failure so the foreground can abort instead.
+      if ! import -window root "$(printf "${FRAMES_DIR}/f-%06d.png" "${i}")"; then
+        echo "ERROR: frame grab ${i} failed" >&2
+        rm -f "$(printf "${FRAMES_DIR}/f-%06d.png" "${i}")"
+        touch /tmp/record.grabfail
+        break
+      fi
       target="$(awk -v s="${start}" -v i="${i}" -v p="${period}" \
                     'BEGIN{printf "%.4f", s + i*p}')"
       now="$(date +%s.%N)"
@@ -394,10 +428,9 @@ if [[ "${VIEW}" == "record" ]]; then
                     'BEGIN{d = t - n; printf "%.4f", (d > 0 ? d : 0)}')"
       [[ "${remain}" != "0.0000" ]] && sleep "${remain}"
     done
-    echo "${i}" > /tmp/record.count
   }
 
-  rm -f /tmp/record.stop /tmp/record.count
+  rm -f /tmp/record.stop /tmp/record.grabfail
   record_start="$(date +%s.%N)"
   capture_loop &
   CAPTURE_PID=$!
@@ -440,8 +473,19 @@ if [[ "${VIEW}" == "record" ]]; then
   touch /tmp/record.stop
   wait "${CAPTURE_PID}" 2>/dev/null || true
   record_end="$(date +%s.%N)"
-  frame_count="$(cat /tmp/record.count 2>/dev/null || echo 0)"
+  # Counted from the files actually on disk, not from a counter the loop wrote
+  # on its way out. A loop that died any other way left no counter at all, so
+  # frame_count fell back to 0 and the run aborted with "captured 0 frames"
+  # while hundreds of good PNGs sat in the directory.
+  frame_count="$(find "${FRAMES_DIR}" -name 'f-*.png' | wc -l)"
   require_es_alive "after the recording script"
+
+  if [[ -e /tmp/record.grabfail ]]; then
+    echo "ERROR: the capture loop aborted after ${frame_count} frames." >&2
+    echo "  Encoding anyway would time the GIF from a full-length take's" >&2
+    echo "  elapsed seconds over a partial frame count." >&2
+    exit 1
+  fi
 
   if (( frame_count < 2 )); then
     echo "ERROR: captured ${frame_count} frames — nothing to encode" >&2
@@ -458,12 +502,18 @@ if [[ "${VIEW}" == "record" ]]; then
   delay_cs="$(awk -v n="${frame_count}" -v e="${elapsed}" 'BEGIN{d=100*e/n; printf "%d", (d<1?1:d+0.5)}')"
   echo "captured ${frame_count} frames in ${elapsed}s = ${actual_fps}fps (requested ${RECORD_FPS}); GIF delay ${delay_cs}cs" >&2
 
-  convert -delay "${delay_cs}" -loop 0 /harness-out/frames/f-*.png \
+  convert -delay "${delay_cs}" -loop 0 "${FRAMES_DIR}"/f-*.png \
           -resize "${RECORD_WIDTH}" -colors "${RECORD_COLORS}" \
           -layers OptimizeTransparency \
           "/harness-out/${OUTNAME}"
 
-  (( KEEP_FRAMES == 1 )) || rm -rf /harness-out/frames
+  # Copied out only when asked, and only ever ADDING files — nothing under the
+  # caller's --out directory is removed.
+  if (( KEEP_FRAMES >= 1 )); then
+    mkdir -p /harness-out/frames
+    cp "${FRAMES_DIR}"/f-*.png /harness-out/frames/
+    echo "kept ${frame_count} frames in /harness-out/frames" >&2
+  fi
 
   kill "${ES_PID}" 2>/dev/null || true
   kill "${XVFB_PID}" 2>/dev/null || true
