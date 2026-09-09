@@ -407,9 +407,23 @@ if [[ "${VIEW}" == "record" ]]; then
       echo "ERROR: bad wait '${_wait}' in step '${_step}'" >&2
       touch /tmp/record.stop; exit 2
     fi
+    # xdotool keysyms are CASE-SENSITIVE — "Right" is the arrow key, "right"
+    # is not a keysym at all. key() swallows a bad symbol with `|| true`, so an
+    # unmapped name is a SILENT no-op: the first take of this feature recorded
+    # a perfectly good GIF in which no navigation happened. The script
+    # vocabulary is therefore a closed set, mapped here and validated in
+    # record.sh, rather than raw keysyms passed through.
     case "${_sym}" in
+      up)      _sym="Up" ;;
+      down)    _sym="Down" ;;
+      left)    _sym="Left" ;;
+      right)   _sym="Right" ;;
+      start)   _sym="space" ;;
       confirm) _sym="${CONFIRM_KEY}" ;;
       back)    _sym="$([[ "${CONFIRM_KEY}" == "Return" ]] && echo Escape || echo Return)" ;;
+      *)
+        echo "ERROR: unknown key '${_sym}' in step '${_step}'" >&2
+        touch /tmp/record.stop; exit 2 ;;
     esac
     require_es_alive "during the recording script"
     key "${_sym}" "${_wait}"

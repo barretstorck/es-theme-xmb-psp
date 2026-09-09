@@ -49,5 +49,63 @@ missing="$(subset_values noSuchSubset)"
 check "an unknown subset name yields nothing" $?
 
 echo
+echo "record.sh argument validation:"
+
+REC="${REPO_ROOT}/scripts/record.sh"
+
+[[ -x "${REC}" ]]
+check "record.sh exists and is executable" $?
+
+# Each of these must be rejected BEFORE docker is invoked, so they must fail
+# fast. A 30s timeout means a failure to reject shows up as a timeout rather
+# than hanging the suite on an image build.
+#
+# Every case asserts on the MESSAGE as well as the exit status. Exit-status-only
+# guards passed here for the wrong reason during development: record.sh also
+# exits 2 when a script enters a gamelist with no --library, so five of six
+# "rejects X" checks were green while the validation they named did nothing.
+# `--script right:1` keeps that unrelated guard from firing first.
+#
+# "--fps 08" is the octal case: `(( 08 ))` is a parse error, not eight, and
+# `10#08` would silently accept it as eight. It must be rejected by name.
+while IFS='|' read -r bad want; do
+  [[ -z "${bad}" ]] && continue
+  out="$(timeout 30 "${REC}" ${bad} --script "right:1" --out /tmp/nope.gif 2>&1)"; rc=$?
+  [[ "${rc}" -eq 2 ]] && grep -qi -- "${want}" <<<"${out}"
+  check "rejects '${bad}' with exit 2 naming '${want}' (got ${rc})" $?
+done <<'CASES'
+--fps 0|fps
+--fps 08|fps
+--colors 999|colors
+--width 4|width
+--colorset Nonesuch|colorset
+--resolution 1280|resolution
+CASES
+
+# A key name outside the vocabulary must be an error, not a silent no-op.
+# This is the regression guard for the feature's first take, which recorded a
+# clean GIF in which nothing moved because xdotool keysyms are case-sensitive
+# ("Right", not "right") and key() swallows an unknown symbol.
+out="$(timeout 30 "${REC}" --script "rihgt:1" --out /tmp/nope.gif 2>&1)"; rc=$?
+[[ "${rc}" -eq 2 ]] && grep -qi "unknown key" <<<"${out}"
+check "rejects an unknown key name in --script (got ${rc})" $?
+
+out="$(timeout 30 "${REC}" --script "right:soon" --out /tmp/nope.gif 2>&1)"; rc=$?
+[[ "${rc}" -eq 2 ]] && grep -qi "seconds" <<<"${out}"
+check "rejects a non-numeric wait in --script (got ${rc})" $?
+
+# The default script must itself be spelled in the vocabulary — a default that
+# silently no-ops is the same bug shipped one level further back.
+out="$(timeout 30 "${REC}" --library /tmp/library --colorset Nonesuch 2>&1)"
+grep -qi "colorset" <<<"${out}"
+check "the DEFAULT --script passes vocabulary validation" $?
+
+# The no-library guard is itself worth pinning: a script that enters a gamelist
+# with no library records an empty list, which reads as a theme bug.
+out="$(timeout 30 "${REC}" --script "confirm:1" --out /tmp/nope.gif 2>&1)"; rc=$?
+[[ "${rc}" -eq 2 ]] && grep -qi "library" <<<"${out}"
+check "rejects a gamelist script with no --library (got ${rc})" $?
+
+echo
 if [[ "${fail}" -eq 0 ]]; then echo "ALL CHECKS PASSED"; else echo "SOME CHECKS FAILED"; fi
 exit "${fail}"
