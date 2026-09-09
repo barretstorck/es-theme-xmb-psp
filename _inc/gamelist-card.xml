@@ -183,42 +183,8 @@
       <zIndex>6</zIndex>
     </image>
 
-    <!-- v0.12: the media block is a PAIR, not one element.
-         ES's <video> alone would suffice on hardware, and since #40 the harness
-         image plays video as well (VLC's plugins are installed and the parse
-         wait is patched), so the pair is no longer load bearing. It survives
-         only as history: this image is the always-present screenshot and the
-         video paints over it. Collapsing the two into one <video> is issue #41.
-         -->
-    <image name="cardScreenshot" extra="true">
-      <path>{game:image}</path>
-      <pos>${cardMediaX} ${cardMediaY}</pos>
-      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <zIndex>7</zIndex>
-    </image>
-
-    <!-- v0.12: screenshot -> video in ONE element. ES does this natively:
-         snapshotSource=image makes the still {game:image}; showSnapshotDelay
-         shows it during <delay>; showSnapshotNoVideo keeps it forever when a
-         game has no scraped video. v0.11 left both flags at their false
-         default, which is why it needed a separate image element.
-         <delay> is in SECONDS (VideoComponent.cpp:282 multiplies by 1000),
-         so the existing Video Delay subset drives the handoff.
-         <maxSize> never breaks aspect ratio (VideoComponent.h:95) — it
-         preserves the FILE's aspect, not the system's canonical one. -->
-    <video name="cardMedia" extra="true">
-      <path>{game:video}</path>
-      <pos>${cardMediaX} ${cardMediaY}</pos>
-      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
-      <origin>0.5 0.5</origin>
-      <snapshotSource>image</snapshotSource>
-      <showSnapshotDelay>true</showSnapshotDelay>
-      <showSnapshotNoVideo>true</showSnapshotNoVideo>
-      <delay>${videoDelay}</delay>
-      <audio>${videoAudioEnabled}</audio>
-      <zIndex>9</zIndex>
-    </video>
+    <!-- The media slot itself is md_video, in the metadata block below. It is
+         NOT an extra: see the comment there (#41). -->
 
     <!-- Big title, right of the boxart, sitting just above the line. -->
     <text name="cardTitle" extra="true">
@@ -405,7 +371,49 @@
     <image name="md_image"><visible>false</visible></image>
     <image name="md_thumbnail"><visible>false</visible></image>
     <image name="md_marquee"><visible>false</visible></image>
-    <video name="md_video"><visible>false</visible></video>
+    <!-- THE MEDIA SLOT (upper right). This is the one md_* element the theme
+         uses rather than hides, and it is deliberate.
+
+         #41: this slot used to be a PAIR of extras — a cardScreenshot <image>
+         bound to {game:image} with a cardMedia <video> bound to {game:video}
+         painted over it. <maxSize> never breaks aspect ratio and preserves the
+         FILE's aspect, not a canonical one (VideoComponent.h:95), so a 16:9
+         still and a 4:3 clip fitted into the same box land on DIFFERENT
+         rectangles — and wherever the still's rectangle was the larger one, its
+         edges stayed visible around the video.
+
+         The obvious fix, dropping the image and letting one <video extra="true">
+         own the slot, does NOT work on this build. snapshotSource /
+         showSnapshotDelay / showSnapshotNoVideo are parsed for any <video>
+         (VideoComponent.cpp:285-310), but the snapshot's PATH is only ever fed
+         in by DetailedContainer::updateControls, and only to its own mVideo —
+         i.e. md_video (DetailedContainer.cpp:786-807). An extra video's
+         {game:video} binding reaches setVideo() alone
+         (VideoComponent::setProperty, :589), so mStaticImage keeps no path and
+         the still never draws. On an extra, those three flags are inert.
+
+         md_video IS that mVideo, so the still and the clip are one component:
+         one rectangle at a time, nothing to leak. ES creates it whenever the
+         theme declares it without visible=false (DetailedContainer.cpp:440-444)
+         and applies ALL^PATH, so pos/maxSize/origin/zIndex are ours while the
+         path stays bound to the selected game.
+
+         <delay> is in SECONDS (VideoComponent.cpp:282 multiplies by 1000), so
+         the Video Delay subset still drives the handoff.
+
+         cardMediaFallback above still covers the no-screenshot case: md_video's
+         snapshot is {game:image}, which an unscraped game does not have. -->
+    <video name="md_video">
+      <pos>${cardMediaX} ${cardMediaY}</pos>
+      <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
+      <origin>0.5 0.5</origin>
+      <snapshotSource>image</snapshotSource>
+      <showSnapshotDelay>true</showSnapshotDelay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
+      <delay>${videoDelay}</delay>
+      <audio>${videoAudioEnabled}</audio>
+      <zIndex>9</zIndex>
+    </video>
 
     <!-- ============================================================
          PEEK LIST. The textlist provides only the small prev/next peek
