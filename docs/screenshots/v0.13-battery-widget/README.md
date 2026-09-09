@@ -19,14 +19,18 @@ Measured ink bands, left to right:
 
 | Element | x span | ink height | ink centre |
 |:---|:---|---:|---:|
-| Clock `12:35 PM` | 0.7051 – 0.8164 | 23 px | 0.0612 |
-| `networkIcon` | 0.8340 – 0.8594 | 21 px | 0.0612 |
-| `batteryText` `100%` | 0.8779 – 0.9199 | 17 px | 0.0612 |
+| Clock `01:57 PM` | 0.6914 – 0.8037 | 23 px | 0.0599 |
+| `networkIcon` | 0.8242 – 0.8496 | 23 px | 0.0599 |
+| `batteryText` `93%` | 0.8711 – 0.9180 | 21 px | 0.0612 |
 | `batteryIcon` | 0.9346 – 0.9785 | 23 px | 0.0599 |
 
-**The harness predicted these to sub-pixel** — its own bands at the same
-level are 0.8340–0.8594, 0.8779–0.9209 and 0.9346–0.9795. For this cluster
-the harness can be trusted.
+Cluster span 0.6914 – 0.9785, against the harness's 0.3047 prediction for
+this surface at the wider `"100%"`.
+
+**The harness matches the device** — same right margin, same ink centres,
+same spacing. For this cluster the harness can be trusted, provided
+`CLOCK_12H=true` is used: the Bricks run a 12-hour clock and it is ~1.7x
+wider than the 24-hour one the harness renders by default.
 
 Two things only hardware showed:
 
