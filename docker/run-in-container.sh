@@ -15,11 +15,20 @@ FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
 GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
 SPLASH_AT="${SPLASH_AT:-0.4}"
+RECORD_SCRIPT="${RECORD_SCRIPT:-}"
+RECORD_FPS="${RECORD_FPS:-10}"
+RECORD_WIDTH="${RECORD_WIDTH:-640}"
+# Must match record.sh's COLORS default; this fallback only applies to a
+# direct `VIEW=record docker run`, which is exactly why the drift went
+# unnoticed — record.sh always passes the value explicitly.
+RECORD_COLORS="${RECORD_COLORS:-96}"
+KEEP_FRAMES="${KEEP_FRAMES:-0}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
 # zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
 # re-print base-10 so a zero-padded value cannot silently change behaviour.
-for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN GAMELIST_RIGHT; do
+for _n in CAROUSEL_RIGHT SETTLE FRAMES GAMELIST_DOWN GAMELIST_RIGHT \
+         RECORD_FPS RECORD_WIDTH RECORD_COLORS KEEP_FRAMES; do
   if [[ ! "${!_n}" =~ ^[0-9]+$ ]]; then
     echo "ERROR: ${_n} must be a non-negative integer (got '${!_n}')" >&2
     exit 2
@@ -35,6 +44,16 @@ for _n in FRAME_INTERVAL SPLASH_AT; do
     exit 2
   fi
 done
+
+# Zero would divide by zero when the frame period is computed, and a 1px-wide
+# GIF or a 1-colour palette is a silently useless artifact rather than an
+# error. The octal loop above only proves they are digits.
+if [[ "${VIEW}" == "record" ]]; then
+  (( RECORD_FPS >= 1 ))    || { echo "ERROR: RECORD_FPS must be >= 1" >&2; exit 2; }
+  (( RECORD_WIDTH >= 16 )) || { echo "ERROR: RECORD_WIDTH must be >= 16" >&2; exit 2; }
+  (( RECORD_COLORS >= 2 && RECORD_COLORS <= 256 )) \
+    || { echo "ERROR: RECORD_COLORS must be 2..256" >&2; exit 2; }
+fi
 
 ES_CFG="/userdata/system/configs/emulationstation"
 
@@ -286,6 +305,24 @@ else
   CONFIRM_KEY="Return"
 fi
 
+# Fail loudly if ES died, instead of capturing a blank frame and reporting
+# success. Checked before EVERY capture: a --frames sequence can span minutes,
+# so a single check up front would let a mid-sequence crash through as a run of
+# blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
+#
+# Defined up here rather than beside the capture below because the VIEW=record
+# block sits above the screenshot section and calls it from the navigation
+# script. (The capture loop itself inlines the same `kill -0` test, because it
+# runs in a background subshell where this function's `exit` would kill only
+# the subshell.)
+require_es_alive() { # require_es_alive <when>
+  kill -0 "${ES_PID}" 2>/dev/null && return 0
+  echo "ERROR: emulationstation exited ${1}. ES log:" >&2
+  cat /tmp/es.log >&2 || true
+  kill "${XVFB_PID}" 2>/dev/null || true
+  exit 1
+}
+
 echo "navigating: VIEW=${VIEW} (confirm=${CONFIRM_KEY})" >&2
 case "${VIEW}" in
   splash)
@@ -308,6 +345,10 @@ case "${VIEW}" in
     # always photographing the top-left corner.
     for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done
     for _i in $(seq 1 "${GAMELIST_RIGHT}"); do key Right 1; done ;;
+  record)
+    # Handled after this case: recording drives its own navigation, because
+    # the keys have to be pressed WHILE the capture loop is already running.
+    : ;;
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
     key space 3 ;;
@@ -325,17 +366,160 @@ if (( SETTLE > 0 )); then
   sleep "${SETTLE}"
 fi
 
-# Fail loudly if ES died, instead of capturing a blank frame and reporting
-# success. Checked before EVERY capture: a --frames sequence can span minutes,
-# so a single check up front would let a mid-sequence crash through as a run of
-# blank PNGs and exit 0 — the exact outcome this guard exists to prevent.
-require_es_alive() { # require_es_alive <when>
-  kill -0 "${ES_PID}" 2>/dev/null && return 0
-  echo "ERROR: emulationstation exited ${1}. ES log:" >&2
-  cat /tmp/es.log >&2 || true
+# --- recording ---
+# A background capture loop plus a foreground key script. They are separate
+# because their timing requirements conflict: the wave animates on 30s/20s/12s
+# loops and needs EVENLY spaced frames or playback speed wobbles, while
+# navigation needs UNEVEN pauses (dwell on a system, then move). One loop doing
+# both serves neither.
+if [[ "${VIEW}" == "record" ]]; then
+  # Frames are written INSIDE the container, never to /harness-out. That
+  # directory is a bind mount of whatever the caller passed to --out, so a
+  # hardcoded "frames" subdirectory under it meant `--out ~/captures/x.gif`
+  # would `rm -rf ~/captures/frames` as root — and render-readme-assets.sh
+  # points --out at docs/screenshots, so a failed take left 100-200MB of PNGs
+  # sitting inside the repo. Keeping them container-side makes both impossible.
+  FRAMES_DIR=/tmp/record-frames
+  rm -rf "${FRAMES_DIR}"
+  mkdir -p "${FRAMES_DIR}"
+
+  period="$(awk -v f="${RECORD_FPS}" 'BEGIN{printf "%.4f", 1/f}')"
+  echo "recording at ${RECORD_FPS}fps (period ${period}s)" >&2
+
+  # The loop is DEADLINE-scheduled: it sleeps until start + i*period rather
+  # than sleeping a fixed period each pass. `import` costs ~90ms at 1280x720,
+  # so a fixed sleep would accumulate that into drift and stretch a 12s
+  # recording well past its intended length — and the wave would then play
+  # back slower than it really moves.
+  capture_loop() {
+    local i=0 start now target remain
+    start="$(date +%s.%N)"
+    while [[ ! -e /tmp/record.stop ]]; do
+      i=$((i + 1))
+      # The rule above this function says the liveness check runs before EVERY
+      # capture, and a recording is a few hundred captures. Without this, ES
+      # dying between the last keystroke and the end of the take produced a run
+      # of blank frames that the post-take check could only reject wholesale.
+      # Recorded as a flag rather than exiting: this runs in a background
+      # subshell, so `exit` here would kill only the subshell.
+      if ! kill -0 "${ES_PID}" 2>/dev/null; then
+        echo "ERROR: emulationstation exited during the recording" >&2
+        touch /tmp/record.grabfail
+        break
+      fi
+      # NOT `|| break` with stderr discarded. A swallowed failure used to end
+      # the loop silently while the key script ran on, so `elapsed` covered the
+      # whole take but `frame_count` covered only part of it — a break at frame
+      # 5 of a 15s take produced a 5-frame GIF at 3 SECONDS per frame, written
+      # to docs/screenshots and reported as success with exit 0. Record the
+      # failure so the foreground can abort instead.
+      if ! import -window root "$(printf "${FRAMES_DIR}/f-%06d.png" "${i}")"; then
+        echo "ERROR: frame grab ${i} failed" >&2
+        rm -f "$(printf "${FRAMES_DIR}/f-%06d.png" "${i}")"
+        touch /tmp/record.grabfail
+        break
+      fi
+      target="$(awk -v s="${start}" -v i="${i}" -v p="${period}" \
+                    'BEGIN{printf "%.4f", s + i*p}')"
+      now="$(date +%s.%N)"
+      # Command substitution, NOT a pipe into `read` — a pipeline runs `read`
+      # in a subshell and the value would never reach this loop.
+      remain="$(awk -v t="${target}" -v n="${now}" \
+                    'BEGIN{d = t - n; printf "%.4f", (d > 0 ? d : 0)}')"
+      [[ "${remain}" != "0.0000" ]] && sleep "${remain}"
+    done
+  }
+
+  rm -f /tmp/record.stop /tmp/record.grabfail
+  record_start="$(date +%s.%N)"
+  capture_loop &
+  CAPTURE_PID=$!
+
+  # Navigation script: comma-separated `key:seconds` steps. `confirm` and
+  # `back` resolve through CONFIRM_KEY so the INVERT_BUTTONS inversion is
+  # handled in exactly one place, the same as every other view.
+  IFS=',' read -ra _steps <<< "${RECORD_SCRIPT}"
+  for _step in "${_steps[@]}"; do
+    [[ -z "${_step}" ]] && continue
+    _sym="${_step%%:*}"
+    _wait="${_step#*:}"
+    [[ "${_sym}" == "${_wait}" ]] && _wait=1
+    if [[ ! "${_wait}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      echo "ERROR: bad wait '${_wait}' in step '${_step}'" >&2
+      touch /tmp/record.stop; exit 2
+    fi
+    # xdotool keysyms are CASE-SENSITIVE — "Right" is the arrow key, "right"
+    # is not a keysym at all. key() swallows a bad symbol with `|| true`, so an
+    # unmapped name is a SILENT no-op: the first take of this feature recorded
+    # a perfectly good GIF in which no navigation happened. The script
+    # vocabulary is therefore a closed set, mapped here and validated in
+    # record.sh, rather than raw keysyms passed through.
+    case "${_sym}" in
+      up)      _sym="Up" ;;
+      down)    _sym="Down" ;;
+      left)    _sym="Left" ;;
+      right)   _sym="Right" ;;
+      start)   _sym="space" ;;
+      confirm) _sym="${CONFIRM_KEY}" ;;
+      back)    _sym="$([[ "${CONFIRM_KEY}" == "Return" ]] && echo Escape || echo Return)" ;;
+      *)
+        echo "ERROR: unknown key '${_sym}' in step '${_step}'" >&2
+        touch /tmp/record.stop; exit 2 ;;
+    esac
+    require_es_alive "during the recording script"
+    key "${_sym}" "${_wait}"
+  done
+
+  touch /tmp/record.stop
+  wait "${CAPTURE_PID}" 2>/dev/null || true
+  record_end="$(date +%s.%N)"
+  # Counted from the files actually on disk, not from a counter the loop wrote
+  # on its way out. A loop that died any other way left no counter at all, so
+  # frame_count fell back to 0 and the run aborted with "captured 0 frames"
+  # while hundreds of good PNGs sat in the directory.
+  frame_count="$(find "${FRAMES_DIR}" -name 'f-*.png' | wc -l)"
+  require_es_alive "after the recording script"
+
+  if [[ -e /tmp/record.grabfail ]]; then
+    echo "ERROR: the capture loop aborted after ${frame_count} frames." >&2
+    echo "  Encoding anyway would time the GIF from a full-length take's" >&2
+    echo "  elapsed seconds over a partial frame count." >&2
+    exit 1
+  fi
+
+  if (( frame_count < 2 )); then
+    echo "ERROR: captured ${frame_count} frames — nothing to encode" >&2
+    exit 1
+  fi
+
+  # The GIF delay comes from the MEASURED elapsed time, not from RECORD_FPS.
+  # If the harness under-delivers (slower host, larger resolution) a delay
+  # derived from the requested rate plays the GIF faster than the theme
+  # actually moves. Measuring keeps playback truthful and puts the shortfall
+  # in the log instead of silently inside the artifact.
+  elapsed="$(awk -v a="${record_start}" -v b="${record_end}" 'BEGIN{printf "%.3f", b-a}')"
+  actual_fps="$(awk -v n="${frame_count}" -v e="${elapsed}" 'BEGIN{printf "%.2f", n/e}')"
+  delay_cs="$(awk -v n="${frame_count}" -v e="${elapsed}" 'BEGIN{d=100*e/n; printf "%d", (d<1?1:d+0.5)}')"
+  echo "captured ${frame_count} frames in ${elapsed}s = ${actual_fps}fps (requested ${RECORD_FPS}); GIF delay ${delay_cs}cs" >&2
+
+  convert -delay "${delay_cs}" -loop 0 "${FRAMES_DIR}"/f-*.png \
+          -resize "${RECORD_WIDTH}" -colors "${RECORD_COLORS}" \
+          -layers OptimizeTransparency \
+          "/harness-out/${OUTNAME}"
+
+  # Copied out only when asked, and only ever ADDING files — nothing under the
+  # caller's --out directory is removed.
+  if (( KEEP_FRAMES >= 1 )); then
+    mkdir -p /harness-out/frames
+    cp "${FRAMES_DIR}"/f-*.png /harness-out/frames/
+    echo "kept ${frame_count} frames in /harness-out/frames" >&2
+  fi
+
+  kill "${ES_PID}" 2>/dev/null || true
   kill "${XVFB_PID}" 2>/dev/null || true
-  exit 1
-}
+  echo "recorded ${VIEW} @ ${RESOLUTION} -> /harness-out/${OUTNAME}"
+  exit 0
+fi
 
 # --- screenshot ---
 # One frame by default. --frames captures a sequence FRAME_INTERVAL seconds
