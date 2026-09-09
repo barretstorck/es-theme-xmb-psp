@@ -58,6 +58,15 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
                 (unset pins "10 seconds", so a capture lands on the still —
                  see docker/run-in-container.sh)
     VIDEO_AUDIO=On|Off
+    BUTTON_GLYPHS=PSP|Nintendo|Xbox
+                (helpsystem face-button glyph set; needs SHOW_HELP=true to be
+                 visible at all)
+    SHOW_HELP=true|false
+                (ES's bottom help strip. Default false, matching every render
+                 taken before the glyph sets existed.)
+    INVERT_BUTTONS=true|false
+                (default true, matching the TrimUI Brick. Decides which theme
+                 icon slot a prompt uses -- see docker/run-in-container.sh.)
 EOF
   exit "${1:-0}"
 }
@@ -135,6 +144,23 @@ check_pin TITLE_VISIBILITY titleVisibility
 check_pin GAMELIST_STYLE   gamelistStyle
 check_pin VIDEO_DELAY      videoDelay
 check_pin VIDEO_AUDIO      videoAudio
+check_pin SCROLL_SPEED     scrollSpeed
+check_pin BUTTON_GLYPHS    buttonGlyphs
+
+# These two are ES settings rather than theme subsets, so check_pin cannot
+# validate them — but they are just as easy to get wrong, and both fail
+# silently. A rejected value is better than a render that quietly shows the
+# wrong thing. See the es_as_bool note in docker/run-in-container.sh for why
+# only these two spellings are allowed through.
+check_bool() { # check_bool <env-var-name>
+  local var="$1" val="${!1:-}"
+  [[ -z "${val}" ]] && return 0
+  if [[ "${val}" != "true" && "${val}" != "false" ]]; then
+    echo "bad ${var}: '${val}' — expected true or false" >&2; exit 2
+  fi
+}
+check_bool SHOW_HELP
+check_bool INVERT_BUTTONS
 
 # Build the image on first use.
 if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
@@ -164,6 +190,8 @@ DOCKER_ARGS+=(
   -e ICON_SIZE="${ICON_SIZE:-}" -e TITLE_VISIBILITY="${TITLE_VISIBILITY:-}"
   -e GAMELIST_STYLE="${GAMELIST_STYLE:-}" -e SCROLL_SPEED="${SCROLL_SPEED:-}"
   -e VIDEO_DELAY="${VIDEO_DELAY:-}" -e VIDEO_AUDIO="${VIDEO_AUDIO:-}"
+  -e BUTTON_GLYPHS="${BUTTON_GLYPHS:-}" -e SHOW_HELP="${SHOW_HELP:-false}"
+  -e INVERT_BUTTONS="${INVERT_BUTTONS:-true}"
   -e CAROUSEL_RIGHT="${CAROUSEL_RIGHT}" -e SETTLE="${SETTLE}"
   -e FRAMES="${FRAMES}" -e FRAME_INTERVAL="${FRAME_INTERVAL}"
 )
