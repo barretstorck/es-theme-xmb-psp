@@ -231,13 +231,16 @@
     <!-- Info bar bands, as variables so a ratio that ever needs to retune them
          can, and so scripts/tests/test-grid-selection.sh can check that the
          text bands sit inside the panel band. Panel spans gridInfoY to
-         gridInfoY + gridInfoH; each text row is bounded by a clipRect built
-         from its own Y/H pair, because <size> alone does not clip on this
-         build (GuiComponent.cpp:885,1269). -->
+         gridInfoY + gridInfoH; each text row's <pos>/<size> is built from its
+         own Y/H pair, and <size> is what bounds it - ES abbreviates a
+         single-line text to mSize.x (TextComponent.cpp:376-379). The values
+         are v0.12's, unchanged: promoting them to variables must not move a
+         pixel, and the guard checks the bands stay inside the panel and do
+         not overlap each other. -->
     <gridInfoY>0.795</gridInfoY>
     <gridInfoH>0.110</gridInfoH>
     <gridTitleY>0.808</gridTitleY>
-    <gridTitleH>0.062</gridTitleH>
+    <gridTitleH>0.055</gridTitleH>
     <gridMetaY>0.862</gridMetaY>
     <gridMetaH>0.040</gridMetaH>
     <!-- The star pair's column. gridStarW bounds it: {game:stars} emits filled

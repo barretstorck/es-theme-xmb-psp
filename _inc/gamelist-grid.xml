@@ -194,8 +194,20 @@
            margin_min = (zoom - 1) * W_band / 2 / (n + (n - 1) * (zoom - 1) / 2)
 
          = 0.0214 horizontally and 0.0286 vertically at zoom 1.20. v0.12's
-         0.012/0.020 put the ceiling at zoom 1.146 / 1.138, so its 1.14 sat ON
-         the limit and could not be raised at all without more margin. The
+         0.012/0.020 put the ceiling at zoom 1.109 horizontally and 1.138
+         vertically, so its 1.14 was ALREADY PAST the horizontal one: tile
+         boxes overlapped by 3.6px at 1024 wide.
+
+         That overlap was invisible, and the reason is worth knowing before
+         retuning: maxSize-fit art is narrower than its own cell whenever the
+         art is not exactly the cell's aspect, so the DRAWN art had clearance
+         the boxes did not. Square-ish Game Boy covers in a 226x223 cell drew
+         222px wide and cleared until zoom 1.146. Art that fills its cell in
+         the binding axis - the worst case, and the only safe one to design
+         against - collides at 1.109. The formula above and
+         scripts/tests/test-grid-selection.sh both use the box, not the art.
+
+         The
          values below clear margin_min by 0.0028/0.0036 - about 3px at
          1024x768 - deliberately, since a threshold-exact margin leaves the
          gutter a sub-pixel wide and anti-aliases into contact. The cost is a
@@ -293,10 +305,26 @@
       <text>{game:name}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
-      <!-- Bounded like its siblings. <size> alone does not clip on this build,
-           so without this a long title ran to the screen edge and out of the
-           panel, which ends at 0.97. Stops at 0.95 for a visual margin. -->
-      <clipRect>0.05 ${gridTitleY} 0.90 ${gridTitleH}</clipRect>
+      <!-- No clip rect here, deliberately. Issue #43 reported that a long
+           title "runs to the screen edge and past the box" and asked for one,
+           but a SINGLE-LINE, non-scrolling text is already bounded by <size>:
+           ES abbreviates it to mSize.x with "..." (TextComponent.cpp:376-379).
+           Verified - adding one changes zero pixels. The 89-char
+           nes/long-title fixture ends "...Sky Dra..." at 0.95, inside the
+           panel's 0.97, on the strength of <size> alone.
+
+           The theme's "<size> alone does NOT clip" rule is about MULTI-LINE
+           text: cardDesc and listDesc overflow their box VERTICALLY, which
+           <size> does not bound, and that is what their clip rects are for.
+
+           What actually escaped the box was the BOX: the panel drew at half
+           height (see gridInfoPanel), so this band's top at 0.808 sat above
+           the visible bar top at 0.8229.
+
+           The abbreviation is gated on mAutoScroll == NONE (:376). So IF a
+           marquee is ever added here, abbreviation stops and a clip rect
+           becomes the only bound - add one in the same commit.
+           test-grid-selection.sh enforces that pairing. -->
       <!-- emptyTextDefaults=false: TextComponent.cpp:625 defaults extra="true"
            text bindings to substitute "Unknown"/"None" for an empty binding
            (BindingManager.cpp:126), regardless of ThemeData.cpp:252's comment
@@ -316,23 +344,27 @@
       <text>{game:genre}  ·  {game:releaseyear}  ·  {game:developer}  ·  {game:playercount}P</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
-      <!-- <size> alone does NOT clip on this build (proven in styles A/B).
-           Defensive clipRect matching the sibling cardDesc/listDesc pattern:
-           a long genre/developer string could still reach the star column at
-           gridStarX (0.680) since this field has no per-clause length limit.
-           clipRect is normalized SCREEN coords (x y w h), scaled by
-           screenScale and pushed as a render clip (GuiComponent.cpp:885,
-           1269). -->
-      <clipRect>0.05 ${gridMetaY} 0.60 ${gridMetaH}</clipRect>
+      <!-- <size> 0.60 is what keeps this run out of the star column at
+           gridStarX 0.680: no clause here has a length limit, and a long
+           genre + developer pair would otherwise reach it. v0.12 also carried
+           a clip rect on the same rect; #43 removed it as inert, for the
+           reason spelled out on gridTitle above - ES abbreviates a
+           single-line text to mSize.x, so the clip rect could never be the
+           binding constraint. Removing it changed the band by at most one
+           LSB. -->
       <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>8</zIndex>
     </text>
 
     <!-- Rating: a dim five-glyph track with the bound value drawn over it.
-         Both are bounded to gridStarW. The pair must keep identical pos, size,
-         font and alignment or the filled glyphs drift off the track -
-         {game:stars} emits FILLED glyphs only (FileData.cpp:1924), so the
-         track is what supplies the empty ones. -->
+         The pair must keep identical pos, size, font and alignment or the
+         filled glyphs drift off the track - {game:stars} emits FILLED glyphs
+         only (FileData.cpp:1924), so the track supplies the empty ones.
+
+         <size> gridStarW is the bound issue #43 asked for. It changes no
+         pixels today: the track is a fixed five-glyph literal about 0.09
+         wide, well inside 0.140. It is the property that WOULD bound them,
+         which is the point - nothing structural did before. -->
     <text name="gridStarTrack" extra="true">
       <pos>${gridStarX} ${gridMetaY}</pos>
       <size>${gridStarW} ${gridMetaH}</size>
@@ -343,7 +375,6 @@
       <opacity>0.35</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
-      <clipRect>${gridStarX} ${gridMetaY} ${gridStarW} ${gridMetaH}</clipRect>
       <zIndex>8</zIndex>
     </text>
     <text name="gridStars" extra="true">
@@ -355,7 +386,6 @@
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
-      <clipRect>${gridStarX} ${gridMetaY} ${gridStarW} ${gridMetaH}</clipRect>
       <emptyTextDefaults>false</emptyTextDefaults>
       <zIndex>9</zIndex>
     </text>
