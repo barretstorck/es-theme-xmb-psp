@@ -26,6 +26,7 @@ SETTLE=0
 FRAMES=1
 FRAME_INTERVAL=1
 SPLASH_AT="${SPLASH_AT:-0.4}"
+BATTERY="none"
 
 usage() {
   cat <<EOF
@@ -53,6 +54,14 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
   --frames N    capture N frames instead of one, --frame-interval seconds apart,
                 to <out>-1.png .. <out>-N.png  (default: 1)
   --frame-interval S  seconds between frames when --frames > 1  (default: 1)
+  --battery SPEC  fake a battery for the status-bar widget (default: none).
+                  SPEC is "none", "LEVEL", or "LEVEL:charging" —
+                  e.g. --battery 47, --battery 4, --battery 80:charging.
+                  The container has no battery of its own, so without this
+                  batteryIcon/batteryText auto-hide and render NOTHING.
+                  Works by bind-mounting a synthetic /sys/class/power_supply;
+                  see the note at the mount below for why the KNULLI
+                  /tmp/battery.percent path is not enough on its own.
 
   Env pins for cursor position inside a gamelist (both default 0):
     GAMELIST_DOWN=N   press Down N times. Walks rows in the Box Art Grid, and
@@ -98,6 +107,7 @@ while [[ $# -gt 0 ]]; do
     --settle)     SETTLE="${2:?}"; shift 2 ;;
     --frames)     FRAMES="${2:?}"; shift 2 ;;
     --frame-interval) FRAME_INTERVAL="${2:?}"; shift 2 ;;
+    --battery)    BATTERY="${2:?}"; shift 2 ;;
     -h|--help)    usage 0 ;;
     *) echo "unknown argument: $1" >&2; usage 1 ;;
   esac
@@ -133,6 +143,36 @@ for n in FRAME_INTERVAL SPLASH_AT; do
   fi
 done
 if (( FRAMES < 1 )); then echo "--frames must be >= 1" >&2; exit 2; fi
+
+# --battery: parsed here, mounted further down. Validate rather than pass a
+# free string through, because a level ES cannot parse is indistinguishable
+# from no battery at all — the widget just silently does not draw.
+BATTERY_LEVEL=""
+BATTERY_STATUS="Discharging"
+if [[ "${BATTERY}" != "none" ]]; then
+  if [[ "${BATTERY}" =~ ^([0-9]+)(:(charging|discharging))?$ ]]; then
+    # 10# for the same octal reason as the loop above: --battery 08 would
+    # otherwise be an arithmetic error, not 8 percent.
+    BATTERY_LEVEL="$((10#${BASH_REMATCH[1]}))"
+    [[ "${BASH_REMATCH[3]}" == "charging" ]] && BATTERY_STATUS="Charging"
+  else
+    echo "bad --battery: '${BATTERY}' (expected none, LEVEL, or LEVEL:charging)" >&2
+    exit 2
+  fi
+  if (( BATTERY_LEVEL > 100 )); then
+    echo "bad --battery: level ${BATTERY_LEVEL} is above 100" >&2; exit 2
+  fi
+fi
+
+# ShowBattery is ES's own setting, not a theme subset, and it is what actually
+# gates the widget: "" hides both elements, "icon" shows the glyph alone,
+# "text" shows glyph + percentage (BatteryIconComponent.cpp:45,
+# BatteryTextComponent.cpp:41). ES defaults it to "text" (Settings.cpp:180),
+# which is what an unset SHOW_BATTERY renders.
+if [[ -n "${SHOW_BATTERY:-}" && ! "${SHOW_BATTERY}" =~ ^(text|icon|none)$ ]]; then
+  echo "bad SHOW_BATTERY: '${SHOW_BATTERY}' (expected text, icon, or none)" >&2
+  exit 2
+fi
 
 # Env pins must name a real subset value, checked against theme.xml itself so
 # this list cannot drift from the theme.
@@ -209,8 +249,24 @@ if [[ -n "${LIBRARY}" ]]; then
   DOCKER_ARGS+=( -v "${LIBRARY_ABS}:/harness-library:ro" )
   HAS_LIBRARY=1
 fi
+if [[ -n "${BATTERY_LEVEL}" ]]; then
+  # Why a synthetic sysfs tree rather than KNULLI's /tmp/battery.percent: the
+  # harness IS built -DKNULLI=ON, so queryBatteryInformation() does read that
+  # file (Platform.cpp:375+) — but it then falls through to the sysfs block
+  # unconditionally, and with no /sys/class/power_supply entry that block sets
+  # hasBattery = false again (Platform.cpp:519-523). The percent file only
+  # suppresses the *level* re-read (percentSetFromFile), never the presence
+  # check. Mounting the tree drives presence, level AND charging state.
+  FAKE_BATTERY_DIR="$(mktemp -d)"
+  trap 'rm -rf "${FAKE_BATTERY_DIR}"' EXIT
+  mkdir -p "${FAKE_BATTERY_DIR}/BAT0"
+  printf '%s\n' "${BATTERY_STATUS}" > "${FAKE_BATTERY_DIR}/BAT0/status"
+  printf '%s\n' "${BATTERY_LEVEL}"  > "${FAKE_BATTERY_DIR}/BAT0/capacity"
+  DOCKER_ARGS+=( -v "${FAKE_BATTERY_DIR}:/sys/class/power_supply:ro" )
+fi
 DOCKER_ARGS+=(
   -e VIEW="${VIEW}" -e RESOLUTION="${RESOLUTION}" -e COLORSET="${COLORSET}"
+  -e SHOW_BATTERY="${SHOW_BATTERY:-}"
   -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
   -e GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
   -e GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
