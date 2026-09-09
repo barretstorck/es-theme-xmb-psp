@@ -19,7 +19,8 @@
 | System icons (majority, v0.11+) | RetroArch `monochrome` XMB set | RetroArch/libretro contributors — CC-BY 4.0 (modified: pre-burned drop shadows via `scripts/apply-shadow.py`; see "RetroArch `monochrome` icon set" section below) |
 | System icons (remainder) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 (see "Icon attribution (v0.4)" section below) |
 | UI chrome (selector, separators) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
-| Sound effects | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
+| Sound effects (`navigate` / `select` / `back`) | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
+| Sound effect: `sounds/system-scroll.wav` | Original to this port | Barret Storck — CC-BY-NC-SA 2.0 (synthesised by `scripts/gen-swoosh.py`; no third-party input) |
 | Font: Roboto Condensed (Light/Regular/Bold) | [Google Fonts](https://fonts.google.com/specimen/Roboto+Condensed) | The Roboto Project Authors — SIL OFL 1.1 (see `fonts/OFL.txt`) |
 
 **Font substitution:** the PSP/PS3 XMB and the source theme use proprietary Sony / Fontworks fonts (the *New Rodin* family), which are not redistributable. This port uses [Roboto Condensed](https://fonts.google.com/specimen/Roboto+Condensed) — the same free, OFL-licensed font the PPSSPP PSP emulator ships as its substitute for the original PSP system font, so it carries a close PSP-XMB feel. The Light/Regular/Bold weights bundled in `fonts/` are static instances generated from the official OFL variable font (`RobotoCondensed[wght].ttf` from Google Fonts) at weights 300 / 400 / 700.

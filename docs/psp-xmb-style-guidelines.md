@@ -69,6 +69,10 @@ yourself — those derivations are recorded here.
    - 7.6 [What we cannot animate](#76-what-we-cannot-animate)
 8. [Subsets and user knobs](#8-subsets-and-user-knobs)
 9. [Sound](#9-sound)
+   - 9.1 [How ES binds sounds — two different mechanisms](#91-how-es-binds-sounds--two-different-mechanisms)
+   - 9.2 [ES's master switch ships OFF](#92-ess-master-switch-ships-off)
+   - 9.3 [What this theme ships](#93-what-this-theme-ships)
+   - 9.4 [Verifying sound changes](#94-verifying-sound-changes)
 10. [Settled decisions — do not re-litigate](#10-settled-decisions--do-not-re-litigate)
 11. [References](#11-references)
 
@@ -1558,8 +1562,8 @@ to consulting this theme's `defaultView` when the user has pinned
 Gamelist View Style to Detailed or Gamecarousel. Pinning either of
 those with Box Art Grid selected yields an unstyled ES view, not the
 grid. This cannot be fixed by narrowing those includes — `common.xml`'s
-`<view name="system,detailed,gamecarousel,grid,menu">` block holds the
-shared helpsystem styling and the four navigate/select/back sounds
+`<view name="system,detailed,gamecarousel,menu">` block holds the
+shared helpsystem styling and the three launch/menuOpen/back sounds
 (the clock is separately in `<view name="screen">`), and those must
 stay wired to every gamelist view regardless of style. See §10 and the
 README.
@@ -1819,21 +1823,94 @@ PSP XMB navigation has three distinct sounds: a horizontal-scroll
 and a select-confirm (mid-pitch). Plus a separate "back" sound
 (descending sweep).
 
-This theme ships:
+### 9.1 How ES binds sounds — two different mechanisms
 
-- `sounds/navigate.wav` (41 KB) — bound to both `systemscroll` and
-  `scroll` events (`_inc/common.xml:117-122`).
-- `sounds/select.wav` (50 KB) — bound to `select` event.
-- `sounds/back.wav` (71 KB) — bound to `back` event.
+This is the single most important fact in this section, because getting
+it wrong is invisible. Before v1.0 the theme declared four tidy-looking
+`<sound>` elements and two of them had **never played a single time**.
 
-**Open audit:** A1 + A2 — `navigate.wav` is used for both horizontal
-and vertical scroll, but PSP distinguishes them (horizontal "swoosh"
-vs. vertical "tick"). Adding a `system-scroll.wav` is a future task.
+**Scroll sounds are a PROPERTY, not an element.** `<scrollSound>` lives
+on the scrolling component itself and is read by
+`CarouselComponent` (`cpp:566`, played at `:222-223`),
+`TextListComponent` (`h:727`, played at `h:127`) and
+`ImageGridComponent` (`h:141`). It defaults to **empty** in each, so a
+component that does not set it navigates in silence. There is no
+`<sound name="scroll">` or `<sound name="systemscroll">` — those names
+appear nowhere in the ES source.
 
-**Don't ship verbatim PSP samples** — copyright. Synthesize or use
-freesound.org CC-licensed PSP-style alternatives. Audit A1 has
-generation notes (~3 kHz sine for the tick with 5 ms exponential
-decay; ~1500→600 Hz sweep over 80 ms for back).
+**Everything else is a `<sound>` element, and there are exactly three.**
+`Sound::getFromTheme` is called with `"launch"`, `"back"` and
+`"menuOpen"` and nothing else, all from the gamelist views
+(`ISimpleGameListView.cpp:231, 335-371, 401-422`;
+`GridGameListView.cpp:104`). Confirm is spelled **`launch`**, not
+`select`. A `<sound>` element with any other name is inert; a name ES
+asks for that the theme omits falls back to silence.
+
+`back` is narrower than it looks: both call sites sit inside
+`if (!mCursorStack.empty())`, so it fires only when leaving a
+**subfolder** inside a gamelist — never when leaving a gamelist for the
+system carousel.
+
+### 9.2 ES's master switch ships OFF
+
+`Settings.cpp:168` defaults `EnableSounds` to **false**, and both
+`Sound::init` and `Sound::play` check it (`Sound.cpp:70, 97`). A stock
+TrimUI Brick carries no such key, so out of the box this theme is
+silent no matter what it declares. The switch is *Main Menu → Sound
+Settings → Enable Navigation Sounds*.
+
+Because `Sound::init` skips loading the file while the setting is off,
+and the `Sound` objects are cached in `Sound::sMap`, turning it on does
+not retroactively load them — they are re-read when
+`AudioManager::init()` runs again, at ES startup or on returning from a
+game (`FileData.cpp:766`). Documented in the README's troubleshooting.
+
+**There is deliberately no theme-side sound toggle.** ES's switch
+already gates every sound the theme can make, so a subset could only
+turn off things ES had already silenced.
+
+### 9.3 What this theme ships
+
+| File | Bound to | Role |
+|---|---|---|
+| `sounds/system-scroll.wav` | `<scrollSound>` on `<carousel>` | horizontal swoosh |
+| `sounds/navigate.wav` | `<scrollSound>` on the `<textlist>` / `<imagegrid>` of all three gamelist styles | vertical tick |
+| `sounds/select.wav` | `<sound name="launch">` and `<sound name="menuOpen">` | confirm |
+| `sounds/back.wav` | `<sound name="back">` | leaving a subfolder |
+
+The swoosh/tick split is audit A2, and the two are measurably distinct
+rather than merely differently named:
+
+| | dominant | energy < 2 kHz | energy > 5 kHz | duration |
+|---|---|---|---|---|
+| `system-scroll.wav` | 870 Hz | 97% | 0% | 200 ms |
+| `navigate.wav` | 6449 Hz | 5% | 79% | 232 ms |
+
+`scripts/tests/test-sounds.sh` re-measures that separation, so a retune
+that collapses the two into the same register fails rather than
+silently undoing A2.
+
+### 9.4 Verifying sound changes
+
+Structural checks cannot hear anything, and this is a subsystem where
+"the XML looks right" was wrong for four releases. Use
+`scripts/capture-audio.sh`: it runs ES under SDL's `disk` audio driver,
+which writes the mixer's output to a file, records the byte offset of
+every keypress, and measures whether each one produced sound.
+
+```
+scripts/capture-audio.sh --library /tmp/library   --expect sound,sound,sound,any,sound,sound,sound,any
+```
+
+It also copies ES's log out and reports every `req sound [view.element]`
+line — the only oracle for the `launch` and `menuOpen` bindings, which
+fire on transitions that reopen the audio device and so truncate the
+PCM capture. A name reported as `MISSING` there is a binding ES wanted
+and the theme did not supply.
+
+**Don't ship verbatim PSP samples** — copyright. Synthesize (see
+`scripts/gen-swoosh.py`) or use freesound.org CC-licensed PSP-style
+alternatives.
 
 ---
 
@@ -1856,7 +1933,7 @@ evidence:
 | **`{game:stars}` needs a backing track.** | v0.12 | `FileData.cpp:1924` builds the string with `for (i = 0; i < stars; i++)` — filled glyphs only, no empty-star track. Every rating element is a PAIR: a dim five-glyph `&#xF005;` track plus the bound element over it, identical except `text`/`color`/`opacity`/`zIndex`. This forces stars into a fixed column. |
 | **No per-game position counter (e.g. "2 / 10").** | v0.12 | There is no `{game:index}` binding on this build; `{system:total}` (`SystemData.cpp:2162`) is a whole-library game count, not a cursor position, and the `gamecount` subset only affects the system-view carousel's Game Count caption, not the gamelist. Would need an ES-side change, not a theme change. Not carried over from the removed right info panel — see §6.7. |
 | **`cardDesc` is a bounded, `<clipRect>`-bound block, not a marquee.** | v0.11 attempted a narrow marquee; superseded by the bounded block in v0.12 | v0.11's narrow `cardDesc` deliberately overflowed and marqueed, but its `<size>` alone did not clip on-device (it ran under the help strip in use). v0.12 widened it to the full text column and added a `<clipRect>` (`_inc/gamelist-card.xml`) so overflow clips instead of marqueeing (§6.7, §7.4). If this still overflows on hardware, add/verify `<clipRect>` — do not ship an unbounded description again. |
-| **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Three shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, and whichever single `_inc/scroll-speed-{slow,normal,fast}.xml` variant is active) register a `detailed,gamecarousel` view, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those includes — `common.xml`'s shared-chrome `<view>` block holds the helpsystem styling and the four navigate/select/back sounds (not the clock, which lives separately in `<view name="screen">`), and those must stay wired to every gamelist view. Documented in the README. |
+| **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Three shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, and whichever single `_inc/scroll-speed-{slow,normal,fast}.xml` variant is active) register a `detailed,gamecarousel` view, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those includes — `common.xml`'s shared-chrome `<view>` block holds the helpsystem styling and the three launch/menuOpen/back sounds (not the clock, which lives separately in `<view name="screen">`), and those must stay wired to every gamelist view. Documented in the README. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
 | **The gamelist has no halo either.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign, closed out with #34 | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. With the system-view halo removed in v1.0, no view has one. |
