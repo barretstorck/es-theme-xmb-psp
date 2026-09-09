@@ -36,4 +36,18 @@
     <path>./zero-metadata.nes</path>
     <name>Zero Metadata</name>
   </game>
+  <game>
+    <path>./long-title.nes</path>
+    <name>Yggdrasil Kingdom Chronicles: Judgment of the Sleeping Sky Dragon - Deluxe Legacy Edition</name>
+    <desc>Deliberately long title, with descenders (g/j/p/y), to exercise the
+      Box Art Grid's gridTitle clipRect and its height. No real title in the
+      scraped library slice is long enough to overflow the box.</desc>
+    <image>./media/box/long-title.png</image>
+    <thumbnail>./media/box/long-title.png</thumbnail>
+    <genre>Role playing game</genre>
+    <releasedate>19920815T000000</releasedate>
+    <developer>Very Long Developer Name Studios</developer>
+    <players>1</players>
+    <rating>0.6</rating>
+  </game>
 </gameList>

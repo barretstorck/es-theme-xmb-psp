@@ -42,7 +42,6 @@
     <cardMediaH>0.26</cardMediaH>
     <cardDescH>0.150</cardDescH>
     <listMediaH>0.24</listMediaH>
-    <gridTileH>0.210</gridTileH>
 
     <!-- Added beyond the brief (found by rendering, not listed there):
          same fixed-fontSize issue as aspect-8x7.xml, worse here because the
