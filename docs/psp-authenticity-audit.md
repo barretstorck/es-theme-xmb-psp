@@ -504,7 +504,7 @@ anticipated:
    `splash.xml` is parsed at `formatVersion` 7, where `parseTheme`
    handles `<include>` and `<subset>` in document order. Because the
    file is parsed STANDALONE on a throwaway ThemeData
-   (`Splash.cpp:40`), it inherits nothing from `theme.xml` and has
+   (`Splash.cpp:41`), it inherits nothing from `theme.xml` and has
    to re-declare the colorset subset itself — but once it does, the
    chosen colorset reaches it. No fixed palette needed.
 
@@ -519,7 +519,7 @@ anticipated:
    `scripts/tests/test-splash.sh` guards.
 
 3. **Two bands of the screen belong to ES.** The label sits at
-   `y = 0.78 * H` (`Splash.cpp:102`) and, since `SplashScreenProgress`
+   `y = 0.78 * H` (`Splash.cpp:104`) and, since `SplashScreenProgress`
    also defaults true (`Settings.cpp:130`), a progress bar at
    `y = 0.892 * H` (`Splash.cpp:143-147`). Both are themeable, but
    moving the bar means re-positioning `progressbar` AND
@@ -563,10 +563,10 @@ white at center is the practical scope.
 `Splash.cpp:25-45` (theme loading); `Splash.cpp:254-330` (render
 without storyboard tick); `main.cpp:557-566` (boot hook).
 Added while implementing: `ThemeData.cpp:684` (`mColorset` from the
-global `ThemeColorSet`); `Splash.h:15` + `Splash.cpp:50-53` (the
+global `ThemeColorSet`); `Splash.h:15` + `Splash.cpp:50-55` (the
 `:/logo.png` fallback); `Splash.cpp:38-42` (the silent catch);
 `Settings.cpp:128,130` (`SplashScreen` and `SplashScreenProgress`
-both default true); `Splash.cpp:102,143-147` (ES's two reserved
+both default true); `Splash.cpp:104,143-147` (ES's two reserved
 bands). Confirmed on the device side too: Knulli's
 `/usr/bin/emulationstation-standalone` launches ES with no
 splash-suppressing flag, and neither Brick overrides `SplashScreen`.

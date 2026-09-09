@@ -27,14 +27,17 @@ reproduce — judge colour-critical changes with that in mind.
 - `--view splash` renders the boot splash, and behaves unlike every other view.
   ES is launched WITHOUT the flag that suppresses the splash (the harness passes
   it for all other views so the splash cannot cover the capture window), and the
-  frame is grabbed `SPLASH_AT` seconds after launch. The splash is transient —
+  frame is grabbed `SPLASH_AT` seconds after launch (default `0.4`). The splash is transient —
   it exists from `main.cpp:566` to `main.cpp:628` and is then replaced by the
   carousel — so there is no settled state to wait for and the capture is a race.
   An all-black frame means ES had not opened its window yet; a carousel means
   the splash was already over. Sweep with `--frames N --frame-interval 0.2`.
   `SPLASH_AT` and `--frame-interval` both accept fractions: the window is well
   under a second, and passing `--library` lengthens it by giving ES more to
-  preload, which is also closer to what the device does.
+  preload, which is also closer to what the device does. The default is kept
+  sub-second on purpose — overshooting does not error, it returns a clean
+  screenshot of the carousel — and 0.4 is tuned for 1024x768, so smaller
+  resolutions may need less.
 - `--resolution` — Xvfb geometry, e.g. `1024x768` (4:3, default) or `1280x720`
 - `--colorset` — PSP colorset name, e.g. `"August Orange"` (default: `January Blue`)
 - `--library` — path to a Knulli `userdata`-shaped library; required for the

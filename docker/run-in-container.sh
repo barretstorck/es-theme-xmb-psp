@@ -13,7 +13,7 @@ SETTLE="${SETTLE:-0}"
 FRAMES="${FRAMES:-1}"
 FRAME_INTERVAL="${FRAME_INTERVAL:-1}"
 GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
-SPLASH_AT="${SPLASH_AT:-3}"
+SPLASH_AT="${SPLASH_AT:-0.4}"
 
 # These arrive as strings and are all used in `(( ))`, which reads a leading
 # zero as OCTAL — FRAMES=08 is a parse error, not eight frames. Validate and
@@ -198,6 +198,12 @@ if [[ "${VIEW}" == "splash" ]]; then
   # finishing its own boot, and SPLASH_AT picks the moment. How long the window
   # actually is depends on how much there is to preload, so a library makes it
   # longer and more device-like. Use --frames to sweep if a single grab misses.
+  #
+  # The default is 0.4s and deliberately sub-second: the window closes by about
+  # a second, so anything larger does not fail - it silently returns a perfectly
+  # good screenshot of the CAROUSEL, which is the one outcome worth engineering
+  # against here (a 3s default did exactly that). 0.4 is tuned for 1024x768;
+  # smaller framebuffers boot faster and want less.
   echo "splash: capturing ${SPLASH_AT}s after launch (transient frame)" >&2
   sleep "${SPLASH_AT}"
 else
