@@ -36,6 +36,48 @@
        Gamecount can go anywhere since it only affects element
        visibility, not color variables. -->
 
+  <!-- v1.0: helpsystem face-button glyph set (audit S4, #8). Declared BEFORE
+       common.xml, unlike every other subset in this file, and that position is
+       load-bearing: these files set variables (${helpIconA}..${helpIconY}) and
+       common.xml's <helpsystem> consumes them, so the subset has to be parsed
+       first or the four face slots resolve to unsubstituted literals and ES
+       silently falls back to its built-in glyphs. Nothing here reads a value
+       common.xml defines, so nothing is lost by going first. Nintendo is the
+       default by being the first include - the TrimUI Brick's buttons carry
+       that layout.
+
+       Variables rather than <helpsystem> overrides on purpose. Box Art Grid
+       declares its own <helpsystem> inside <view name="grid">, and an override
+       file naming that view would make hasView("grid") true for everyone,
+       handing an unstyled built-in grid to any user who had pinned Gamelist
+       View Style = grid (the b5e2063 regression). A <variables> block
+       registers no views, and _inc/gamelist-grid.xml reads the same four
+       names, so the setting reaches all three gamelist styles. -->
+  <!-- The default, as a plain include, BEFORE the subset that can override it.
+       This is not belt-and-braces: on the device's ES (Version 39, built
+       2026-05-11) a buttonGlyphs value that has never been chosen leaves
+       ${helpIconA}..${helpIconY} unresolved rather than falling back to the
+       subset's first <include>, the way the pinned harness build does. The
+       failure is worse than losing the four face glyphs — an unresolved
+       variable in the first icon property drops EVERY icon property on the
+       element, including the eight shared ones that are literal paths, so a
+       fresh install rendered ES's stock glyphs throughout while keeping the
+       theme's helpsystem position, font and colour (those parse earlier).
+       Caught on hardware; the harness cannot see it, because there the first
+       include does apply.
+
+       Including the Nintendo file directly costs nothing when the subset does
+       resolve — same four variables, parsed earlier, overwritten by whichever
+       set is selected. It also means the documented default lives in exactly
+       one file rather than being implied by include order. -->
+  <include>./_inc/buttons-nintendo.xml</include>
+
+  <subset name="buttonGlyphs" displayName="Button Icons">
+    <include name="Nintendo">./_inc/buttons-nintendo.xml</include>
+    <include name="PSP">./_inc/buttons-psp.xml</include>
+    <include name="Xbox">./_inc/buttons-xbox.xml</include>
+  </subset>
+
   <include>./_inc/common.xml</include>
 
   <!-- v0.11 redesign: per-system media-fallback. Sets ${mediaFallbackPath}

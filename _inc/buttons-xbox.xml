@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - "Button Icons: Xbox".
+  Selected via UI Settings > Theme Configuration > Button Icons > Xbox.
+
+  For controllers in the Xbox / SDL layout: most USB and Bluetooth gamepads, and
+  handhelds that follow the same ABXY ordering.
+
+  Same four PNGs as the Nintendo set. The two layouts draw identical buttons
+  and disagree only about where each letter goes, so this file is nothing but
+  a different assignment of the same art:
+
+      slot     position   Nintendo   Xbox
+      iconA    EAST       A          B
+      iconB    SOUTH      B          A
+      iconX    NORTH      X          Y
+      iconY    WEST       Y          X
+
+  All four move. That is the point of shipping the set, and it is also why
+  hardcoding one lettered set would have been wrong for half the theme's
+  users rather than merely inauthentic.
+
+  Slot -> physical position is fixed by ES; the derivation and the
+  InvertButtons non-caveat are documented once in _inc/buttons-nintendo.xml.
+
+  The glyphs are monochrome, not Xbox's colour-coded green/red/blue/yellow.
+  ES tints every help icon through ImageComponent::setColorShift, which
+  multiplies the texture by <iconColor> (${helpAccent} here), so four coloured
+  sources would come out as four muddy shades of one hue rather than four
+  colours. Monochrome line art is what section 5.1 of the style guide asks for
+  anyway.
+
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+  <variables>
+    <helpIconA>./art/help/btn-b.png</helpIconA>
+    <helpIconB>./art/help/btn-a.png</helpIconB>
+    <helpIconX>./art/help/btn-y.png</helpIconX>
+    <helpIconY>./art/help/btn-x.png</helpIconY>
+  </variables>
+</theme>
