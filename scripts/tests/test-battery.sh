@@ -275,8 +275,14 @@ check "cluster elements are ordered, clear each other at '100%', and share the c
 echo
 echo "== harness can drive the widget =="
 
-grep -q -- '--battery' "${RENDER}"
-check "render.sh documents and accepts --battery" $?
+# Not a grep: "--battery" also appears in this flag's own comments and error
+# strings, so a grep still passes with the argument-parser case deleted — the
+# flag would then be rejected as an unknown argument. Drive the parser instead.
+# A deliberately bad --view fails validation without ever starting docker, so
+# the message says whether --battery was consumed as a flag or choked on.
+render_err="$("${RENDER}" --battery 47 --view bogus 2>&1)"
+[[ "${render_err}" == *"bad --view"* && "${render_err}" != *"unknown argument"* ]]
+check "render.sh's argument parser accepts --battery" $?
 
 "${RENDER}" --battery 101 --out /dev/null >/dev/null 2>&1
 [[ $? -ne 0 ]]
@@ -291,12 +297,54 @@ SHOW_BATTERY=maybe "${RENDER}" --out /dev/null >/dev/null 2>&1
 check "render.sh rejects an unknown SHOW_BATTERY value" $?
 
 # The container has no battery of its own, so every one of these renders would
-# be a blank status bar without the synthetic sysfs mount.
-grep -q 'power_supply' "${RENDER}"
-check "render.sh mounts a synthetic /sys/class/power_supply (the KNULLI percent file alone leaves hasBattery false)" $?
+# be a blank status bar without the synthetic sysfs mount. Grepping the script
+# for "power_supply" is not enough — the flag's own help text says the words,
+# so the guard still passes with the mount deleted. Stub out docker instead and
+# read the command line render.sh actually builds.
+STUB_DIR="$(mktemp -d)"
+trap 'rm -rf "${STUB_DIR}"' EXIT
+cat > "${STUB_DIR}/docker" <<'STUB'
+#!/usr/bin/env bash
+# "image inspect" must succeed or render.sh starts a 10-minute build.
+[[ "$1" == "image" ]] && exit 0
+printf '%s\n' "$@" > "${STUB_CAPTURE}"
+# Snapshot the mounted tree from INSIDE the run: render.sh removes it on exit
+# (trap ... EXIT), so it no longer exists by the time the caller looks.
+for a in "$@"; do
+  if [[ "$a" == *":/sys/class/power_supply:ro" ]]; then
+    cp -r "${a%%:*}" "${STUB_CAPTURE}.bat"
+  fi
+done
+STUB
+chmod +x "${STUB_DIR}/docker"
 
-grep -q 'ShowBattery' "${REPO_ROOT}/docker/run-in-container.sh"
-check "run-in-container.sh can pin ES's ShowBattery setting" $?
+STUB_CAPTURE="${STUB_DIR}/argv" PATH="${STUB_DIR}:${PATH}" \
+  "${RENDER}" --battery 47:charging --out "${STUB_DIR}/out.png" >/dev/null 2>&1
+grep -q ':/sys/class/power_supply:ro$' "${STUB_DIR}/argv" 2>/dev/null
+check "--battery bind-mounts a synthetic /sys/class/power_supply into the container" $?
+
+# The mount is only half of it: the tree has to say what was asked for, or the
+# glyph renders for the wrong charge state and nothing looks broken.
+MOUNT_SRC="${STUB_DIR}/argv.bat"
+[[ "$(cat "${MOUNT_SRC}/BAT0/capacity" 2>/dev/null)" == "47" ]] && \
+  [[ "$(cat "${MOUNT_SRC}/BAT0/status" 2>/dev/null)" == "Charging" ]]
+check "the mounted tree carries the requested level and charging state" $?
+
+STUB_CAPTURE="${STUB_DIR}/argv2" PATH="${STUB_DIR}:${PATH}" \
+  "${RENDER}" --out "${STUB_DIR}/out.png" >/dev/null 2>&1
+! grep -q 'power_supply' "${STUB_DIR}/argv2" 2>/dev/null
+check "a render without --battery mounts nothing (default stays a no-battery device)" $?
+
+grep -q 'SHOW_BATTERY' "${STUB_DIR}/argv" 2>/dev/null
+check "SHOW_BATTERY is passed through to the container" $?
+
+# Pinpoint the emitted settings key, not the word: the surrounding comments in
+# run-in-container.sh name ShowBattery too.
+grep -qF 'name=\"ShowBattery\"' "${REPO_ROOT}/docker/run-in-container.sh"
+check "run-in-container.sh writes ES's ShowBattery key into es_settings.cfg" $?
+
+grep -q -- '--battery SPEC' "${RENDER}"
+check "--battery is documented in render.sh's usage" $?
 
 echo
 if [[ "${fail}" -eq 0 ]]; then echo "PASS"; else echo "FAIL"; fi
