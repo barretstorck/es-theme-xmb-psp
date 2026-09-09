@@ -2,7 +2,7 @@
 """gen-help-icons.py — generate the helpsystem button glyphs (audit S4, #8).
 
 Mirrors the procedural-asset pattern of scripts/gen-chevrons.py,
-scripts/gen-halo.py and scripts/gen-battery-icons.py. Writes into art/help/.
+scripts/gen-battery-icons.py and scripts/gen-chevrons.py. Writes into art/help/.
 
 Re-run after editing this script:
   python3 scripts/gen-help-icons.py

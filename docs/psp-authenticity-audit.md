@@ -5,7 +5,8 @@ theme could plausibly approximate, scored against the v0.11 baseline
 **including the gamelist redesign (PR #32)** — single PSP-card row
 gamelist, right info panel removed, iconSize / titleVisibility /
 videoDelay subsets, per-system media fallbacks wired — on top of the
-earlier v0.11 work (PR #27 monochrome icons, PR #28 system halo).
+earlier v0.11 work (PR #27 monochrome icons, PR #28 system halo —
+since removed, #34).
 Used as a wishlist / decision tool — entries here may or
 may not graduate into a versioned roadmap.
 
@@ -129,7 +130,7 @@ residual homebrew/port entries overlap with G10's
 branded-item-icon territory).
 
 **Evidence:** `art/system-icons/` listing (198 files);
-`_inc/system.xml:164-170` (per-system icon binding via
+`_inc/system.xml:142-146` (per-system icon binding via
 `${system.theme}`); `libretro/retroarch-assets` →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
 silhouettes); commits f170f40, 0afbb62.
@@ -365,8 +366,8 @@ selected sub-item back to its parent category up the left edge.
 Distinct from item scale or halo — it's a chevron-shaped UI glyph.
 
 **Current theme:** No directional pointer chrome on selected
-sub-items. The system carousel uses `logoScale=1.5` + halo to mark
-selection; the v0.11 card-list gamelist marks selection by expanding
+sub-items. The system carousel marks selection with `logoScale=1.5`
+plus the white-vs-dimmed icon tint (the halo was removed in v1.0, #34); the v0.11 card-list gamelist marks selection by expanding
 the selected row into the dominant card (the peek icon fades out and
 the big boxart + title take over). Neither shows a chevron.
 
@@ -766,10 +767,11 @@ resolution).
   transparent). The redesign's selection signal is the expanded
   card itself — the selected row's peek icon fades out and the
   ~2.7×-larger card boxart + oversized title take over — which
-  makes a glow redundant. Leftover: `rowHaloW` / `rowHaloH` in
-  `_inc/common.xml:85-86` still reference a `tplHalo` consumer
-  that does not exist (cleanup candidate). The style guidelines §10
-  record "no gamelist halo" as settled.
+  makes a glow redundant. The orphaned `rowHaloW` / `rowHaloH`
+  variables, which referenced a `tplHalo` consumer that never
+  existed, were deleted with the rest of the halo scaffold in v1.0
+  (#34). The style guidelines §10 record "no gamelist halo" as
+  settled.
 
 **Audit-lens re-entry of v0.10 roadmap items 3 + 5.** See
 [v0.10-roadmap.md §3 and §5](v0.10-roadmap.md) (historical — v0.10
@@ -782,19 +784,23 @@ by the fallback half, but the redesign then removed the halo's
 regardless of whether the slot is showing a thumbnail or a generic
 icon. The glow is consistent.
 
-**Current theme:** The system carousel's soft white halo
-(`staticBackgroundHalo`, restored + re-tuned in PR #28 to
-`haloW=0.28` / `opacity=0.6`) is **currently disabled** — commented
-out in PR #32's round-4 on-device tuning as still too bright;
-re-enable tracked in issue #34. The gamelist has none, per the
-settled decision above.
+**Current theme:** No glow anywhere. The system carousel's soft
+white halo (`staticBackgroundHalo`) was disabled during PR #32's
+round-4 on-device tuning as still too bright, and **removed outright
+in v1.0** after a third tuning pass (#34) measured the cause: the
+gaussian's bright core is narrower than the selected icon's own ink,
+so it lit the icon from inside instead of behind, and any footprint
+wide enough to clear the icon degenerates into a regional wash.
+`art/halo.png` and the `haloW`/`haloH` variables are gone. The
+gamelist never had one, per the settled decision above.
 
 **Reference:** PSP screenshots 1 and 3 — the selected `AVLS` row and
 the selected `PIC_0000` photo each have a subtle highlight bar /
 glow behind them.
 
-**Feasibility:** Fallback half shipped; halo half superseded (would
-now be a deliberate design re-litigation, not an outstanding task).
+**Feasibility:** Fallback half shipped; halo half **settled won't-do**
+(v1.0, #34) — re-proposing it is a design re-litigation, not an
+outstanding task.
 
 **Effort:** Spent (fallbacks); n/a (halo).
 
@@ -804,9 +810,9 @@ now be a deliberate design re-litigation, not an outstanding task).
 `_inc/media-fallback/` (75 files + `_default.xml`);
 `art/system-media/` (7 glyphs, b616057);
 `_inc/gamelist.xml:145-152, 310-324` (`cardFallback`,
-`tplPeekFallback`); absence of any halo element in
-`_inc/gamelist.xml` (verified by grep); 3d4a602 + 3396428
-(system-halo restoration + tuning).
+`tplPeekFallback`); absence of any halo element anywhere in the
+theme (verified by grep); 3d4a602 + 3396428 (system-halo restoration
++ tuning, both since removed).
 
 ---
 
@@ -1439,8 +1445,10 @@ resolved at parse time (`ThemeData.cpp:1615`).
 
 (There IS a useful side-effect of this finding: a color-storyboard
 on `event="activate"` is a legitimate technique the theme could
-exploit elsewhere — e.g., tinting the selected-system halo on
-cursor-settle. Worth a separate exploration, not part of U3.)
+exploit elsewhere on some future element. Worth a separate
+exploration, not part of U3. Note the original suggestion — tinting
+the selected-system halo on cursor-settle — is moot: there is no halo
+as of v1.0, #34.)
 
 **Closest we could get:** Ship the 12 fixed colorsets (current
 behaviour). Each selection requires a Quit → Restart ES cycle for
@@ -1720,15 +1728,19 @@ These items were considered and dropped for **non-technical** reasons
 features. Listed so future audits don't re-discover them.
 
 - **Selected-icon scale-up.** Already shipped — `logoScale=1.5` in
-  both carousels (`_inc/system.xml:76`, common var
+  both carousels (`_inc/system.xml:90`, common var
   `gameCarLogoScale`).
 - **Category band behind icon row.** Re-examination of the PSP
   screenshots shows icons sit directly on the coloured background /
   wave; no horizontal band exists. Not a PSP feature.
-- **Accent-tinted halo (not white).** v0.9.1 actively chose white
+- **Any selected-icon halo, tinted or white.** v0.9.1 chose white
   over accent-tinted after on-device testing
-  (`fix/v0.9.1-halo-and-statusbar` branch). Settled design decision,
-  not a regression.
+  (`fix/v0.9.1-halo-and-statusbar` branch); v1.0 (#34) then removed
+  the halo entirely after a third tune, having measured that its
+  bright core sits inside the icon's own ink rather than around it.
+  A `${selectorGlow}` tint and a generated annulus were both tried in
+  that pass and were worse. Settled design decision, not a
+  regression — see style guide §6.2.
 - **Per-firmware-version aesthetics** (PSP 1.x vs. 6.x XMB design
   shifts). Out of scope; we target the canonical mid-firmware
   (~3.x-5.x) PSP XMB design. (This is a scope choice, not a
