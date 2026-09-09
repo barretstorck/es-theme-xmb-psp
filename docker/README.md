@@ -28,8 +28,9 @@ reproduce — judge colour-critical changes with that in mind.
 - `--library` — path to a Knulli `userdata`-shaped library; required for the
   `gamelist` and `gamecarousel` views
 - `--out` — host path for the PNG (default `.dev/render.png`)
-- `--carousel-right N` — press Right N times on the system carousel before
-  entering a gamelist, to land on a system other than the first
+- `--carousel-right N` — press Right N times on the system carousel. Picks
+  which system a `--view system` capture shows, and which gamelist the other
+  views enter
 - `--settle N` — wait N more seconds after navigating, before capturing
 - `--frames N` / `--frame-interval S` — capture a sequence instead of one still,
   to `<out>-1.png` … `<out>-N.png`
@@ -131,6 +132,28 @@ definitions are cached beside the script, so it works offline after the first ru
 
 Systems batocera does not know about fall back to the directory name rather than
 being dropped, so ports collections and Knulli-only entries still appear.
+
+#### `<theme>` and `<group>` are not the same thing
+
+`es_systems.yml` has two separate keys and the generator emits both:
+
+- `theme:` — the art folder the theme renders as `${system.theme}`. Only present
+  when it differs from the system key (`lynx` → `atarilynx`).
+- `group:` — folds the system into a *parent* carousel entry
+  (`sdlpop` → `ports`). The child keeps its own theme folder and stops being a
+  carousel entry at all.
+
+Until issue #39 the generator read `group:` and wrote it into `<theme>`, and
+never emitted `<group>`. That invented ~73 theme-folder collisions no real
+`es_systems.cfg` has — Knulli's 183-system file has zero — and meant grouping
+was never exercised here at all, while every port rendered as its own top-level
+carousel entry. `scripts/tests/test-system-groups.sh` guards both.
+
+Grouping matters for what the carousel looks like: ES folds the children away
+and shows one parent. Where a system of the group's name already exists it is
+reused and keeps its own theme folder (`jaguar` → `atarijaguar`); where none
+exists, ES fabricates one whose name *and* theme folder are the raw group
+string. `atari8bit` is the only such group in batocera/Knulli.
 
 The container also writes a representative `/userdata/system/knulli.conf`
 (language, timezone, LED, background music) rather than an empty file.

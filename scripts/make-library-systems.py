@@ -60,11 +60,21 @@ def parse_systems(text: str) -> dict[str, dict[str, object]]:
         if not name:
             continue
         exts = re.search(r"^\s+extensions:\s*\[(.*?)\]", block, re.M | re.S)
+        # theme and group are DIFFERENT keys with different meanings, and
+        # conflating them is what made the harness disagree with hardware.
+        # theme: names the theme art folder (only present when it differs from
+        # the system key -- lynx -> atarilynx). group: folds the system into a
+        # parent system in the carousel (sdlpop -> ports), and leaves the
+        # child's own theme folder alone. Reading group: as the theme folder
+        # invented ~73 theme-folder collisions that no real es_systems.cfg has,
+        # which is where issue #39's "sdlpop renders as PORTS" came from.
+        theme = re.search(r"^\s+theme:\s*(\S+)", block, re.M)
         group = re.search(r"^\s+group:\s*(\S+)", block, re.M)
         systems[key.group(1)] = {
             "name": name.group(1).strip(),
             "ext": [e.strip() for e in exts.group(1).split(",")] if exts else ["zip"],
-            "theme": group.group(1).strip() if group else key.group(1),
+            "theme": theme.group(1).strip() if theme else key.group(1),
+            "group": group.group(1).strip() if group else None,
         }
     return systems
 
@@ -90,7 +100,7 @@ def main() -> int:
         if info is None:
             # Not in batocera's list (a port collection, or a Knulli-only entry).
             # Fall back rather than drop it -- the theme still needs to see it.
-            info = {"name": s, "ext": ["zip"], "theme": s}
+            info = {"name": s, "ext": ["zip"], "theme": s, "group": None}
             unknown += 1
         else:
             known += 1
@@ -104,6 +114,13 @@ def main() -> int:
             "    <command>echo %ROM%</command>",
             f"    <platform>{escape(s)}</platform>",
             f"    <theme>{escape(str(info['theme']))}</theme>",
+        ]
+        # A grouped system is not its own carousel entry: ES folds it into the
+        # group parent (SystemData::createGroupedSystems). Omitting <group>
+        # made every port a top-level entry here and none on hardware.
+        if info["group"]:
+            lines.append(f"    <group>{escape(str(info['group']))}</group>")
+        lines += [
             "  </system>",
         ]
     lines += ["</systemList>", ""]
