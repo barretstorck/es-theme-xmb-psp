@@ -24,6 +24,7 @@ gameplay still that feeds the media slot — a separate file, as in a real scrap
 | nes | smb3 | ✓ | box | | ✓ | ✓ |
 | nes | contra | ✓ | box | | ✓ | ✓ |
 | nes | no-genre | ✓ | box | | ✓ | |
+| nes | long-title | ✓ | box | | ✓ | ✓ |
 | nes | zero-metadata | | | | | |
 
 "box" means `<image>` points at the box art, i.e. the still and the box art are
@@ -45,6 +46,13 @@ the fault completely.
 `snes/video-no-image` has a video but no `<image>` at all, which is the path
 where the media slot has nothing to show until the clip starts and the fallback
 icon underneath is what renders.
+
+`nes/long-title` is the only fixture whose *name* is the point: 89 characters,
+with descenders (g/j/p/y). No real title in the scraped library slice is long
+enough to overflow a title box — the longest there is 44 characters — so
+without this fixture the Box Art Grid's `gridTitle` clipRect, and its height,
+render identically whether they are present or not. It is why issue #43's title
+overflow was invisible in every v0.12 render.
 
 `psx/box-only` has a thumbnail and no `<image>` — a box-art-only scrape, the
 common real-world case. ES falls back to the *thumbnail* for the media slot's
