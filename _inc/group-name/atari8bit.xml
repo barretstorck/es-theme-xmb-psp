@@ -5,9 +5,10 @@
      entry (SystemData::createGroupedSystems, SystemData.cpp:400-475). When a
      system named X already exists it is reused as the parent and keeps its own
      theme folder; when it does NOT, ES fabricates a SystemData whose name AND
-     themeFolder are the raw group string. "atari8bit" is the only such group in
-     batocera/Knulli's es_systems.yml — atari800 and xegs are grouped under it
-     and no system is named atari8bit — so the carousel showed the internal
+     themeFolder are the raw group string. atari8bit is the only such group on
+     Knulli — atari800 and xegs are grouped under it and no system is named
+     atari8bit; batocera master additionally makes 'amiga' synthetic, which
+     already has an icon and a real product name — so the carousel showed the internal
      identifier "ATARI8BIT" and, until art/system-icons/atari8bit.png was added,
      no icon at all (ES fell back to its built-in dark logoText, "atar...").
 
