@@ -16,6 +16,16 @@ set -euo pipefail
 #   up down left right               d-pad
 #   sleep:NNN                        pause NNN milliseconds between inputs
 #
+# WHICH FACE BUTTON IS "SELECT" DEPENDS ON THE DEVICE. With ES's InvertButtons
+# setting on -- it is on for the TrimUI Brick -- `a` is SELECT and `b` is BACK,
+# so **`a` LAUNCHES THE HIGHLIGHTED GAME from inside a gamelist**. From the
+# system carousel `a` only enters the gamelist, and `b` opens the navigation
+# bar. Read the on-screen help strip before injecting anything (the carousel
+# shows "SELECT"/"NAVIGATION BAR", a gamelist shows "BACK"), and inside a
+# gamelist restrict yourself to the d-pad. Recovering from an accidental launch
+# means SIGTERM to the emulator process, which is fine at a title screen and
+# loses progress anywhere else.
+#
 # Macros (expanded to a token sequence):
 #   reload-theme   Main Menu → UI Settings → Theme Configuration → Reset
 #                  Customizations. Resetting forces ES to rebuild the theme,
@@ -32,14 +42,32 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-DEVICE_IP="${DEVICE_IP:-192.168.1.4}"
-DEVICE_USER="${DEVICE_USER:-root}"
+# Which of these came from the ENVIRONMENT, recorded before any default is
+# applied: `${VAR+y}` is set only if VAR was already defined, so an env value
+# that happens to equal a default is still honoured, and a var that was never
+# set still falls through to .env.local.
+#
+# The precedence matters. Sourcing .env.local unconditionally made the FILE win
+# over the environment, the opposite of what the usage text promises, so
+# `DEVICE_IP=192.168.0.52 ./scripts/ui.sh a` silently drove the .env.local
+# device instead. When that host is off it reads as the tool hanging or the
+# keypress being ignored, not as talking to the wrong machine.
+_had_ip="${DEVICE_IP+y}"; _had_user="${DEVICE_USER+y}"
+_env_ip="${DEVICE_IP:-}"; _env_user="${DEVICE_USER:-}"
+
 if [[ -f "${REPO_ROOT}/.env.local" ]]; then
   set -a
   # shellcheck disable=SC1091
   source "${REPO_ROOT}/.env.local"
   set +a
 fi
+
+[[ -n "${_had_ip}" ]]   && DEVICE_IP="${_env_ip}"
+[[ -n "${_had_user}" ]] && DEVICE_USER="${_env_user}"
+unset _had_ip _had_user _env_ip _env_user
+
+DEVICE_IP="${DEVICE_IP:-192.168.1.4}"
+DEVICE_USER="${DEVICE_USER:-root}"
 DEVICE="${DEVICE_USER}@${DEVICE_IP}"
 
 if [[ -n "${SSHPASS:-}" ]]; then
