@@ -80,7 +80,8 @@ python3 - "${STATUS}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 screen = [v for v in root.findall('view') if 'screen' in v.get('name', '').split(',')]
-txt = [e for v in screen for e in v.findall('batteryText')]
+# .// because it is a child of the stackpanel, not a direct child of the view
+txt = [e for v in screen for e in v.iter('batteryText')]
 assert len(txt) == 1, f"expected exactly one <batteryText>, found {len(txt)}"
 assert txt[0].get('name'), "<batteryText> needs a name attribute (ThemeData.cpp:1506-1511 skips unnamed elements)"
 PY
@@ -196,140 +197,142 @@ check "theme.xml declares no battery subset (the theme cannot override ShowBatte
 check "no _inc/battery-*.xml subset variants have come back" $?
 
 echo
-echo "== cluster geometry, at every aspect ratio the theme ships =="
+echo "== the cluster is a stackpanel, so it can collapse =="
 
-python3 - "${STATUS}" "${REPO_ROOT}" <<'PYGEO'
+python3 - "${STATUS}" "${REPO_ROOT}" <<'PYPANEL'
 import sys, os, xml.etree.ElementTree as ET
 from PIL import Image
 
 status, repo = sys.argv[1], sys.argv[2]
-
-# The five design surfaces, and the aspect file that overrides each. 4:3 has no
-# aspect file — it is common.xml's default.
-SURFACES = [
-    ("4:3",  1024, 768, None),
-    ("8:7",  1024, 896, "aspect-8x7.xml"),
-    ("3:2",   720, 480, "aspect-3x2.xml"),
-    ("16:9", 1280, 720, "aspect-16x9.xml"),
-    ("1:1",   720, 720, "aspect-1x1.xml"),
-]
-
-# WIDTH OF "100%" AS ES ACTUALLY RENDERS IT, as a fraction of screen width,
-# measured from `render.sh --view system --battery 100 --resolution WxH` and
-# recorded in docs/screenshots/v0.13-battery-widget/README.md.
-#
-# Measured, not computed: PIL's metrics for this font disagree with ES's
-# rasteriser by -12% to +23% across these sizes, so a computed width is not a
-# safe oracle in either direction. The guard below therefore checks that the
-# theme still RESERVES enough room for the measured width. The fontPath and
-# fontSize assertions underneath are what keep this table honest — change
-# either and the numbers must be re-measured.
-PCT_INK_W = {"4:3": 0.0449, "8:7": 0.0520, "3:2": 0.0514, "16:9": 0.0321, "1:1": 0.0575}
-MEASURED_AT_FONT = ("${fontRegular}", "0.030")
-
-CLOCK_INK_CY = 0.0612   # clock glyph rows 36..58 at 1024x768
-
-# Two minimums, because the clock's bound is a different kind of thing. The
-# clock is right-aligned inside a fixed 0.14 box, so its BOX edge is the
-# worst case its ink can reach (on device, "12:35 PM" ink stops 0.0036 short
-# of it); the other three are ink-to-ink. Shipped worst cases at 4:3 are
-# 0.0115 box-to-ink and 0.0137 ink-to-ink. Both defects this section exists
-# to catch were far below either: 0.0059 at 3:2 and 0.003 at 1:1.
-MIN_BOX_GAP = 0.010     # clock box edge -> network glyph ink
-MIN_INK_GAP = 0.012     # ink -> ink
-
 root = ET.parse(status).getroot()
-def el(tag, name):
-    for e in root.iter(tag):
-        if e.get('name') == name:
-            return e
-    raise AssertionError(f"no <{tag} name='{name}'>")
+screen = [v for v in root.findall('view') if 'screen' in v.get('name', '').split(',')][0]
 
-def pair(e, tag):
-    v = e.findtext(tag)
-    return None if v is None else tuple(v.split())
+panels = screen.findall('stackpanel')
+assert len(panels) == 1, f"expected exactly one <stackpanel>, found {len(panels)}"
+panel = panels[0]
 
-def read_vars(path):
-    r = ET.parse(path).getroot()
-    return {c.tag: (c.text or '').strip() for v in r.findall('variables') for c in v}
+# Order matters and IS the visual order: reverse packing lays the first child
+# out at the panel's right edge and walks left. sortChildren() is a
+# stable_sort on zIndex (GuiComponent.cpp:359), so equal zIndex keeps XML
+# order.
+order = [(c.tag, c.get('name')) for c in panel
+         if c.tag in ('batteryIcon', 'batteryText', 'networkIcon', 'clock')]
+assert order == [('batteryIcon', 'batteryStatus'), ('batteryText', 'batteryPercent'),
+                 ('networkIcon', 'networkStatus'), ('clock', 'statusClock')], \
+    f"child order is {order}; reverse packing makes the FIRST child rightmost"
 
-def fitted(png, maxw, maxh, W, H):
-    im = Image.open(os.path.join(repo, png.lstrip('./')))
-    scale = min(float(maxw) * W / im.width, float(maxh) * H / im.height)
-    return im.width * scale / W
+# Every optional element must be a CHILD. A top-level element keeps its own
+# absolute position and leaves a hole when ES hides it - the exact defect
+# this panel exists to remove.
+for tag in ('batteryIcon', 'batteryText', 'networkIcon'):
+    assert screen.find(tag) is None, \
+        f"<{tag}> is a top-level element; it must be a child of the stackpanel or it cannot collapse"
 
-clock = el('text', 'clock')
-net   = el('networkIcon', 'networkStatus')
-pct   = el('batteryText', 'batteryPercent')
-icon  = el('batteryIcon', 'batteryStatus')
+assert panel.findtext('orientation') == 'horizontal', "panel must be horizontal"
+assert panel.findtext('reverse') == 'true', \
+    "panel must be reverse: without it the cluster packs from the LEFT and leaves the gap against the right margin instead"
 
-assert pct.findtext('fontPath').strip() == MEASURED_AT_FONT[0], \
-    f"batteryText fontPath changed; PCT_INK_W must be re-measured"
-assert pct.findtext('fontSize').strip() == MEASURED_AT_FONT[1], \
-    f"batteryText fontSize changed; PCT_INK_W must be re-measured"
+# <stackpanel> has no origin property (ThemeData.cpp:72). Setting one parses
+# to nothing, pos stays the top-left, and the panel lands off the right of
+# the screen - rendering absolutely nothing, with no warning.
+assert panel.find('origin') is None, \
+    "<stackpanel> has no <origin>; it would be dropped and the panel would sit off-screen"
 
-# Every element must be anchored to the clock's ink centre, in every ratio —
-# these are literals in the element, not per-ratio.
-for name, e in (("networkIcon", net), ("batteryText", pct), ("batteryIcon", icon)):
-    o = pair(e, 'origin')
-    assert o and float(o[1]) == 0.5, f"{name} needs origin y=0.5"
-    y = float(pair(e, 'pos')[1])
-    assert abs(y - CLOCK_INK_CY) < 1e-6, f"{name} pos.y is {y}, expected {CLOCK_INK_CY}"
-assert float(pair(net, 'origin')[0]) == 1.0 and float(pair(icon, 'origin')[0]) == 1.0, \
-    "networkIcon and batteryIcon anchor from their RIGHT edge (origin x = 1)"
+px, py = (float(v) for v in panel.findtext('pos').split())
+pw, ph = (float(v) for v in panel.findtext('size').split())
+assert abs((px + pw) - 0.98) < 1e-6, \
+    f"panel right edge is {px + pw}, expected the 0.98 margin the cluster hangs from"
 
-base = read_vars(os.path.join(repo, '_inc', 'common.xml'))
-for label, W, H, afile in SURFACES:
-    v = dict(base)
-    if afile:
-        over = read_vars(os.path.join(repo, '_inc', afile))
-        # A new aspect file that forgets these silently inherits the 4:3
-        # values, which is the exact defect this section exists to catch.
-        for k in ('statusClockX', 'statusNetX', 'statusPctX'):
-            assert k in over, f"{afile} does not override {k}"
-        v.update(over)
+# Height is one glyph ink-height, because performLayout() top-aligns image
+# children whatever their origin (the h terms cancel). A taller panel puts
+# the glyphs above the text.
+GLYPH_H = 0.030
+CLOCK_INK_CY = 0.0612
+assert abs(ph - GLYPH_H) < 1e-6, f"panel height is {ph}, expected {GLYPH_H} (one glyph ink-height)"
+assert abs(py - (CLOCK_INK_CY - GLYPH_H / 2)) < 1e-6, \
+    f"panel pos.y is {py}, expected the clock ink centre {CLOCK_INK_CY} minus half its height"
 
-    def x(e, tag='pos'):
-        raw = pair(e, tag)[0]
-        return float(v[raw[2:-1]]) if raw.startswith('${') else float(raw)
+# maxSize, not size: performLayout only preserves aspect for images whose
+# target is max. With <size> ES stretches the art to the panel height.
+for tag in ('batteryIcon', 'networkIcon'):
+    child = panel.find(tag)
+    assert child.find('maxSize') is not None, f"<{tag}> needs <maxSize> or its art is stretched"
+    assert child.find('size') is None, f"<{tag}> has <size>; that stretches the art to the panel height"
 
-    clock_right = x(clock) + float(pair(clock, 'size')[0])
-    net_w  = fitted(net.findtext('path'), *pair(net, 'maxSize'), W, H)
-    net_right, net_left = x(net), x(net) - net_w
-    pct_left = x(pct)
-    pct_right = pct_left + PCT_INK_W[label]
-    icon_w = fitted(icon.findtext('full'), *pair(icon, 'maxSize'), W, H)
-    icon_right, icon_left = x(icon), x(icon) - icon_w
+# Text children centre by default (TextComponent.cpp:13 sets ALIGN_CENTER),
+# which is what puts a 0.042 clock on the line of a 0.030-tall panel. The
+# failure mode is someone setting it to top or bottom, not omitting it.
+for tag in ('batteryText', 'clock'):
+    va = panel.find(tag).findtext('verticalAlignment')
+    assert va in (None, 'center'), f"<{tag}> verticalAlignment is {va!r}; it must stay centred"
+PYPANEL
+check "the cluster is one reverse stackpanel with all four elements as children" $?
 
-    assert abs(icon_right - 0.98) < 1e-6, \
-        f"{label}: glyph right edge is {icon_right}, expected the 0.98 margin"
-    for (an, ar), (bn, bl), floor in (
-            (("clock", clock_right), ("network", net_left), MIN_BOX_GAP),
-            (("network", net_right), ("percent", pct_left), MIN_INK_GAP),
-            (("percent", pct_right), ("glyph", icon_left), MIN_INK_GAP)):
-        gap = bl - ar
-        assert gap >= floor, \
-            f"{label}: {an} -> {bn} gap is {gap:.4f} at '100%' (min {floor})"
-    print(f"    {label:5s} ok: clock<={clock_right:.4f} net {net_left:.4f}..{net_right:.4f} "
-          f"pct {pct_left:.4f}..{pct_right:.4f} glyph {icon_left:.4f}..{icon_right:.4f}")
-PYGEO
-check "the cluster clears itself at '100%' in all five aspect ratios" $?
+# The panel is deliberately over-wide so one set of literals serves every
+# aspect ratio. If the contents ever exceed it, performLayout() CLAMPS the
+# overflowing child to the space left (its `aligned` branch) rather than
+# overflowing - so a too-narrow panel silently truncates the clock.
+python3 - "${STATUS}" <<'PYWIDTH'
+import sys, xml.etree.ElementTree as ET
 
-# The status bar CANNOT live in common.xml: ES resolves ${variables} at
-# element-parse time, and common.xml is included long before aspect-*.xml, so a
-# screen view declared there pins every ratio to the 4:3 values — silently, and
-# only visibly wrong on the squarer screens.
-python3 - "${REPO_ROOT}/theme.xml" <<'PYORDER'
-import sys
-t = open(sys.argv[1]).read()
-status = t.index('./_inc/status-bar.xml')
-for a in ('aspect-8x7.xml', 'aspect-3x2.xml', 'aspect-16x9.xml', 'aspect-1x1.xml'):
-    assert t.index(a) < status, f"status-bar.xml must be included after {a}"
-PYORDER
-check "theme.xml includes status-bar.xml after every aspect-*.xml" $?
+# Rendered ink widths as fractions of screen width, measured from
+# `render.sh --view system --battery 100` per surface, plus the 12-HOUR clock
+# measured on the device (the widest the clock gets; the harness renders
+# 24-hour and would understate it). See
+# docs/screenshots/v0.13-battery-widget/README.md.
+CONTENT = {   # ratio: (clock12h, network, "100%", glyph, separator)
+    "4:3":  (0.1113, 0.0254, 0.0449, 0.0449, 0.0150),
+    "8:7":  (0.1299, 0.0254, 0.0520, 0.0449, 0.0175),
+    "3:2":  (0.1113, 0.0264, 0.0514, 0.0403, 0.0133),
+    "16:9": (0.0834, 0.0180, 0.0321, 0.0328, 0.0113),
+    "1:1":  (0.1486, 0.0458, 0.0575, 0.0472, 0.0200),
+}
+MARGIN = 0.02
 
-! grep -q 'batteryIcon\|batteryText\|networkIcon\|batteryIndicator' "${COMMON}"
-check "common.xml declares no status-cluster element (it parses too early for the per-ratio variables)" $?
+root = ET.parse(sys.argv[1]).getroot()
+panel = root.find('.//stackpanel')
+pw = float(panel.findtext('size').split()[1 - 1])
+
+for ratio, (clock, net, pct, glyph, sep) in CONTENT.items():
+    content = clock + net + pct + glyph + 3 * sep
+    assert pw >= content + MARGIN, \
+        f"{ratio}: contents are {content:.4f} of the width but the panel is only {pw} (need {MARGIN} spare)"
+print(f"    panel {pw} clears the widest content ("
+      f"{max(sum(v[:4]) + 3 * v[4] for v in CONTENT.values()):.4f}, at 1:1)")
+PYWIDTH
+check "the panel is wide enough for a 12-hour clock and '100%' at every aspect ratio" $?
+
+echo
+echo "== exactly one visible clock =="
+
+# ES's Window-owned clock cannot be dropped (Window would skin it from the
+# helpsystem and park it bottom-right, Window.cpp:1274-1300) and cannot be
+# hidden with <visible> (ClockComponent::update calls setVisible(DrawClock)
+# every frame). Alpha 00 is the one property nothing overwrites.
+python3 - "${STATUS}" <<'PYCLOCK'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+screen = [v for v in root.findall('view') if 'screen' in v.get('name', '').split(',')][0]
+wc = [t for t in screen.findall('text') if t.get('name') == 'clock']
+assert len(wc) == 1, "the screen view must still declare <text name='clock'>"
+colour = (wc[0].findtext('color') or '').strip()
+assert len(colour) == 8 and colour[6:] == '00', \
+    f"ES's own clock has colour {colour!r}; it must be fully transparent (alpha 00), not hidden with <visible>"
+assert wc[0].find('visible') is None, \
+    "<visible> on ES's clock is overwritten every frame by ClockComponent::update"
+PYCLOCK
+check "ES's Window-owned clock is present but transparent, so only the panel's clock draws" $?
+
+! grep -q 'statusClockX\|statusNetX\|statusPctX' "${COMMON}" "${REPO_ROOT}"/_inc/aspect-*.xml
+check "no leftover per-ratio cluster variables (the panel packs itself)" $?
+
+python3 - "${COMMON}" <<'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+for tag in ('batteryIcon', 'batteryText', 'networkIcon', 'batteryIndicator', 'stackpanel'):
+    assert root.find(f'.//{tag}') is None, f"common.xml declares <{tag}>; the cluster lives in status-bar.xml"
+PY
+check "common.xml declares no cluster element" $?
 
 echo
 echo "== harness can drive the widget =="

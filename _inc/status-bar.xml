@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  es-theme-xmb-psp - the top-right status cluster (and ES's OSD suppression).
+  es-theme-xmb-psp - the top-right status cluster, and ES's OSD suppression.
 
-  WHY THIS IS NOT IN common.xml: the cluster's x positions are per-ratio
-  ${statusClockX} / ${statusNetX} / ${statusPctX} variables, and ES resolves
-  variables at ELEMENT-PARSE time. common.xml is included first, long before
-  _inc/aspect-*.xml, so a screen view declared there reads the 4:3 defaults
-  and no per-ratio override can ever reach it — silently, with the layout
-  looking correct at 4:3 and the percentage running into the battery glyph at
-  1:1 and 8:7. theme.xml therefore includes this file AFTER the aspect
-  overrides, the same rule the gamelist style views follow.
+  The cluster is a <stackpanel>, not four absolutely-positioned elements,
+  because its contents are OPTIONAL and ES decides which ones exist:
+  UI Settings > Show Battery Status hides the percentage (ICON) or both
+  battery elements (NO), and the network glyph disappears when there is no
+  connection. Fixed positions reserve space for elements that may not be
+  there, so v1.0's first attempt left a 77px hole where the percentage had
+  been, and ~120px of dead space against the right margin at NO.
+
+  StackPanelComponent::performLayout() skips invisible children, and its
+  update() re-runs the layout whenever the visible children's total size
+  changes - so the cluster re-packs itself the moment ES hides one.
 
   See docs/psp-xmb-style-guidelines.md 6.5.
   CC-BY-NC-SA 2.0. See CREDITS.md.
@@ -17,101 +20,151 @@
 <theme>
   <formatVersion>7</formatVersion>
 
-  <!-- Hide ES's built-in OSD overlays so they don't double up with our
-       theme. controllerActivity is the white-pink square top-left. -->
   <view name="screen">
+    <!-- Hide ES's built-in OSD overlays so they don't double up with our
+         theme. controllerActivity is the white-pink square, bottom-left by
+         default. -->
     <controllerActivity name="controllerActivity">
       <visible>false</visible>
     </controllerActivity>
+
     <!-- ES draws a SECOND battery widget of its own: BatteryIndicatorComponent
          (Window.cpp:157, rendered at :746), a ControllerActivityComponent
          subclass pinned top-right at 0.955/0.0125 that shows wifi + battery
          glyph + "NN%" in ES's own font. It is not the controllerActivity
-         above — hiding that one leaves this one drawing. It is why v0.10
+         above - hiding that one leaves this one drawing. It is why v0.10
          concluded <visible>false</visible> "did not hide the icon on-device":
          the theme was hiding its own batteryIcon while ES kept painting this.
          Unlike batteryIcon (whose update() calls setVisible() every tick and
-         so overwrites any themed value), this one honours <visible> — its
+         so overwrites any themed value), this one honours <visible> - its
          render() early-returns on !isVisible() and nothing sets it back. -->
     <batteryIndicator name="batteryIndicator">
       <visible>false</visible>
     </batteryIndicator>
 
-    <!-- Hiding batteryIndicator also removes ES's wifi glyph, so the theme
-         draws its own. Auto-hides when disconnected — NetworkIconComponent
-         ::update() does setVisible(ShowNetworkIndicator && connected). -->
-    <networkIcon name="networkStatus">
-      <pos>${statusNetX} 0.0612</pos>
-      <origin>1 0.5</origin>
-      <maxSize>0.033 0.030</maxSize>
-      <color>${textPrimary}</color>
-      <path>./art/ui/network.png</path>
-    </networkIcon>
+    <!-- ES's Window-owned clock, deliberately transparent. The real clock is
+         the <clock> child of the panel below, because only a child of the
+         stackpanel can move when its neighbours disappear.
 
-    <!-- Battery percentage (audit ST1). MUST be a native <batteryText>: a
-         binding-based <text extra="true">{global:batteryLevel}%</text> renders
-         EMPTY here, because nothing ever resolves bindings in the screen view.
-         Window.cpp:1258 builds the screen extras but no BindingManager::
-         updateBindings call exists for them (only SystemView, the gamelist
-         containers, Splash and the carousel/grid item templates do that). That
-         is the real cause of v0.10's "percentage would not render", and it is
-         unfixable from the theme — do not retry the binding.
-
-         batteryText auto-sizes its own width (mAutoCalcExtent.x() = 1,
-         BatteryTextComponent.cpp:52), which makes <alignment>right</alignment>
-         inert: the element is only ever as wide as its text, so pos.x is the
-         LEFT edge and the string grows RIGHTWARD toward the glyph. Placed for
-         the widest case, "100%" — see the geometry ladder in
-         scripts/tests/test-battery.sh, which recomputes it from the font. -->
-    <batteryText name="batteryPercent">
-      <pos>${statusPctX} 0.0612</pos>
-      <origin>0 0.5</origin>
-      <size>0.060 0.06</size>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.030</fontSize>
-      <color>${textPrimary}</color>
-    </batteryText>
-
-    <!-- Battery glyph, flush to the same 0.98 right margin the clock used to
-         hold. ES picks the state image itself from the charge level
-         (BatteryIconComponent.cpp:52-69) and calls setVisible(hasBattery), so
-         devices without a battery show nothing here and need no theme setting.
-
-         The element TAG must be <batteryIcon> (ES dispatches component types
-         by tag name, ThemeData.cpp:2145) and it MUST carry a name attribute
-         (unnamed elements are skipped, ThemeData.cpp:1506-1511). Both were hit
-         in v0.9.3.
-
-         pos.y 0.0612 + origin y 0.5 is the clock's MEASURED ink centre at
-         1024x768 (glyph rows 36..58 px), not the centre of the clock's 0.06
-         box — vertical alignment was the third v0.10 blocker and guessing at
-         it is what made it unresolvable. -->
-    <batteryIcon name="batteryStatus">
-      <pos>0.98 0.0612</pos>
-      <origin>1 0.5</origin>
-      <maxSize>0.046 0.030</maxSize>
-      <color>${textPrimary}</color>
-      <empty>./art/battery/battery-empty.png</empty>
-      <at25>./art/battery/battery-25.png</at25>
-      <at50>./art/battery/battery-50.png</at50>
-      <at75>./art/battery/battery-75.png</at75>
-      <full>./art/battery/battery-full.png</full>
-      <incharge>./art/battery/battery-incharge.png</incharge>
-    </batteryIcon>
-
-    <!-- ES's real wall-clock, top-right, enlarged (v0.6). Shifted left from
-         x=0.84 to clear the battery cluster: at 4:3 the right edge is
-         0.68 + 0.14 = 0.82, and the network glyph's LEFT edge is 0.830
-         (statusNetX is its right edge — origin x is 1), so the real
-         clearance is 0.010, not the 0.043 to statusNetX itself. -->
+         This element cannot simply be dropped: with no screen/clock element
+         to theme, Window skins mClock from the helpsystem and parks it at
+         0.94 / 0.9965 (Window.cpp:1274-1300) - a small grey clock in the
+         BOTTOM-right corner. And it cannot be hidden with <visible>, because
+         ClockComponent::update() calls setVisible(DrawClock) every frame and
+         would immediately undo it. Alpha 00 is the one property nothing
+         overwrites. -->
     <text name="clock">
-      <visible>true</visible>
-      <pos>${statusClockX} 0.03</pos>
+      <pos>0.84 0.03</pos>
       <size>0.14 0.06</size>
       <fontPath>${fontRegular}</fontPath>
       <fontSize>0.042</fontSize>
-      <color>${textPrimary}</color>
+      <color>FFFFFF00</color>
       <alignment>right</alignment>
     </text>
+
+    <!-- The cluster. Children are laid out RIGHT TO LEFT (reverse), so the
+         first child below is the rightmost on screen, and the panel's right
+         edge - pos.x + size.x = 0.48 + 0.50 = 0.98 - is the margin the whole
+         cluster hangs from.
+
+         <stackpanel> has NO origin property (ThemeData.cpp:72), so pos is its
+         TOP-LEFT corner. Setting origin here parses to nothing and puts the
+         panel off the right of the screen, where it renders as absolutely
+         nothing - there is no warning.
+
+         The panel is deliberately much wider than its contents. Unused width
+         extends to the LEFT and costs nothing, since reverse packing starts
+         at the right edge. That is what lets one set of literals serve all
+         five aspect ratios: a <fontSize> is a fraction of screen HEIGHT while
+         positions are fractions of WIDTH, so the percentage is 0.058 of the
+         width at 1:1 against 0.045 at 4:3, and any hand-placed layout has to
+         be re-tuned per ratio to stop it colliding. A panel just packs.
+
+         Height is 0.030 - ONE glyph ink-height, not the 0.06 of the strip -
+         because performLayout() top-aligns image children whatever their
+         origin: it sets y to (pos.y - h*origin.y + panelH*origin.y) and then
+         the origin shifts the draw back by h*origin.y, so the h terms cancel
+         and every value lands at the panel's top. With the panel exactly as
+         tall as the glyphs, top-aligned IS centred. Text children are handled
+         separately (see verticalAlignment below), and are free to be taller
+         than the panel. pos.y = 0.0612 - 0.030/2, the measured clock ink
+         centre minus half the height.
+
+         separator is a fraction of screen HEIGHT for a horizontal panel
+         (StackPanelComponent.cpp:59), not of width. -->
+    <stackpanel name="statusCluster">
+      <pos>0.48 0.0462</pos>
+      <size>0.50 0.030</size>
+      <orientation>horizontal</orientation>
+      <reverse>true</reverse>
+      <separator>0.020</separator>
+      <clipChildren>false</clipChildren>
+
+      <!-- Battery glyph, rightmost. ES picks the state image itself from the
+           charge level (BatteryIconComponent.cpp:52-69) and calls
+           setVisible(hasBattery), so a device without a battery shows nothing
+           here and needs no theme setting. Note a device reporting "Full"
+           while plugged in counts as CHARGING, so it shows the bolt and never
+           the 3-bar full art.
+
+           maxSize, never size: performLayout only preserves aspect for images
+           whose target IS max (ImageComponent::getTargetIsMax). Give this a
+           <size> instead and ES stretches the art to fill the panel height,
+           which reads as a fat, squashed battery. The width here is generous
+           on purpose - the fit ends up limited by the panel's height, which
+           is what keeps the glyph the same 23px at every aspect ratio. -->
+      <batteryIcon name="batteryStatus">
+        <maxSize>0.125 1</maxSize>
+        <color>${textPrimary}</color>
+        <empty>./art/battery/battery-empty.png</empty>
+        <at25>./art/battery/battery-25.png</at25>
+        <at50>./art/battery/battery-50.png</at50>
+        <at75>./art/battery/battery-75.png</at75>
+        <full>./art/battery/battery-full.png</full>
+        <incharge>./art/battery/battery-incharge.png</incharge>
+      </batteryIcon>
+
+      <!-- Battery percentage (audit ST1). MUST be a native <batteryText>: a
+           binding-based <text extra="true">{global:batteryLevel}%</text>
+           renders EMPTY here, because nothing ever resolves bindings in the
+           screen view. Window.cpp:1258 builds the screen extras but no
+           BindingManager::updateBindings call exists for them (only
+           SystemView, the gamelist containers, Splash and the carousel/grid
+           item templates do that). That is the real cause of v0.10's
+           "percentage would not render", and it is unfixable from the theme -
+           do not retry the binding.
+
+           Shown only when Show Battery Status is ICON AND TEXT; at ICON this
+           child hides and the panel closes the gap. -->
+      <batteryText name="batteryPercent">
+        <fontPath>${fontRegular}</fontPath>
+        <fontSize>0.030</fontSize>
+        <color>${textPrimary}</color>
+      </batteryText>
+
+      <!-- Hiding batteryIndicator above also removed ES's wifi glyph, so the
+           theme draws its own. Auto-hides when disconnected -
+           NetworkIconComponent::update() does
+           setVisible(ShowNetworkIndicator && connected). -->
+      <networkIcon name="networkStatus">
+        <maxSize>0.09 1</maxSize>
+        <color>${textPrimary}</color>
+        <path>./art/ui/network.png</path>
+      </networkIcon>
+
+      <!-- The clock, leftmost, and a real child so it slides right when the
+           battery elements go away. ClockComponent honours ES's own ClockMode12
+           and DrawClock settings exactly as the Window-owned clock does, so
+           turning SHOW CLOCK off collapses the cluster too.
+
+           verticalAlignment centres the text in the box performLayout gives it
+           (the panel's height), and TextComponent does not clip to that box,
+           so a 0.042 font centres correctly inside a 0.030-tall panel. -->
+      <clock name="statusClock">
+        <fontPath>${fontRegular}</fontPath>
+        <fontSize>0.042</fontSize>
+        <color>${textPrimary}</color>
+      </clock>
+    </stackpanel>
   </view>
 </theme>

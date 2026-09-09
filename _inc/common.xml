@@ -57,23 +57,6 @@
     <starTrackOpacity>0.30</starTrackOpacity>
     <metaSecondaryOpacity>1</metaSecondaryOpacity>
 
-    <!-- Top-right status cluster x positions (§6.5). These are variables
-         because the cluster mixes units and therefore cannot hold at one set
-         of literals across the five aspect ratios: x positions are fractions
-         of screen WIDTH, but a <fontSize> is a fraction of screen HEIGHT, so
-         the percentage's rendered width in width-fractions grows as the screen
-         gets squarer. At 1:1 "100%" is 0.065 of the width against 0.047 at
-         4:3 — enough to run into the battery glyph, which is pinned to the
-         0.98 margin. Same class of defect as the v0.11 cardMetadata overflow,
-         and the same fix: per-ratio overrides in _inc/aspect-*.xml.
-
-         Only these three move. The glyph stays at 0.98 in every ratio.
-         The 4:3 values are the device-verified ones and are deliberately not
-         re-derived. -->
-    <statusClockX>0.68</statusClockX>
-    <statusNetX>0.863</statusNetX>
-    <statusPctX>0.876</statusPctX>
-
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>

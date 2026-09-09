@@ -11,15 +11,6 @@
 <theme>
   <formatVersion>7</formatVersion>
   <variables>
-
-    <!-- Status cluster (§6.5). The battery percentage's <fontSize> is a
-         fraction of screen HEIGHT while these positions are fractions of
-         WIDTH, so at 720x720 "100%" renders 0.065 of the width (0.047 at
-         4:3) and the 4:3 literals would run it into the battery glyph.
-         Shift the three left-hand elements; the glyph stays at 0.98. -->
-    <statusClockX>0.650</statusClockX>
-    <statusNetX>0.839</statusNetX>
-    <statusPctX>0.855</statusPctX>
     <!-- Cross anchor + balance (P2): raise center, pull left -->
     <crossX>0.22</crossX>
     <crossY>0.27</crossY>
