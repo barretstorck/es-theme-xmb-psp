@@ -63,6 +63,13 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
                   see the note at the mount below for why the KNULLI
                   /tmp/battery.percent path is not enough on its own.
 
+  Env pins for the status bar:
+    SHOW_BATTERY=text|icon|none   ES's Show Battery Status setting. Unset
+                  renders ES's own default, "text" (glyph + percentage).
+    CLOCK_12H=true|false          ES's ClockMode12. Unset renders ES's default
+                  (24-hour); the TrimUI Bricks are set to 12-hour, which is
+                  ~1.7x wider and is the case the cluster has to fit.
+
   Env pins for cursor position inside a gamelist (both default 0):
     GAMELIST_DOWN=N   press Down N times. Walks rows in the Box Art Grid, and
                       rows in the PSP Card / List + Details title lists.
@@ -174,6 +181,14 @@ if [[ -n "${SHOW_BATTERY:-}" && ! "${SHOW_BATTERY}" =~ ^(text|icon|none)$ ]]; th
   exit 2
 fi
 
+# ES renders the clock as %H:%M or %I:%M %p from its ClockMode12 setting
+# (ClockComponent.cpp:31-34). 12-hour is ~1.7x wider and is what the TrimUI
+# Bricks are set to, so it - not the harness default - is the case the status
+# cluster has to fit.
+if [[ -n "${CLOCK_12H:-}" && ! "${CLOCK_12H}" =~ ^(true|false)$ ]]; then
+  echo "bad CLOCK_12H: '${CLOCK_12H}' (expected true or false)" >&2; exit 2
+fi
+
 # Env pins must name a real subset value, checked against theme.xml itself so
 # this list cannot drift from the theme.
 # ES silently ignores a subset value it cannot find and falls back to the
@@ -266,7 +281,7 @@ if [[ -n "${BATTERY_LEVEL}" ]]; then
 fi
 DOCKER_ARGS+=(
   -e VIEW="${VIEW}" -e RESOLUTION="${RESOLUTION}" -e COLORSET="${COLORSET}"
-  -e SHOW_BATTERY="${SHOW_BATTERY:-}"
+  -e SHOW_BATTERY="${SHOW_BATTERY:-}" -e CLOCK_12H="${CLOCK_12H:-}"
   -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
   -e GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
   -e GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"

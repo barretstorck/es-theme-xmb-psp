@@ -121,6 +121,21 @@ assert t.find('verticalAlignment') is None, \
 PY
 check "<batteryText> avoids the two alignment properties this component ignores" $?
 
+# The percentage and the clock are the cluster's only text and sit on the same
+# line, so they are one type style, not a hierarchy. Drifting them apart is a
+# visual regression that nothing else here would catch.
+python3 - "${STATUS}" <<'PYTYPE'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse(sys.argv[1]).getroot()
+panel = root.find('.//stackpanel')
+pct = [e for e in panel if e.get('name') == 'batteryPercent'][0]
+clk = [e for e in panel if e.get('name') == 'statusClock'][0]
+for prop in ('fontPath', 'fontSize'):
+    a, b = pct.findtext(prop), clk.findtext(prop)
+    assert a == b, f"batteryText {prop} is {a!r} but the clock's is {b!r}; they must match"
+PYTYPE
+check "the percentage matches the clock's font, size and weight" $?
+
 echo
 echo "== the glyph element is spelled the way ES dispatches it =="
 
@@ -275,30 +290,34 @@ check "the cluster is one reverse stackpanel with all four elements as children"
 python3 - "${STATUS}" <<'PYWIDTH'
 import sys, xml.etree.ElementTree as ET
 
-# Rendered ink widths as fractions of screen width, measured from
-# `render.sh --view system --battery 100` per surface, plus the 12-HOUR clock
-# measured on the device (the widest the clock gets; the harness renders
-# 24-hour and would understate it). See
-# docs/screenshots/v0.13-battery-widget/README.md.
-CONTENT = {   # ratio: (clock12h, network, "100%", glyph, separator)
-    "4:3":  (0.1113, 0.0254, 0.0449, 0.0449, 0.0150),
-    "8:7":  (0.1299, 0.0254, 0.0520, 0.0449, 0.0175),
-    "3:2":  (0.1113, 0.0264, 0.0514, 0.0403, 0.0133),
-    "16:9": (0.0834, 0.0180, 0.0321, 0.0328, 0.0113),
-    "1:1":  (0.1486, 0.0458, 0.0575, 0.0472, 0.0200),
-}
+# Measured width of the whole cluster at its WIDEST, as a fraction of screen
+# width, from:
+#   CLOCK_12H=true render.sh --view system --battery 100 --resolution WxH
+# 12-hour because that is what the TrimUI Bricks are set to and it is ~1.7x
+# wider than the 24-hour clock ES defaults to; "100%" because that is the
+# widest the percentage gets. Measured rather than computed: PIL's metrics for
+# this font disagree with ES's rasteriser by -12% to +23% over these sizes.
+# See docs/screenshots/v0.13-battery-widget/README.md.
+CLUSTER_W = {"4:3": 0.3047, "8:7": 0.3506, "3:2": 0.3208, "16:9": 0.2297, "1:1": 0.4083}
 MARGIN = 0.02
+MEASURED_AT = {"batteryPercent": "0.042", "statusClock": "0.042"}
 
 root = ET.parse(sys.argv[1]).getroot()
 panel = root.find('.//stackpanel')
-pw = float(panel.findtext('size').split()[1 - 1])
+pw = float(panel.findtext('size').split()[0])
 
-for ratio, (clock, net, pct, glyph, sep) in CONTENT.items():
-    content = clock + net + pct + glyph + 3 * sep
-    assert pw >= content + MARGIN, \
-        f"{ratio}: contents are {content:.4f} of the width but the panel is only {pw} (need {MARGIN} spare)"
-print(f"    panel {pw} clears the widest content ("
-      f"{max(sum(v[:4]) + 3 * v[4] for v in CONTENT.values()):.4f}, at 1:1)")
+# The table is only valid for the type sizes it was measured at.
+for name, size in MEASURED_AT.items():
+    el = [e for e in panel if e.get('name') == name][0]
+    assert el.findtext('fontSize') == size, \
+        f"<{el.tag} name={name}> fontSize changed from {size}; CLUSTER_W must be re-measured"
+
+for ratio, w in CLUSTER_W.items():
+    assert pw >= w + MARGIN, \
+        f"{ratio}: the cluster is {w} of the width but the panel is only {pw} (need {MARGIN} spare)"
+worst = max(CLUSTER_W, key=CLUSTER_W.get)
+print(f"    panel {pw} clears the widest cluster ({CLUSTER_W[worst]} at {worst}), "
+      f"{pw - CLUSTER_W[worst]:.4f} spare")
 PYWIDTH
 check "the panel is wide enough for a 12-hour clock and '100%' at every aspect ratio" $?
 
@@ -357,6 +376,15 @@ check "render.sh rejects a non-numeric --battery" $?
 SHOW_BATTERY=maybe "${RENDER}" --out /dev/null >/dev/null 2>&1
 [[ $? -ne 0 ]]
 check "render.sh rejects an unknown SHOW_BATTERY value" $?
+
+# The 12-hour clock is the width the cluster is sized against, so the pin that
+# renders it has to keep working.
+CLOCK_12H=yes "${RENDER}" --out /dev/null >/dev/null 2>&1
+[[ $? -ne 0 ]]
+check "render.sh rejects an unknown CLOCK_12H value" $?
+
+grep -q 'ClockMode12' "${REPO_ROOT}/docker/run-in-container.sh"
+check "run-in-container.sh can pin ES's 12-hour clock" $?
 
 # The container has no battery of its own, so every one of these renders would
 # be a blank status bar without the synthetic sysfs mount. Grepping the script

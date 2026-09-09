@@ -52,17 +52,23 @@ the cluster shortens to clock + network glyph.
 ## `harness-aspect-ratios.png`
 
 All five design surfaces at `100%`, the widest string the percentage can be.
+Rendered with `CLOCK_12H=true` and `--battery 100`: the 12-hour clock the
+Bricks are set to is ~1.7x wider than ES's 24-hour default, and `"100%"` is
+the widest the percentage gets, so this is the case the cluster has to fit.
+
 The first pass hand-placed each element, which cannot hold across ratios: x
 positions are fractions of screen *width* but a `<fontSize>` is a fraction of
-screen *height*, so `"100%"` is 0.058 of the width at 1:1 against 0.045 at
-4:3. The 4:3 literals ran it into the battery glyph at 8:7 (6 px clearance)
-and 1:1 (3 px — touching).
+screen *height*, so text takes a different share of the width on every
+surface. The 4:3 literals ran the percentage into the battery glyph at 8:7
+(6 px clearance) and 1:1 (3 px — touching).
 
 The second pass fixed that with per-ratio variables. Those are now **gone**:
 the cluster is a `<stackpanel>` that packs itself from the right margin, so
 one set of literals serves every surface and there is nothing to re-tune.
-Measured after: four separated groups at every ratio, right edge 0.979,
-inter-element gaps 11–24 px, all ink centres within 1 px of 0.0605.
+Measured after, at the 12-hour/`100%` worst case: right edge 0.979 at every
+ratio, and cluster widths of 0.305 (4:3), 0.351 (8:7), 0.321 (3:2), 0.230
+(16:9) and 0.408 (1:1) against a panel of 0.50. Those five numbers are the
+table `test-battery.sh` guards the panel width against.
 
 ## `harness-showbattery-collapse.png`
 

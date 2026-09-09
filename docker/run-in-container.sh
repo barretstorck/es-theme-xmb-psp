@@ -184,13 +184,20 @@ if [[ -n "${SHOW_BATTERY}" ]]; then
   BATTERY_LINE="  <string name=\"ShowBattery\" value=\"${SHOW_BATTERY}\" />"$'\n'
 fi
 
+# 12-hour clock. Off by default (ES's own default), but the Bricks are set to
+# it and it is ~1.7x wider, so it is the width the status cluster must fit.
+CLOCK_LINE=""
+if [[ -n "${CLOCK_12H:-}" ]]; then
+  CLOCK_LINE="  <bool name=\"ClockMode12\" value=\"${CLOCK_12H}\" />"$'\n'
+fi
+
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
 <config>
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
-${SUBSET_LINES}${BATTERY_LINE}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
+${SUBSET_LINES}${BATTERY_LINE}${CLOCK_LINE}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
   <bool name="InvertButtons" value="${INVERT_BUTTONS}" />
   <bool name="MusicEnabled" value="false" />
 </config>
