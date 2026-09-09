@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - themed boot splash (audit S7, issue #10).
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+
+  ES holds this frame from main.cpp:566 to main.cpp:628 - across
+  loadSystemConfigFile, ViewController::preload() ("a longer startup time" by
+  design), input init and goToStart - which on the TrimUI Brick is most of a
+  ~40s boot. Knulli launches ES with no splash-suppressing flag and SplashScreen
+  defaults true (Settings.cpp:128), so this is genuinely on screen.
+
+  THIS FILE IS PARSED STANDALONE. Splash::loadTheme hands it to
+  ThemeData::loadFile directly (Splash.cpp:41) on a throwaway ThemeData, so it
+  inherits NOTHING from theme.xml - not a variable, not a font, not the
+  colorset. Everything it needs is declared here. It is also parsed inside
+  `try { } catch(...) { }` (Splash.cpp:38-42): any error here is swallowed in
+  silence and ES falls back to painting its OWN logo full screen. Nothing is
+  logged. scripts/tests/test-splash.sh exists because of that.
+
+  STATIC BY CONSTRUCTION. Splash::update sets only the label text and the
+  progress percentage; it never calls update() on the extras, so no storyboard
+  ever advances. The wave layers below are therefore placed at rest rather than
+  animated. Do not add a storyboard element here expecting motion (audit U1).
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+
+  <!-- Fonts. Duplicated from _inc/common.xml rather than included: common.xml
+       also declares <view name="system,detailed,gamecarousel,menu"> and a
+       <helpsystem> built on ${helpIconA}..${helpIconY}, which only the
+       buttonGlyphs subset in theme.xml defines. Pulling all of that into the
+       splash's ThemeData to reach two font paths trades a two-line duplication
+       for a pile of unresolved variables in views this file never renders.
+       test-splash.sh guards the two copies against drifting apart. -->
+  <variables>
+    <fontLight>./fonts/RobotoCondensed-Light.ttf</fontLight>
+    <fontRegular>./fonts/RobotoCondensed-Regular.ttf</fontRegular>
+  </variables>
+
+  <!-- The default colorset as a plain include, BEFORE the subset that can
+       override it. Same belt-and-braces ordering theme.xml uses for the button
+       glyph sets, and for the same reason: on the device's ES build (Version
+       39) a subset value the user has never chosen can leave the variables
+       unresolved instead of falling back to the subset's first include. An
+       unresolved ${waveTint} here is not a subtle colour shift - it is a
+       literal string handed to a COLOR property. -->
+  <include>./colors/psp-jan-blue.xml</include>
+
+  <!-- The splash DOES track the user's chosen colorset. mColorset is read from
+       the global "ThemeColorSet" setting in the ThemeData constructor
+       (ThemeData.cpp:684), so this freshly built ThemeData sees the same value
+       the main theme does - but only because the subset is re-declared here.
+       Variant names must stay identical to theme.xml's: both resolve the same
+       stored ThemeColorSet string, so a rename on one side silently drops the
+       splash back to January Blue. -->
+  <subset name="colorset" displayName="PSP Color">
+    <include name="January Blue">./colors/psp-jan-blue.xml</include>
+    <include name="February Violet">./colors/psp-feb-violet.xml</include>
+    <include name="March Pink">./colors/psp-mar-pink.xml</include>
+    <include name="April Green">./colors/psp-apr-green.xml</include>
+    <include name="May Yellow-Green">./colors/psp-may-yellowgreen.xml</include>
+    <include name="June Yellow">./colors/psp-jun-yellow.xml</include>
+    <include name="July Amber">./colors/psp-jul-amber.xml</include>
+    <include name="August Orange">./colors/psp-aug-orange.xml</include>
+    <include name="September Red">./colors/psp-sep-red.xml</include>
+    <include name="October Crimson">./colors/psp-oct-crimson.xml</include>
+    <include name="November Slate">./colors/psp-nov-slate.xml</include>
+    <include name="December Aqua">./colors/psp-dec-aqua.xml</include>
+  </subset>
+
+  <view name="splash">
+
+    <!-- Painted first, full screen, before anything else (Splash::render calls
+         Renderer::drawRect with this colour). The wave below covers it
+         completely; it exists so that the one frame between GL init and the
+         wave texture landing is the theme's blue and not black. -->
+    <splash name="splash">
+      <backgroundColor>${waveTint}</backgroundColor>
+    </splash>
+
+    <!-- Declaring this is NOT optional. With no themed <image name="background">
+         Splash keeps imagePath at DEFAULT_SPLASH_IMAGE (":/logo.png",
+         Splash.h:15) and draws EmulationStation's own logo at setMinSize(screen)
+         - i.e. cropped to fill. The theme would look broken, not absent.
+         Same geometry as the system view's staticBackgroundWave so boot flows
+         straight into the carousel: 10% over-scan, centre anchored. -->
+    <image name="background">
+      <path>./art/wave/wave.png</path>
+      <pos>0.5 0.5</pos>
+      <size>1.10 1.10</size>
+      <origin>0.5 0.5</origin>
+      <color>${waveTint}</color>
+    </image>
+
+    <!-- The three wave crests, tinted and stacked exactly as _inc/system.xml
+         stacks them, minus the scroll storyboards. Their x is the resting
+         position chosen for this still: in the system view these animate from
+         0.0 to -1.0, so -0.45 is a point that composition actually passes
+         through, not an invented one.
+
+         zIndex >= 5 is load-bearing. Splash::render draws extras with
+         zIndex < 5 BEFORE the background image, and the background here is
+         opaque - a layer left at zIndex 1 (as in system.xml) would be painted
+         over and vanish with no diagnostic. -->
+    <image name="splashWaveLayer1" extra="true">
+      <path>./art/wave/wave-layer-1.png</path>
+      <pos>-0.45 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>5</zIndex>
+    </image>
+
+    <image name="splashWaveLayer2" extra="true">
+      <path>./art/wave/wave-layer-2.png</path>
+      <pos>-0.45 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>6</zIndex>
+    </image>
+
+    <image name="splashWaveLayer3" extra="true">
+      <path>./art/wave/wave-layer-3.png</path>
+      <pos>-0.45 0.5</pos>
+      <size>2.00 1.10</size>
+      <origin>0.0 0.5</origin>
+      <color>${accent}</color>
+      <opacity>0.85</opacity>
+      <zIndex>7</zIndex>
+    </image>
+
+    <!-- The mark. An image rather than a <text> because the design is
+         letterspaced and ES has no letterspacing property anywhere in es-core;
+         see scripts/gen-splash-wordmark.py, which draws it from the theme's own
+         OFL fonts. The asset is white-on-transparent, so <color> tints it with
+         the active colorset exactly like every other piece of theme art.
+
+         <maxSize> rather than <size>: maxSize fits the lockup inside the box
+         preserving its aspect, which is what makes one asset correct at all
+         five shipped ratios. A <text> element could not do this - its fontSize
+         is a fraction of screen HEIGHT, so at 1:1 this string renders 100% of
+         screen width. Sits clear of y=0.75; below that is ES's own text. -->
+    <image name="splashWordmark" extra="true">
+      <path>./art/ui/splash-wordmark.png</path>
+      <pos>0.5 0.335</pos>
+      <maxSize>0.78 0.30</maxSize>
+      <origin>0.5 0.5</origin>
+      <color>${textPrimary}</color>
+      <zIndex>8</zIndex>
+    </image>
+
+    <!-- ES owns the string ("Loading system config...", localised) and sets it
+         via Splash::update; applyTheme runs with ALL ^ TEXT, so everything
+         except the words is ours. Without this the label renders in ES's
+         built-in Ubuntu Condensed against the theme's Roboto Condensed. -->
+    <text name="label">
+      <pos>0 0.78</pos>
+      <size>1 0.06</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.038</fontSize>
+      <color>${textPrimary}</color>
+      <alignment>center</alignment>
+    </text>
+
+    <!-- SplashScreenProgress also defaults true (Settings.cpp:130), so the bar
+         is drawn whether or not the theme asks for it. Colour only: geometry is
+         deliberately left at ES's own (x=W/4, y=0.892*H, w=W/2, h=0.036*H,
+         Splash.cpp:143-147). Moving it would mean re-positioning BOTH elements,
+         because Splash::render sizes the active bar from the inactive bar's
+         width but draws each at its own position - theming one and not the
+         other leaves the fill detached from its track. -->
+    <image name="progressbar">
+      <color>${textPrimary}</color>
+      <colorEnd>${textPrimary}</colorEnd>
+      <opacity>0.25</opacity>
+    </image>
+
+    <image name="progressbar:active">
+      <color>${selectorGlow}</color>
+      <colorEnd>${accent}</colorEnd>
+      <gradientType>horizontal</gradientType>
+    </image>
+
+  </view>
+</theme>

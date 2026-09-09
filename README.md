@@ -29,6 +29,17 @@ screenshot refresh.
 |:---:|:---:|:---:|
 | ![](docs/screenshots/v0.11/redesign-boxart-friendly-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-strict-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-friendly-4x3-january-blue.png) |
 
+### Boot splash
+
+Shown for the whole of EmulationStation's boot, tinted by whichever colorset is
+selected. The mark is the theme's own — there is no Sony wordmark anywhere in
+this repo. The label and the progress bar are ES's; the theme styles them but
+deliberately leaves their positions alone.
+
+| 4:3 — January Blue | 4:3 — August Orange | 1:1 — December Aqua |
+|:---:|:---:|:---:|
+| ![](docs/screenshots/splash-4x3.png) | ![](docs/screenshots/splash-4x3-august-orange.png) | ![](docs/screenshots/splash-1x1.png) |
+
 ## Known limitations
 
 - System icon coverage is mixed-source: 134 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), and ~56 less-common shortnames retain icons from the previous XMB Menu ES-DE set. Systems still without a specific icon fall back to a generic `_default.png` placeholder. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
@@ -167,7 +178,16 @@ Theme development and verification use the **Docker render harness** — it runs
 ./scripts/render.sh --view system
 ./scripts/render.sh --view gamelist --library <path> --resolution 1280x720
 VIDEO_DELAY=Instant ./scripts/render.sh --view gamelist --library <path> --settle 4
+./scripts/render.sh --view splash --library <path>          # SPLASH_AT=0.4 by default
 ```
+
+`--view splash` is the odd one out: it launches ES *with* the boot splash the
+harness otherwise suppresses, and grabs the frame `SPLASH_AT` seconds later.
+That frame is transient — it is gone within about a second, sooner at smaller
+resolutions — so the capture is a race rather than a settled state. Sweep it
+with `--frames N --frame-interval 0.2` (both accept fractions) and keep the
+frame that lands; an all-black capture means ES had not opened its window yet,
+and a carousel means the splash was already over.
 
 Preview video plays in the harness. Renders pin the Video Delay to 10s so a
 capture lands on the still screenshot rather than an arbitrary video frame;
