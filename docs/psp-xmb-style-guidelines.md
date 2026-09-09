@@ -645,7 +645,7 @@ All `<fontSize>` values are normalized to screen height (0.0-1.0):
 | Element | Token | Size | Approx px @ 768px | Use |
 |:---|:---:|:---:|:---:|:---|
 | Card title (`cardTitle`) | `fontRegular` | `0.075` Boxart / `0.060` Compact (`cardTitleFontSize`) | 58 / 46 | Largest copy — the expanded card's game name, left-aligned above the rule. Set per Icon Size subset. |
-| Clock | `fontRegular` | `0.042` | 32 | Largest copy in the status bar. Right-aligned. |
+| Clock, battery percentage | `fontRegular` | `0.042` | 32 | Largest copy in the status bar. The two share one size deliberately — they are the cluster's only text and sit on the same line. |
 | Gamelist system caption (`md_systemName`) | `fontLight` | `0.040` | 31 | Under the pinned system icon in the gamelist header. |
 | System-name caption (system view) | `fontLight` | `0.034` | 26 | Below the selected category icon. |
 | Count caption | `fontLight` | `0.034` | 26 | When Game Count: Show. |
@@ -1078,7 +1078,7 @@ also the child order in the XML:
 | Element | Notes |
 |:---|:---|
 | `batteryIcon` | Battery glyph. `maxSize (0.125, 1)` — panel-relative |
-| `batteryText` | `NN%`, `fontSize 0.030` |
+| `batteryText` | `NN%`. Same `fontRegular` / `0.042` as the clock — one status-bar type style, not a hierarchy |
 | `networkIcon` | Theme's own wifi glyph, `art/ui/network.png`, `maxSize (0.09, 1)` |
 | `clock` | `fontSize 0.042`, the largest text in the UI |
 
@@ -1105,11 +1105,13 @@ changes, so the cluster re-packs itself the moment ES hides one.
   width extends left and costs nothing, because reverse packing starts
   at the right edge. That is what lets one set of literals serve all
   five aspect ratios: a `<fontSize>` is a fraction of screen HEIGHT
-  while positions are fractions of WIDTH, so `"100%"` is `0.058` of the
-  width at 1:1 against `0.045` at 4:3, and any hand-placed layout has to
-  be re-tuned per ratio to stop it colliding. If contents ever *do*
-  exceed the panel, `performLayout` clamps the overflowing child rather
-  than overflowing — a too-narrow panel silently truncates the clock.
+  while positions are fractions of WIDTH, so text takes a different share
+  of the width on every surface and any hand-placed layout has to be
+  re-tuned per ratio to stop it colliding. The widest the cluster gets is
+  `0.408` of the width — 1:1, 12-hour clock, `"100%"` — against the
+  panel's `0.50`. If contents ever *do* exceed the panel,
+  `performLayout` clamps the overflowing child rather than overflowing:
+  a too-narrow panel silently truncates the clock.
 - **Height is `0.030` — one glyph ink-height, not the strip's `0.06`.**
   `performLayout` top-aligns image children whatever their origin: it
   sets y to `pos.y - h*origin.y + panelH*origin.y` and the origin then
