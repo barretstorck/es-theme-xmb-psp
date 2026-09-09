@@ -294,7 +294,7 @@
       <size>${cardTextW} 0.04</size>
       <origin>0 0</origin>
       <fontPath>${fontBody}</fontPath>
-      <fontSize>0.026</fontSize>
+      <fontSize>${cardMeta2FontSize}</fontSize>
       <color>${textSecondary}</color>
       <opacity>${metaSecondaryOpacity}</opacity>
       <text>{game:releaseyear} · {game:developer}</text>

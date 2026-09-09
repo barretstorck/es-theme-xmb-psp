@@ -648,12 +648,12 @@ All `<fontSize>` values are normalized to screen height (0.0-1.0):
 | System-name caption (system view) | `fontLight` | `0.034` | 26 | Below the selected category icon. |
 | Count caption | `fontLight` | `0.034` | 26 | When Game Count: Show. |
 | Card metadata line 1 (`cardGenre`, `cardStarTrack`/`cardStars`, `cardPlayers`) | `fontBody` | `0.033` Boxart / `0.029` Compact (`cardMetaFontSize`) | 25 / 22 | Three fixed columns under the rule — genre, star track + `{game:stars}`, player count. Fixed-width columns since v0.12 (§6.7, §8) so a long genre can't push the stars around. #42 raised the sizes ~10%; the ceiling is the star-track budget, and 1:1 is the binding ratio at `0.0275`. |
-| Card metadata line 2 (`cardMeta2`) | `fontBody` | `0.026` (fixed, not an Icon Size variable) | 20 | `{game:releaseyear} · {game:developer}`, below line 1. #42 removed its `opacity 0.75`: with line 1 now at `0.033`, size alone carries the hierarchy, and the opacity was costing 0.7 of a contrast point for nothing. |
+| Card metadata line 2 (`cardMeta2`) | `fontBody` | `0.026`, `0.020` at 1:1 (`cardMeta2FontSize`) | 20 | `{game:releaseyear} · {game:developer}`, below line 1. #42 removed its `opacity 0.75`: with line 1 now at `0.033`, size alone carries the hierarchy, and the opacity was costing 0.7 of a contrast point for nothing. |
 | Peek title (`tplPeekTitle`, Friendly only) | `fontLight` | `0.030` / `0.026` (`peekTitleFontSize`) | 23 / 20 | Dim title beside unselected peek icons. |
 | Helpsystem | `fontRegular` | `0.025` | 19 | Bottom-strip button labels. |
 | List panel metadata (`listYearDev`, `listStarTrack`/`listStars`, `listMeta`) | `fontBody` | `0.030`, `0.028` at 1:1 (`listMetaFontSize`) | 23 / 20 | List + Details info panel. Per-ratio since #42 — the five-glyph star track is height-normalised while `listStarX`/`listMetaX` are width-normalised, so the squarest surface is the binding one. |
 | List description (`listDesc`) | `fontBody` | `0.026` | 20 | Same bounded-and-scrolling treatment as `cardDesc`, same clipped last line. |
-| Grid info bar (`gridMeta`, `gridStarTrack`/`gridStars`) | `fontBody` | `0.029` | 22 | Box Art Grid's single metadata run plus its rating pair. `gridStarW` was widened to `0.155` so the track still fits at 1:1. |
+| Grid info bar (`gridMeta`, `gridStarTrack`/`gridStars`) | `fontBody` | `0.029` | 22 | Box Art Grid's single metadata run plus its rating pair. `gridStarW` was widened to `0.165` so the track still clears its bound at 1:1 with the same 0.010 margin its sibling guards demand. |
 | Card description (`cardDesc`) | `fontBody` | `0.025` Boxart / `0.023` Compact (`cardDescFontSize`) | 19 / 18 | Bounded block below the metadata lines, full text-column width, `<clipRect>`-bounded so it cannot reach the help strip (v0.12; superseded the v0.11 narrow marquee strip — see §10). **The box height did not grow with the face**, so the last visible line is clipped mid-glyph until auto-scroll moves it — an accepted trade in #42, not a bug. |
 
 The cluster of secondary sizes between `0.023` and `0.040` reads as
@@ -1207,14 +1207,25 @@ empty-star track. `cardStarTrack` (a dim, always-five-glyph
 under `cardStars` (`{game:stars}`, `zIndex 8`), identical in every
 other property (`pos`, `fontPath`, `fontSize`). The only thing
 separating the two is the track's `<opacity>${starTrackOpacity}</opacity>`
-(`0.45` since #42, raised from `0.35`). **That value cannot go to 1** —
-the track *is* the empty half of the rating, so at full opacity every
-game reads as five stars. It is the one opacity cut #42 kept; the
-other, `${metaSecondaryOpacity}` on the card's year/developer line,
-went to `1` because size alone already carried that hierarchy.
-`scripts/tests/test-body-legibility.sh` asserts
-`0 < starTrackOpacity < 1` and that all three tracks read the
-variable. This works because ES
+— `0.30` since #42, **lowered** from `0.35`.
+
+Lowered, because the track's job is *relative*: it has to sit visibly
+below the filled glyphs, so when #42 lifted the body ink the track got
+brighter for free and the opacity had to come down to compensate. Raising
+it to `0.45` was tried first and measured the pair's separation falling
+from **3.45:1 to 2.61:1** on a render; `0.30` measures **3.23:1**, close
+to what the theme shipped with, while the track still reads against the
+wave behind it (1.29:1, against 1.34:1 before). Both ends are bounded:
+too high and the empty stars stop looking empty, too low and they vanish
+into the wave.
+
+It is the one opacity cut #42 kept. The other, `${metaSecondaryOpacity}`
+on the card's year/developer line, went to `1` because size alone already
+carried that hierarchy — which is exactly why `cardMeta2FontSize` had to
+become a per-ratio variable (as a literal `0.026` it was *larger* than
+line 1 at 1:1). `scripts/tests/test-body-legibility.sh` bounds the
+opacity at both ends, checks all three tracks read the variable, and
+checks the two metadata lines do not invert at any ratio. This works because ES
 does per-glyph font fallback to `:/fontawesome-webfont.ttf`
 (`Font.cpp:274-312`) — a literal `U+F005` resolves to the same glyph
 at the same advance width as the one `{game:stars}` emits. Both

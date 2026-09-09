@@ -13,6 +13,7 @@ show the problem the issue reports.
 | `before-after-card-slate.png` | The dark colorset (November Slate). |
 | `before-after-list-4x3.png` | List + Details info panel, including the year/developer and players/genre lines that moved off `${selectorGlow}`. |
 | `before-after-grid-4x3.png` | Box Art Grid info bar. |
+| `metadata-hierarchy-1x1.png` | PSP Card at 1:1, where `cardMeta2`'s literal `0.026` used to be *larger* than metadata line 1's `0.025` — invisible until the opacity that had been masking it was removed. |
 
 ## Measured contrast, January Blue at 4:3
 
@@ -47,6 +48,9 @@ guide for why that distinction is worth two full contrast points.
 | `device-grid-before-after.png` | The device's own configuration (April Green, Box Art Grid), captured before and after the change. |
 | `device-card-4x3.png` | PSP Card on hardware. |
 | `device-list-4x3.png` | List + Details on hardware, including the two lines that were at 1.82:1. |
+
+All device shots were re-captured after code review, so they show the shipped
+`starTrackOpacity` of 0.30 rather than the 0.45 the first round carried.
 
 Measured on the device pixels, grid info bar: **7.96 → 10.16:1**, metadata
 glyph band **15 → 17px**, ink coverage **+38%**.

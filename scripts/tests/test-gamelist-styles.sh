@@ -637,12 +637,18 @@ common = open(f"{repo}/_inc/common.xml").read()
 base = dict(re.findall(r"<(listStarX|listMetaX|listMetaFontSize)>([^<]+)<", common))
 
 # (width, height) of each ratio's design surface, matching the render matrix.
-DIMS = {"8x7": (1024, 896), "3x2": (1280, 854), "16x9": (1280, 720), "1x1": (720, 720)}
+# 4:3 has no aspect file and was originally left out of this loop entirely --
+# so the ratio the theme SHIPS at, and the one the TrimUI Brick runs, was the
+# only one the list budget never checked. The card guard above tests it
+# explicitly; this one now does too, with an empty override map.
+DIMS = {"4:3": (1024, 768), "8x7": (1024, 896), "3x2": (1280, 854),
+        "16x9": (1280, 720), "1x1": (720, 720)}
 
 failures = []
 for ratio, (w, h) in DIMS.items():
-    override = dict(re.findall(r"<(listStarX|listMetaX|listMetaFontSize)>([^<]+)<",
-                                open(f"{repo}/_inc/aspect-{ratio}.xml").read()))
+    override = {} if ratio == "4:3" else dict(re.findall(
+        r"<(listStarX|listMetaX|listMetaFontSize)>([^<]+)<",
+        open(f"{repo}/_inc/aspect-{ratio}.xml").read()))
     sx = float(override.get("listStarX", base["listStarX"]))
     mx = float(override.get("listMetaX", base["listMetaX"]))
     fs = float(override.get("listMetaFontSize", base["listMetaFontSize"]))

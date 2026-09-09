@@ -180,6 +180,7 @@ python3 - "${REPO_ROOT}" <<'PY'
 import re, sys
 repo = sys.argv[1]
 def get(path, var):
+    """Value of `var` in `path`, or None if that file does not override it."""
     m = re.search(r"<%s>([^<]+)<" % var, open(f"{repo}/{path}").read())
     return float(m.group(1)) if m else None
 
@@ -195,12 +196,26 @@ for var in ("cardMetaFontSize", "cardDescFontSize", "cardTitleFontSize"):
         bad.append(f"Compact {var} {c} is not smaller than Boxart {b}")
 
 # The card's second metadata line is subordinate to the first; with
-# metaSecondaryOpacity at 1 that hierarchy rests entirely on size.
+# metaSecondaryOpacity at 1 that hierarchy rests ENTIRELY on size. It must
+# therefore hold at every ratio, not just the base: as a literal 0.026 it was
+# larger than line 1 at 1:1, where cardMetaFontSize is overridden to 0.025.
 card = open(f"{repo}/_inc/gamelist-card.xml").read()
-meta2 = float(re.search(r'name="cardMeta2".*?<fontSize>([^<]+)<', card, re.S).group(1))
-meta1 = get("_inc/common.xml", "cardMetaFontSize")
-if not meta2 < meta1:
-    bad.append(f"cardMeta2 {meta2} must stay below cardMetaFontSize {meta1}")
+expr = re.search(r'name="cardMeta2".*?<fontSize>([^<]+)<', card, re.S).group(1)
+if expr != "${cardMeta2FontSize}":
+    bad.append(f"cardMeta2 fontSize is {expr!r}; a literal cannot follow "
+               "cardMetaFontSize's per-ratio overrides")
+else:
+    base1 = get("_inc/common.xml", "cardMetaFontSize")
+    base2 = get("_inc/common.xml", "cardMeta2FontSize")
+    for ratio in ("4:3", "8x7", "3x2", "16x9", "1x1"):
+        path = None if ratio == "4:3" else f"_inc/aspect-{ratio}.xml"
+        one = get(path, "cardMetaFontSize") if path else None
+        two = get(path, "cardMeta2FontSize") if path else None
+        one = base1 if one is None else one
+        two = base2 if two is None else two
+        if not two < one:
+            bad.append(f"{ratio}: cardMeta2 {two} is not below "
+                       f"cardMetaFontSize {one} - metadata lines invert")
 if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
 PY
@@ -224,19 +239,121 @@ w_bound = float(re.search(r"<gridStarW>([^<]+)<", common).group(1))
 # HEIGHT while gridStarW is a fraction of WIDTH.
 DIMS = {"4:3": (1024, 768), "8x7": (1024, 896), "3x2": (1280, 854),
         "16x9": (1280, 720), "1x1": (720, 720)}
+# A bare `track > w_bound` is satisfied by a track that exactly fills its
+# bound, which is not clearance - the same reason the card and list guards
+# carry MIN_COL_GAP. At 1:1 the track had 0.0071 spare before this margin
+# was applied.
+MIN_GAP = 0.010  # normalized
 bad = []
 for ratio, (w, h) in DIMS.items():
     track = (5 * fs * 0.85 * h + 4 * fs * 0.85 * h * 0.25) / w
-    if track > w_bound:
-        bad.append(f"{ratio}: track {track:.4f} exceeds gridStarW {w_bound} "
-                   "- ES abbreviates a single-line text to its <size>, so a "
-                   "star would be dropped from the track")
+    if track + MIN_GAP > w_bound:
+        bad.append(f"{ratio}: track {track:.4f} + {MIN_GAP} clearance exceeds "
+                   f"gridStarW {w_bound} - ES abbreviates a single-line text "
+                   "to its <size>, so a star would be dropped from the track")
 if bad:
     print("\n".join(bad), file=sys.stderr); sys.exit(1)
 print(f"  (worst ratio leaves {w_bound - max((5*fs*0.85*h + 4*fs*0.85*h*0.25)/w for w, h in DIMS.values()):.4f} spare)")
 PY
 rc=$?
 check "grid star track fits gridStarW at all five ratios" "${rc}"
+
+echo
+echo "rating pair stays readable as a pair:"
+
+python3 - "${REPO_ROOT}" <<'PYEOF'
+import glob, os, re, sys
+repo = sys.argv[1]
+
+def rgb(h):
+    return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+
+def luminance(c):
+    def lin(v):
+        v /= 255.0
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2])
+
+common = open(f"{repo}/_inc/common.xml").read()
+opacity = float(re.search(r"<starTrackOpacity>([^<]+)<", common).group(1))
+
+# {game:stars} emits filled glyphs only, so an "empty" star is the dim track
+# showing through — what has to stay readable is the DIFFERENCE between the
+# two. #42 moved both ends of it at once: the track colour was lifted along
+# with the rest of the body text, and its opacity was raised on top of that.
+# Measured on a rendered frame, the pair together took the filled-vs-empty
+# separation from 3.45:1 to 2.61:1. The original guard here was
+# `0 < opacity < 1`, which would also have passed 0.99.
+#
+# The cap is the guard, because it is the thing that was actually measured.
+# A per-colorset contrast FLOOR was tried and rejected: the four light-accent
+# colorsets sit below 2.5:1 on their own crest no matter what the track does,
+# so any floor high enough to catch this regression fails them permanently
+# for an unrelated reason. Their numbers are printed instead, so a reviewer
+# sees them without the guard pretending to a standard it cannot hold.
+# Both ends are measured, not chosen. Above the cap the track stops reading
+# as the empty half (0.45 measured 2.61:1 against the filled glyphs, where
+# 0.30 measures 3.23:1). Below the floor it stops reading at all - at 0.30 the
+# track is already only 1.29:1 against the wave behind it.
+FLOOR, CAP = 0.20, 0.40
+if not FLOOR <= opacity <= CAP:
+    print(f"starTrackOpacity {opacity} must be within {FLOOR}-{CAP}: above it "
+          f"the empty stars stop looking empty, below it they vanish into the "
+          f"wave", file=sys.stderr)
+    sys.exit(1)
+
+CREST = 0.75  # wave crest, ~0.75 of the way from waveTint to accent (§3.5)
+rows = []
+for path in sorted(glob.glob(f"{repo}/colors/psp-*.xml")):
+    src = open(path).read()
+    def var(k):
+        return rgb(re.search(r"<%s>([0-9A-Fa-f]{6})<" % k, src).group(1))
+    wave, accent, body = var("waveTint"), var("accent"), var("textSecondary")
+    crest = [wave[i] + CREST * (accent[i] - wave[i]) for i in range(3)]
+    empty = [body[i] * opacity + crest[i] * (1 - opacity) for i in range(3)]
+    rows.append((luminance(empty), os.path.basename(path)[4:-4]))
+worst = max(rows)
+print(f"  (empty-star luminance at opacity {opacity}: "
+      f"{min(rows)[0]:.2f}-{worst[0]:.2f} of white, brightest {worst[1]})")
+PYEOF
+rc=$?
+check "the rating track stays dim enough to read as empty" "${rc}"
+
+python3 - "${REPO_ROOT}" <<'PYEOF'
+import re, sys
+repo = sys.argv[1]
+lst = open(f"{repo}/_inc/gamelist-list.xml").read()
+tl = re.search(r"<textlist\b[^>]*>(.*?)</textlist>", lst, re.S)
+bad = []
+if not tl:
+    bad.append("_inc/gamelist-list.xml has no <textlist>")
+else:
+    # Lifting textSecondary narrowed unselected-vs-selected row text from
+    # 1.78:1 to 1.28:1 (measured on renders). That is acceptable ONLY because
+    # selection is carried by the selector BAR rather than by the text colour,
+    # so the bar has to exist and be visible. The v0.11 card list sets its
+    # selector fully transparent; a style doing that here would be left with
+    # no selection cue at all.
+    sel = re.search(r"<selectorColor>([^<]+)</selectorColor>", tl.group(1))
+    if not sel:
+        bad.append("List + Details declares no <selectorColor>: with body text "
+                   "lifted, row colour alone no longer marks the selected row")
+    else:
+        val = sel.group(1).strip()
+        # A bare 6-hex colour is opaque. Anything else (8-hex, or ${var} plus
+        # two hex digits) carries an explicit alpha.
+        if not re.fullmatch(r"[0-9A-Fa-f]{6}", val):
+            m = re.search(r"([0-9A-Fa-f]{2})$", val)
+            if not m:
+                bad.append(f"selectorColor {val}: cannot read an alpha from it")
+            elif int(m.group(1), 16) < 0x20:
+                bad.append(f"selectorColor {val} is effectively transparent "
+                           f"(alpha {m.group(1)})")
+if bad:
+    print("\n".join(bad), file=sys.stderr); sys.exit(1)
+PYEOF
+rc=$?
+check "List + Details still marks the selected row with a visible selector" "${rc}"
 
 echo
 echo "colorset body ink:"
