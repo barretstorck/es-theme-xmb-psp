@@ -53,7 +53,7 @@ yourself — those derivations are recorded here.
    - 5.4 [Helpsystem glyphs](#54-helpsystem-glyphs)
 6. [Components](#6-components)
    - 6.1 [Category icons (system carousel)](#61-category-icons-system-carousel)
-   - 6.2 [Selected-icon halo](#62-selected-icon-halo)
+   - 6.2 [Selected-icon halo — removed](#62-selected-icon-halo--removed)
    - 6.3 [System name caption](#63-system-name-caption)
    - 6.4 [Game count caption (optional)](#64-game-count-caption-optional)
    - 6.5 [Top-right status cluster](#65-top-right-status-cluster)
@@ -92,7 +92,7 @@ list of twelve month-color selectors). It does **not** specify:
 - The wave background motion (timing, layer count, opacity).
 - Font face, size, leading, or hierarchy.
 - Helpsystem strip layout.
-- Sub-item row layout, halo gaussian size, focus-pulse cadence.
+- Sub-item row layout and focus-pulse cadence.
 
 For each of those, the reference videos in
 [`/tmp/psp-xmb-videos/frames/`](#) (video B real PSP at 1920×1080, video C
@@ -134,8 +134,9 @@ enough that you only notice the motion when looking for it.
 
 **2. Glassy.** Every solid element reads as semi-translucent or has a
 soft luminous edge. The wave appears refractive. The selected icon
-appears to be lit from behind, not from above (the halo is a back-light,
-not a frame). The expanded game card renders directly on the wave —
+reads as lit rather than framed — brightness and scale carry the
+selection, never a border, box or glow. The expanded game card renders
+directly on the wave —
 no opaque panel background anywhere.
 
 **3. Dimensional.** The cross is the depth metaphor: horizontal axis is
@@ -362,10 +363,9 @@ Reserved regions (do not place new content here):
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
   (`<helpsystem>` at `(0.02, 0.94)`). Don't overlay content here.
 - **Cross anchor region `(crossX±0.10, crossY±0.10)`** — owned by the
-  selected category icon + its halo. The halo `<maxSize>` of `0.28`
-  square means the halo's footprint extends ~`±0.14` around the
-  anchor in 4:3. Any element placed inside that radius competes
-  visually with the selected icon's glow.
+  selected category icon, which renders `0.18 × 0.24` around the
+  anchor at 4:3 (`logoScale=1.5`). Any element placed inside that
+  radius competes visually with the selected icon.
 
 ### 2.4 Z-index stack
 
@@ -377,7 +377,7 @@ ES renders elements in `<zIndex>` order. The stack:
 | 1 | `staticBackgroundLayer1` (top crest, slow) | Wave parallax — top |
 | 2 | `staticBackgroundLayer2` (middle crest, medium) | Wave parallax — middle |
 | 3 | `staticBackgroundLayer3` (bottom crest, fast) | Wave parallax — bottom |
-| 4 | `staticBackgroundHalo` (system view only) | Above all wave layers, still behind the carousel logo |
+| 4 | *(unused — held `staticBackgroundHalo` until v1.0 removed it, §6.2)* | — |
 | 5 | `systemcarousel` (system view); gamelist peek `textlist` | Foreground content |
 | 6 | `logo` (selected category icon, both views), `systemInfo` (count caption), gamelist `md_systemName` caption | One above carousel/list, so the icon paints over the centered slot reliably |
 | 7 | `systemName` (system-view extra caption) | Above systemInfo for the Hide subset |
@@ -439,10 +439,11 @@ twelve files in `colors/`.
   is the *bright* anchor. The wave layers (which are tinted
   `${accent}`) sit on top of the `${waveTint}` base; that contrast
   is what gives the wave its visible crest.
-- `selectorGlow` is reserved for textlist selectors and any future
-  selection-pulse elements (no live consumer since the v0.11 card
-  list — its textlist selector is transparent); halo `<color>`
-  remains hardcoded white (see §3.4, §6.2).
+- `selectorGlow` tints the splash rule (`splash.xml`) and is otherwise
+  reserved for textlist selectors and any future selection-pulse
+  element (the v0.11 card list's textlist selector is transparent).
+  Nothing else consumes it — the halo that once carried a hardcoded
+  white `<color>` was removed in v1.0 (see §3.4, §6.2).
 
 ### 3.2 The twelve monthly colorsets
 
@@ -535,25 +536,18 @@ Slate, which uses lower-saturation Tailwind Slate.
 
 ### 3.4 Halo / glow tinting
 
-The selected category icon's halo (`art/halo.png`) is a center-bright
-radial gaussian. It is tinted **white at runtime, not by colorset.**
+**There is no halo — removed in v1.0 (issue #34).** The selected-icon
+halo was tuned and pulled three times; the whole scaffold
+(`art/halo.png`, `haloW`/`haloH`, the unconsumed `rowHaloW`/`rowHaloH`,
+and the commented-out `staticBackgroundHalo` element) was deleted. §6.2
+carries the measurements that settled it.
 
-Settled v0.9.1 decision (see audit "Deliberately omitted" → "Accent-
-tinted halo"): on-device testing of an accent-tinted halo (color =
-`${accent}`) showed it competed visually with the icon itself and
-made the colorset feel over-saturated. The white halo reads as a
-universal "selection light" and stays out of the colorset's way.
-
-```xml
-<image name="staticBackgroundHalo">
-  <color>FFFFFF</color>  <!-- hardcoded; do not bind to ${accent} -->
-  ...
-</image>
-```
-
-The halo's apparent color is white throughout. The visible portion
-(the gaussian shoulder around the icon — see §6.2) reads as a soft
-white glow. Against any colorset's wave tint, white reads as light.
+Nothing in the theme tints a glow behind an element at runtime. The
+earlier v0.9.1 finding that an `${accent}`-tinted halo over-saturates
+the colorset still holds and is now moot: a `${selectorGlow}`-tinted
+one was also tried in #34 and failed for a different reason. Do not
+re-introduce a glow layer behind the carousel without reading §6.2
+first.
 
 ### 3.5 Readability minimums
 
@@ -769,8 +763,7 @@ This theme renders at much higher resolutions than the PSP's native
 480×272, so the source-bitmap sizes above are *information* but not
 *constraints*. The theme uses **256×256 px** white-on-transparent PNGs
 for category icons (drop-in compatible with RetroArch's `monochrome`
-set, see audit S1a). The `halo.png` source is also 256×256 (square)
-and ES scales it via `<maxSize>` at render time.
+set, see audit S1a).
 
 If you author a new icon for `art/system-icons/`, target **256×256
 PNG with transparency**. The square canvas matches the RA convention;
@@ -792,7 +785,6 @@ slot type. **This is the rendered-size table**, cite when adjusting:
 |:---|:---|:---:|:---:|:---:|:---:|:---:|
 | System carousel icon (unselected) | `(sysCarouselLogoW, sysCarouselLogoH)` | `0.10 × 0.14` | `0.08 × 0.14` | `0.09 × 0.14` | `0.13 × 0.13` | `0.10 × 0.12` |
 | System view selected icon (`logoScale=1.5`) | `(sysIconMaxW, sysIconMaxH) × 1.5` | `0.18 × 0.24` | `0.15 × 0.255` | `0.165 × 0.255` | `0.24 × 0.24` | `0.18 × 0.21` |
-| Halo footprint (selected only) | `(haloW, haloH)` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` | `0.28 × 0.28` |
 | Gamelist pinned system icon | (hardcoded `maxSize`, aspect-uniform) | `0.13 × 0.173` | same | same | same | same |
 | Selected-card boxart | `(cardBoxartW, cardBoxartH)` — Icon Size subset, aspect-uniform | Boxart `0.234 × 0.3125` (~240px @ 4:3) / Compact `0.161 × 0.215` (~165px) | same | same | same | same |
 | Peek icon | `(peekIconW, peekIconH)` — Icon Size subset; `peekIconW` is screen-relative width, `peekIconH` is **row-slot-relative** height | Boxart `0.088 × 0.51` (~90px) / Compact `0.073 × 0.425` (~75px) | same | same | same | same |
@@ -959,56 +951,51 @@ selected icon paints over its slot reliably. The `<image name="logo">`
 element in `_inc/system.xml:164-168` has `<zIndex>6</zIndex>`; the
 carousel has `<zIndex>5</zIndex>`.
 
-### 6.2 Selected-icon halo
+### 6.2 Selected-icon halo — removed
 
-**Status: DISABLED on main.** The element below is commented out in
-`_inc/system.xml` — PR #32's round-4 on-device tuning judged even the
-PR #28 re-tune too bright. Re-enable (with a further tune) is tracked
-in issue #34; the measurements below are the last-shipped values and
-the starting point for that session.
+**Status: REMOVED in v1.0 (issue #34). Do not re-add.** Selection on
+the system carousel is already carried by three independent cues: the
+selected icon renders at full white while its neighbours are dimmed,
+`logoScale=1.5` draws it half again as large, and it is the only icon
+with a caption beneath it. The halo never added information.
 
-Soft white center-bright gaussian behind the selected category icon.
-Defined (commented out) in `_inc/system.xml:87-99`.
+**Three attempts, all the same shape:**
 
-```xml
-<image name="staticBackgroundHalo">
-  <path>./art/halo.png</path>
-  <pos>${crossX} ${crossY}</pos>
-  <origin>0.5 0.5</origin>
-  <maxSize>${haloW} ${haloH}</maxSize>
-  <color>FFFFFF</color>
-  <opacity>0.6</opacity>
-  <zIndex>4</zIndex>
-</image>
-```
+| Attempt | Footprint | Opacity | Colour | Verdict |
+|:---|:---:|:---:|:---:|:---|
+| v0.9.x | `0.40` | `1.0` | white | blown-out blob |
+| v0.11 (PR #28) | `0.28` | `0.6` | white | still too bright; disabled in PR #32 round 4 |
+| #34 sweep | `0.45`–`0.75` | `0.22`–`0.45` | `${selectorGlow}` | invisible, or a regional wash |
 
-**History:** the halo was pulled in v0.10 and restored + re-tuned in
-v0.11 (PR #28). The `staticBackground*` name prefix routes it through
-`SystemView::mStaticBackgrounds` so it ticks every frame and paints
-as a group with the wave layers.
+**The failure was geometric, not a brightness setting.** The #34 pass
+measured it instead of re-guessing: differencing a halo-on frame
+against a halo-off one at 1024×768, with the last-shipped `0.28` /
+`0.6` values,
 
-**Key measurements:**
+- halo visible footprint: **159 × 159 px**
+- selected icon ink: **147 × 71 px**
+- halo's bright core (>100 of 765 summed RGB delta): **95 px wide, and
+  entirely inside the icon's own outline**
 
-- `haloW = haloH = 0.28` (normalized; same value all aspect ratios).
-  This is ~1.56× the icon's apparent width
-  (`sysIconMaxW × logoScale = 0.12 × 1.5 = 0.18` at 4:3). The icon
-  obscures the bright center of the gaussian; the visible portion is
-  the outer shoulder, which reads as a diffuse glow.
-- `opacity=0.6`. The PR #28 re-tune found the original `0.40`
-  footprint at full opacity read as a blown-out blob; the shipped
-  combination is the smaller `0.28` footprint at 60% opacity.
-- Color is always white (`FFFFFF`) — see §3.4.
-- `zIndex=4` sits the halo above all four wave layers (`zIndex 0-3`)
-  but below the carousel (`zIndex=5+`) so the icon paints over the
-  halo's brightest pixel. Within `mStaticBackgrounds`, paint order is
-  a `stable_sort` by `zIndex` (`SystemView.cpp:1065`) — see §2.4.
-- No storyboards. The v0.9-era scroll-fade/fade-in storyboards were
-  removed with the staticBackground migration (see §7.3).
+The gaussian's peak therefore sat *behind and through* the icon,
+shining out of the transparent gaps in the silhouette, and reached only
+~6 px past it horizontally. Since the selected icon is already pure
+white, that reads as a blown highlight on white ink rather than as a
+back-light. Shrinking the footprint — the direction the issue
+originally proposed — concentrates more of the peak under the icon and
+makes it worse.
 
-**Source asset:** `art/halo.png`, 256×256 square white-on-transparent
-center-bright gaussian. Re-render the gaussian if redesigning;
-`<maxSize>` will scale it to `haloW × haloW` regardless of source
-aspect.
+Enlarging it removes the blowout but loses the meaning: at a footprint
+wide enough to clear the icon, the effect no longer localises to one
+item and reads as a regional lightening of the carousel row and the
+wave behind it. A generated annulus, which puts brightness only outside
+the silhouette, reads as a visible donut with an unlit hole.
+
+Both are worse than nothing, and the render harness runs desktop GL
+while the device runs GLES2 and reads brighter — the exact gap that let
+the two earlier tunes pass review and then fail in the hand.
+
+`zIndex=4` is now free (§2.4).
 
 ### 6.3 System name caption
 
@@ -1430,10 +1417,11 @@ default: a 90px peek icon in a slot ~176.6px tall gives
 4.4× too small on-device — the exact error this guide previously
 contained.
 
-**Orphaned leftovers to be aware of:** `rowHaloW` / `rowHaloH` in
-`_inc/common.xml` reference a `tplHalo` element that does not exist
-in any of the three v0.12 style files; the `gameCol*` variables are
-likewise unconsumed (§2.2). Neither affects rendering.
+**Orphaned leftovers to be aware of:** the `gameCol*` variables in
+`_inc/common.xml` are unconsumed (§2.2) and do not affect rendering.
+The `rowHaloW` / `rowHaloH` pair, which referenced a `tplHalo` element
+that never existed in any v0.12 style file, was deleted with the rest
+of the halo scaffold in v1.0 (§6.2).
 
 **The right info panel remains removed.** `_inc/gamelist-card.xml`
 explicitly hides every built-in `md_*` metadata element so ES doesn't
@@ -1653,15 +1641,14 @@ extreme.
 
 ### 7.3 Halo scroll fade
 
-**Historical note.** Through v0.9.x the halo carried two storyboards
-(an `event="scroll"` 120ms fade-out and a 220ms default fade-in). The
-`event="scroll"` one was dead code on extras in this ES build (audit
-X1); both were removed with the `staticBackground*` migration when the
-halo was restored in v0.11 (PR #28). When enabled the halo has **no
-fade behaviour** — a constant `opacity=0.6` (§6.2; currently disabled
-entirely, issue #34). The old
+**Historical note; nothing here is live.** Through v0.9.x the halo
+carried two storyboards (an `event="scroll"` 120ms fade-out and a 220ms
+default fade-in). The `event="scroll"` one was dead code on extras in
+this ES build (audit X1); both were removed with the
+`staticBackground*` migration when the halo was restored in v0.11
+(PR #28), and the halo itself was removed in v1.0 (§6.2). The old
 citation `_inc/system.xml:53-58` now lands in a wave-layer scroll
-storyboard, not the halo.
+storyboard.
 
 ### 7.4 Description auto-scroll
 
@@ -1758,7 +1745,7 @@ relevant summary:
 | Dynamic per-game layout reflow | `<pos>`/`<size>` are static floats, not bindable | `<visible>` hide-only (audit G6) |
 | **Live colorset preview during settings change** | No event-routing from menu-interaction to system-view extras; variables resolve at parse time | Fixed 12 colorsets, restart required (audit U3) |
 | Continuous wave during system change | Carousel's per-system extra lifecycle resets storyboard | `staticBackground*` prefix workaround, shipped in v0.10 (audit S6) |
-| Selection-focus pulse on PSP first-level icons | No `event="settle"` / `event="focus"` in ES | Static halo only (§6.2; the v0.9-era fade storyboards are gone, §7.3) |
+| Selection-focus pulse on PSP first-level icons | No `event="settle"` / `event="focus"` in ES | None — the selected icon is static. The v0.9-era fade storyboards are gone (§7.3) and the halo they animated was removed in v1.0 (§6.2) |
 | Inline expand-on-select for settings rows | Fixed slot heights in IList | Helpsystem strip update (PSP's row expansion replaced by global help-strip text change) |
 
 These are all audit U-entries (technically unsupportable). Don't
@@ -1854,7 +1841,7 @@ evidence:
 
 | Decision | Settled in | Reason |
 |:---|:---:|:---|
-| **Halo is white, not accent-tinted.** | v0.9.1 | Accent-tinted halo competed with the icon; over-saturated the colorset visually. White reads as universal selection light. |
+| **There is no selected-icon halo, in either view.** | v0.9.1 (white over accent), **settled won't-do in v1.0 (#34)** | Three tunes failed the same way. The gaussian's bright core is narrower than the icon's own ink (159px footprint vs 147px ink, 95px core), so it lit the icon from inside rather than behind; enlarging it past the icon turns it into a regional wash, and an annulus reads as a donut. White vs `${selectorGlow}` made no difference to either failure. Selection is already carried by white-vs-dimmed, `logoScale=1.5` and the caption. Scaffold deleted — see §6.2 before proposing any glow layer. |
 | **Wave layers tinted `${accent}`, not `${waveTint}`.** | v0.3 | If layers tint waveTint they read as faint shadow ripples, not crests. Accent gives the bright luminous edge that defines PSP wave. |
 | **Carousel `<defaultTransition>fade</defaultTransition>`, not slide.** | v0.4 | Slide reads as too-mechanical; fade matches PSP's soft category cross-fade. |
 | **`logoScale=1.5` (not 2.0 or 1.2).** | v0.6 | 1.2 doesn't signal selection; 2.0 is aggressive and crowds neighbors. 1.5 reads as PSP-correct. |
@@ -1868,7 +1855,7 @@ evidence:
 | **Box Art Grid (style D) requires ES's own Gamelist View Style = Automatic.** | v0.12 | Three shared includes (`_inc/common.xml`, `_inc/wave-motion.xml`, and whichever single `_inc/scroll-speed-{slow,normal,fast}.xml` variant is active) register a `detailed,gamecarousel` view, so `hasView("detailed")`/`hasView("gamecarousel")` are always true and ES never falls back to consulting this theme's `defaultView` when the user has pinned Gamelist View Style to Detailed or Gamecarousel. Pinning either with Box Art Grid selected yields an unstyled ES view, not the grid. Not fixable by narrowing those includes — `common.xml`'s shared-chrome `<view>` block holds the helpsystem styling and the four navigate/select/back sounds (not the clock, which lives separately in `<view name="screen">`), and those must stay wired to every gamelist view. Documented in the README. |
 | **`maxLogoCount=11` for system carousel.** | v0.7 | Enough slots to show the wide PSP-style horizontal density without making icons tiny. |
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
-| **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
+| **The gamelist has no halo either.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign, closed out with #34 | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. With the system-view halo removed in v1.0, no view has one. |
 | **`textPrimary = FFFFFF` always.** | v0.1 | Readable on every colorset's wave. Other primaries fail contrast on at least one of the 12. |
 | **Clock + network + battery-percentage + battery-glyph cluster in top-right.** | v0.9, pulled in v0.10, **restored in #4** | PSP's status-bar pattern. The glyph holds the 0.98 right margin and the clock sits left of the cluster, so a device with no battery loses the two battery elements without leaving a hole at the screen edge. A wifi *signal-strength* indicator is still unsupportable (audit U12) — the network glyph is ES's binary connected/not, drawn in the theme's own style because hiding ES's `batteryIndicator` takes its wifi glyph with it. Date next to clock is unsupportable (audit U11). |
 | **The wave never opts out.** | v0.3 | The wave IS the theme. No `<subset name="wave">` for "wave off" because the result would be a static colored background, which isn't what PSP-XMB-theme means. |
