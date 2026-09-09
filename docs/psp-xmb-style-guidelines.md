@@ -334,7 +334,7 @@ shift when vertical real estate changes, principally at 1:1.
 
 | Region | y-range | x-range | Used by |
 |:---|:---:|:---:|:---|
-| Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock only (top-right cluster; battery glyph pulled in v0.10, restoration tracked as #4) |
+| Top status bar | `0.00 – 0.10` | `0.68 – 0.98` | Clock, network glyph, battery percentage, battery glyph — one right-anchored cluster (§6.5) |
 | Cross top row (system view) | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
 | Gamelist header (style A) | `0.0235 – 0.282` (rendered text ends ~`0.262`) | `crossX ± 0.07` | Pinned icon: `origin 0.5 0.5`, `pos.y=glLogoY=0.110`, `maxSize` height `0.173` → spans `0.110 ± 0.0865` = `0.0235–0.1965`. Caption (`md_systemName`): `origin 0.5 0`, `pos.y=glCaptionY=0.222`, `size.y=0.06` → declared box `0.222–0.282`; its `fontSize=0.040` single line of rendered text only reaches ~`0.262`, the remainder being unused box (`_inc/gamelist-card.xml`) |
 | Peek list (style A, icon column) | `0.21 – 0.96` | container full width; icons at `crossX` | `textlist name="gamelist"` — 3 slots (`glListTop=0.21`, `glListH=0.75`), row centers at y `0.335 / 0.585 / 0.835` |
@@ -1069,21 +1069,60 @@ gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ### 6.5 Top-right status cluster
 
-The status bar is **clock-only** as of v0.10. Defined in
-`_inc/common.xml:153-161`.
+Four elements in one right-anchored cluster, defined in
+`_inc/common.xml`'s `<view name="screen">`. Left to right:
 
 | Element | Pos | Size | Notes |
 |:---|:---:|:---:|:---|
-| Clock | `(0.84, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI), `alignment=right` — right edge at `0.84 + 0.14 = 0.98` |
+| Clock | `(0.68, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI), `alignment=right` — right edge at `0.68 + 0.14 = 0.82` |
+| `networkIcon` | `(0.863, 0.0612)` | `maxSize (0.033, 0.030)` | `origin (1, 0.5)`. Theme's own wifi glyph, `art/ui/network.png` |
+| `batteryText` | `(0.876, 0.0612)` | `fontSize 0.030` | `origin (0, 0.5)`. **pos.x is the LEFT edge** — see below |
+| `batteryIcon` | `(0.98, 0.0612)` | `maxSize (0.046, 0.030)` | `origin (1, 0.5)`. Holds the 0.98 right margin |
 
-The battery glyph was pulled in v0.10: vertical-alignment and
-percentage-rendering bugs surfaced on-device and couldn't be
-resolved in that iteration. Restoration is tracked as issue #4;
-the `art/battery/battery-{empty,25,50,75,full,incharge}.png`
-assets and the batteryIcon syntax notes are retained in the tree
-for that attempt (ES picks the glyph automatically from
-`Utils::Platform::queryBatteryInformation().level` once a
-`batteryIcon` element is themed again).
+**`0.0612` is the clock's measured ink centre** at 1024x768 (its glyph
+rows are 36..58 px), not the centre of the clock's `0.06`-tall box. Every
+element in the cluster is anchored to it with `origin y = 0.5`. Guessing
+at this instead of measuring it is what made "the glyph never lines up
+with the clock" unresolvable in v0.10.
+
+**Three things about this cluster are ES's behaviour, not choices:**
+
+- **ES draws a second battery widget of its own.**
+  `BatteryIndicatorComponent` (`Window.cpp:157`, rendered at `:746`) is a
+  wifi + glyph + `NN%` cluster pinned top-right in ES's own font. It is
+  *not* the `controllerActivity` the theme already hides. It must be
+  hidden explicitly or it doubles up with ours — and it is why v0.10
+  concluded `<visible>false</visible>` "doesn't hide the battery
+  on-device". Unlike `batteryIcon`, it honours `<visible>`.
+- **The percentage cannot be a binding.** A
+  `<text extra="true">{global:batteryLevel}%</text>` renders **empty**
+  here: `Window.cpp:1258` builds the screen extras, but no
+  `BindingManager::updateBindings` call exists for them (only SystemView,
+  the gamelist containers, Splash and the carousel/grid item templates get
+  one). Nothing logs. The native `<batteryText>` is the only mechanism
+  that works in this view.
+- **`<batteryText>` ignores `<alignment>` and `<verticalAlignment>`.**
+  `BatteryTextComponent.cpp:52` sets `mAutoCalcExtent.x() = 1` and resizes
+  to its own text, so the element is only ever as wide as its content:
+  `pos.x` is its left edge and the string grows *rightward*, toward the
+  glyph. It is placed for `"100%"`, the widest string ES can produce, not
+  for the two-digit case every screenshot happens to show.
+
+**Visibility is ES's setting, not a theme subset.** *UI Settings > Show
+Battery Status* (`GuiMenu.cpp:3928`) offers NO / ICON / ICON AND TEXT,
+stored as `""` / `"icon"` / `"text"`, and that is what gates both
+elements. A theme cannot override it: `BatteryIconComponent::update()`
+calls `setVisible(hasBattery)` on every tick and discards whatever the
+theme asked for. v0.10's Hide/Glyph/Glyph+Percentage subset could never
+have worked; do not re-add it. Devices with no battery show nothing here
+and need no setting at all.
+
+The glyph image itself is picked by ES from the charge level
+(`BatteryIconComponent.cpp:52-69`) across the six
+`art/battery/battery-{empty,25,50,75,full,incharge}.png` states.
+`art/ui/network.png` is authored at the same canvas height as the battery
+art on purpose: `<maxSize>` fits the *canvas*, so equal canvas heights are
+what make an equal authored stroke render as an equal stroke.
 
 ES renders the clock from `Settings::ClockMode12` (per
 `ClockComponent.cpp:30-34`) — either `%I:%M %p` (12-hour) or
@@ -1776,7 +1815,7 @@ evidence:
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
 | **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
 | **`textPrimary = FFFFFF` always.** | v0.1 | Readable on every colorset's wave. Other primaries fail contrast on at least one of the 12. |
-| **Battery glyph + clock + (nothing) cluster in top-right.** | v0.9 — **battery glyph pulled in v0.10**, restoration tracked as #4 | PSP's status-bar pattern. Wifi-strength indicator is unsupportable (audit U12); date next to clock is unsupportable (audit U11). Status bar is clock-only on main (§6.5). |
+| **Clock + network + battery-percentage + battery-glyph cluster in top-right.** | v0.9, pulled in v0.10, **restored in #4** | PSP's status-bar pattern. The glyph holds the 0.98 right margin and the clock sits left of the cluster, so a device with no battery loses the two battery elements without leaving a hole at the screen edge. A wifi *signal-strength* indicator is still unsupportable (audit U12) — the network glyph is ES's binary connected/not, drawn in the theme's own style because hiding ES's `batteryIndicator` takes its wifi glyph with it. Date next to clock is unsupportable (audit U11). |
 | **The wave never opts out.** | v0.3 | The wave IS the theme. No `<subset name="wave">` for "wave off" because the result would be a static colored background, which isn't what PSP-XMB-theme means. |
 | **Cross anchor on `(crossX, crossY)`, not on absolute pixel offsets.** | v0.6 | Pixel offsets break on non-4:3. Anchor + per-ratio override is the working pattern. |
 | **`defaultTransition="instant"` at theme root.** | v0.6 | ES auto-transition falls back to slide otherwise; PSP feel is instant. |
