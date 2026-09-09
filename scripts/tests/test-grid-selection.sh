@@ -166,8 +166,12 @@ offenders="$(grep -l 'gridTile[WH]' "${REPO_ROOT}"/_inc/aspect-*.xml 2>/dev/null
 check "no aspect-*.xml overrides gridTileW or gridTileH" $?
 [[ -z "${offenders}" ]] || { echo "        still overridden in:" >&2; sed 's|^|          |' <<<"${offenders}" >&2; }
 
-grep -q 'autoLayout' "${GRID}"
-check "the grid still uses autoLayout (which is what makes those variables dead)" $?
+# `grep -q autoLayout` matched the comments AND autoLayoutSelectedZoom, so
+# deleting <autoLayout> passed while invalidating the whole rect derivation
+# above (which assumes 4x2). Match the element, and the dimensions the
+# geometry guard hard-codes.
+grep -qE '<autoLayout>[[:space:]]*4[[:space:]]+2[[:space:]]*</autoLayout>' "${GRID}"
+check "the grid declares <autoLayout>4 2</autoLayout> — what the geometry guard assumes" $?
 
 echo
 echo "info bar: an opaque fill, sized to hold its text:"
@@ -232,37 +236,69 @@ else:
     p_top, p_bottom = p_pos[1], p_pos[1] + p_size[1]
     p_left, p_right = p_pos[0], p_pos[0] + p_size[0]
 
-    # Every text element in the bar must be bounded AND inside the bar.
+    # Every text element in the bar must be bounded by <size> and sit inside
+    # the bar. <size> is the real bound for these: they are all single-line
+    # non-scrolling text, which ES abbreviates to mSize.x with "..."
+    # (TextComponent.cpp:376-379). A clip rect on any of them is inert - adding
+    # one to gridTitle changed zero pixels - so this guard deliberately does
+    # NOT require one.
+    bands = {}
     for name in ("gridTitle", "gridMeta", "gridStarTrack", "gridStars"):
         el = els.get(name)
         if el is None:
             bad.append(f"{name} is missing"); continue
-        if nums(resolve(el.findtext("size")), 2) is None:
-            bad.append(f"{name} has no resolvable <size>")
-        clip = nums(resolve(el.findtext("clipRect")), 4)
-        if clip is None:
-            bad.append(f"{name} has no clipRect — <size> alone does not clip on this build")
+        pos = nums(resolve(el.findtext("pos")), 2)
+        size = nums(resolve(el.findtext("size")), 2)
+        if pos is None or size is None:
+            bad.append(f"{name} has no resolvable <pos>/<size> - nothing bounds it")
             continue
-        cx, cy, cw, ch = clip
-        if cy < p_top - 1e-9 or cy + ch > p_bottom + 1e-9:
-            bad.append(f"{name} clipRect spans {cy:.4f}-{cy+ch:.4f}, outside the bar {p_top:.4f}-{p_bottom:.4f}")
-        if cx < p_left - 1e-9 or cx + cw > p_right + 1e-9:
-            bad.append(f"{name} clipRect spans {cx:.4f}-{cx+cw:.4f}, outside the bar {p_left:.4f}-{p_right:.4f}")
+        x, y = pos; w, h = size
+        bands[name] = (x, y, w, h)
+        if y < p_top - 1e-9 or y + h > p_bottom + 1e-9:
+            bad.append(f"{name} band spans {y:.4f}-{y+h:.4f}, outside the bar {p_top:.4f}-{p_bottom:.4f}")
+        if x < p_left - 1e-9 or x + w > p_right + 1e-9:
+            bad.append(f"{name} band spans {x:.4f}-{x+w:.4f}, outside the bar {p_left:.4f}-{p_right:.4f}")
+
+        # ES only abbreviates while mAutoScroll == NONE (TextComponent.cpp:376).
+        # A marquee therefore removes the <size> bound and a clip rect becomes
+        # the only one. Enforce the pairing rather than discovering it later.
+        scroll = (el.findtext("autoScroll") or "none").strip().lower()
+        if scroll not in ("", "none") and el.find("clipRect") is None:
+            bad.append(f"{name} sets autoScroll={scroll!r}, which disables ES's "
+                       f"abbreviation - it needs a clip rect to stay bounded")
 
     # The metadata run must stop before the star column, which is what makes a
     # long genre/developer string structurally unable to collide with it.
-    def clip_of(name):
-        el = els.get(name)
-        return None if el is None else nums(resolve(el.findtext("clipRect")), 4)
-    meta, star = clip_of("gridMeta"), clip_of("gridStars")
-    if meta and star and meta[0] + meta[2] > star[0] + 1e-9:
-        bad.append(f"gridMeta clipRect reaches {meta[0]+meta[2]:.4f}, at or past the star column at {star[0]:.4f}")
+    if "gridMeta" in bands and "gridStars" in bands:
+        mx, _, mw, _ = bands["gridMeta"]
+        sx = bands["gridStars"][0]
+        if mx + mw > sx + 1e-9:
+            bad.append(f"gridMeta reaches {mx+mw:.4f}, at or past the star column at {sx:.4f}")
+
+    # The title band must not lean into the metadata row. Promoting these to
+    # variables is supposed to move no pixel, and a quietly taller title band
+    # both shifts the text (vertical alignment centres it in the band) and
+    # encroaches on the row below.
+    #
+    # The threshold is not zero: v0.12's own bands abut with a 0.001 overlap
+    # (0.808 + 0.055 vs 0.862), which is under a pixel at every supported
+    # height and is the accepted baseline - the bands are a layout convenience,
+    # nothing clips at them. 0.002 is about 1.5px at 768 and catches the real
+    # case, which is a band grown to make room for something: an earlier draft
+    # of this branch had gridTitleH at 0.062, a 0.008 overlap.
+    BAND_SLOP = 0.002
+    if "gridTitle" in bands and "gridMeta" in bands:
+        t_bottom = bands["gridTitle"][1] + bands["gridTitle"][3]
+        m_top = bands["gridMeta"][1]
+        if t_bottom > m_top + BAND_SLOP:
+            bad.append(f"gridTitle band ends {t_bottom:.4f}, {t_bottom-m_top:.4f} into "
+                       f"gridMeta's row at {m_top:.4f} (tolerance {BAND_SLOP})")
 
 for b in bad:
     print("        " + b, file=sys.stderr)
 sys.exit(1 if bad else 0)
 PY
-check "every info-bar text element is bounded and sits inside the bar" "${rc}"
+check "info-bar text is bounded by <size>, inside the bar, and non-overlapping" "${rc}"
 
 echo
 echo "a fixture can actually show the title overflow:"

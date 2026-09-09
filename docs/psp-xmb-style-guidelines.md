@@ -1334,11 +1334,21 @@ is animated — a still render understates the cue.
    `(tile + margin) − tile × (zoom + 1) / 2`, so the smallest usable
    margin is
    `(zoom − 1) × band / 2 / (n + (n − 1)(zoom − 1) / 2)`. v0.12's
-   `0.012/0.020` capped the zoom at 1.146 horizontally and 1.138
-   vertically — its 1.14 sat *on* the limit. The shipped
+   `0.012/0.020` capped the zoom at **1.109 horizontally** and 1.138
+   vertically, so its 1.14 was already *past* the horizontal one —
+   tile boxes overlapped by 3.6px at 1024 wide. The shipped
    `0.024/0.032` clears the minimum by about 3px at 1024×768; a
    threshold-exact margin leaves a sub-pixel gutter that anti-aliases
    into contact.
+
+   That v0.12 overlap was invisible, and the reason matters before any
+   retune: `maxSize` art is *narrower than its own cell* unless the art
+   matches the cell's aspect, so the drawn art had clearance the boxes
+   did not. Square-ish Game Boy covers in a 226×223 cell drew 222px
+   wide and cleared until zoom 1.146 — which is where that figure comes
+   from. Art that fills its cell in the binding axis is the worst case
+   and the only safe thing to design against, and it collides at 1.109.
+   The formula and the guard both use the box, never the art.
 
 Because every live value is a fraction of the same screen dimension,
 these thresholds are **identical at all five aspect ratios** — verified
@@ -1354,9 +1364,24 @@ it renders only its opaque middle band: the v0.12 info bar declared
 `0.795–0.905` and drew `0.8229–0.8776`, half height and vertically
 centred, which is why the metadata row (ending at `0.902`) sat outside
 the box. Its text bands are variables in `_inc/common.xml`
-(`gridInfoY/H`, `gridTitleY/H`, `gridMetaY/H`, `gridStarX/W`) and every
-one carries a `clipRect` built from its own pair, because `<size>` alone
-does not clip on this build.
+(`gridInfoY/H`, `gridTitleY/H`, `gridMetaY/H`, `gridStarX/W`), all at
+v0.12's values — promoting them must not move a pixel.
+
+**`<size>` is what bounds these rows, not a `clipRect`.** They are all
+single-line, non-scrolling text, and ES abbreviates that to `mSize.x`
+with `"..."` (TextComponent.cpp:376-379) — so a `clipRect` on any of
+them is inert. Verified: adding one to `gridTitle` changed zero pixels,
+and removing v0.12's `gridMeta` one changed the band by at most one LSB.
+Issue #43 asked for a `gridTitle` `clipRect` on the belief that a long
+title escaped the panel; it never did — `<size>` already stopped it at
+0.95, and what escaped was the panel, which was drawing at half height.
+The theme's "`<size>` alone does not clip" rule is about **multi-line**
+text: `cardDesc`/`listDesc` overflow *vertically*, which `<size>` does
+not bound, and that is what their clip rects are for.
+
+The abbreviation is gated on `mAutoScroll == NONE`, so adding a marquee
+to any of these rows removes their bound and a clip rect becomes the
+only one. `test-grid-selection.sh` enforces that pairing.
 
 **Requires ES's own Gamelist View Style = Automatic.** Three shared
 includes register a `detailed,gamecarousel` view unconditionally (or,
