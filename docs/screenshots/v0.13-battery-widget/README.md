@@ -47,38 +47,35 @@ The four charge states plus no-battery, via `render.sh --battery`:
 47% (2 segments), 4% (empty — ES switches at `level > 5`), 80% charging
 (bolt), 100% (full, and the widest text the percentage can be), and a
 device with no battery at all, where both battery elements auto-hide and
-the clock and network glyph do not move.
+the cluster shortens to clock + network glyph.
 
 ## `harness-aspect-ratios.png`
 
 All five design surfaces at `100%`, the widest string the percentage can be.
-This is what the first pass got wrong: x positions are fractions of screen
-*width* but a `<fontSize>` is a fraction of screen *height*, so `"100%"` is
-0.058 of the width at 1:1 against 0.045 at 4:3, and the 4:3 literals ran it
-into the battery glyph at 8:7 (6 px clearance) and 1:1 (3 px — actually
-touching). Fixed with per-ratio `${statusClockX}` / `${statusNetX}` /
-`${statusPctX}` variables.
+The first pass hand-placed each element, which cannot hold across ratios: x
+positions are fractions of screen *width* but a `<fontSize>` is a fraction of
+screen *height*, so `"100%"` is 0.058 of the width at 1:1 against 0.045 at
+4:3. The 4:3 literals ran it into the battery glyph at 8:7 (6 px clearance)
+and 1:1 (3 px — touching).
 
-The measured percent-to-glyph clearance, after:
+The second pass fixed that with per-ratio variables. Those are now **gone**:
+the cluster is a `<stackpanel>` that packs itself from the right margin, so
+one set of literals serves every surface and there is nothing to re-tune.
+Measured after: four separated groups at every ratio, right edge 0.979,
+inter-element gaps 11–24 px, all ink centres within 1 px of 0.0605.
 
-| Ratio | Surface | clearance |
-|:---|:---|---:|
-| 4:3 | 1024x768 | 0.0137 (14 px) |
-| 8:7 | 1024x896 | 0.0166 (17 px) |
-| 3:2 | 720x480 | 0.0139 (10 px) |
-| 16:9 | 1280x720 | 0.0180 (23 px) |
-| 1:1 | 720x720 | 0.0208 (15 px) |
+## `harness-showbattery-collapse.png`
 
-The rendered `"100%"` ink widths behind `PCT_INK_W` in
-`scripts/tests/test-battery.sh` were measured from these same renders. They
-are measured rather than computed because PIL's metrics for this font
-disagree with ES's rasteriser by -12% to +23% across these sizes — the first
-attempt at 3:2 was tuned from a computed width and left only 4 px.
+The defect this widget was re-worked for, found in manual review on the
+hammer. ES owns the visibility of three of the four elements, so a fixed
+layout leaves a hole wherever the missing one was:
 
-## `harness-showbattery-values.png`
-
-Visibility is ES's setting, not a theme subset: *UI Settings > Show
-Battery Status*. ICON AND TEXT (the ES default), ICON, and NO.
+| Setting | Before | After |
+|:---|:---|:---|
+| ICON AND TEXT | correct | correct |
+| ICON | 77 px hole between wifi and the glyph | cluster shortens, stays flush right |
+| NO | ~120 px of dead space to the right margin | cluster shortens, stays flush right |
+| no battery in the device | same as NO | same as NO |
 
 ## Not refreshed here
 
