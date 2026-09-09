@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen-chevrons.py — generate the description scroll affordance glyphs.
 
-Mirrors the procedural-asset pattern of scripts/gen-halo.py and
+Mirrors the procedural-asset pattern of scripts/gen-battery-icons.py and
 scripts/gen-battery-icons.py. Produces:
   art/ui/chevron-up.png   — white triangle, apex at top center
   art/ui/chevron-down.png — white triangle, apex at bottom center
