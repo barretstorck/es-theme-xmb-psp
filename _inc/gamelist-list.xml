@@ -139,15 +139,17 @@
       <zIndex>5</zIndex>
     </textlist>
 
-    <!-- Media fallback when the selected game has no screenshot. Style B has
-         no other art slot, so without this an unscraped game leaves the whole
-         right half of the screen empty. -->
+    <!-- Media fallback when the selected game has no art for this slot at
+         all. Style B has no other art slot, so without this an unscraped game
+         leaves the whole right half of the screen empty. The two-part guard
+         matches how ES resolves md_video's snapshot; see the same element in
+         _inc/gamelist-card.xml for the full reasoning. -->
     <image name="listMediaFallback" extra="true">
       <path>${mediaFallbackPath}</path>
       <pos>${listMediaX} ${listMediaY}</pos>
       <maxSize>${listMediaW} ${listMediaH}</maxSize>
       <origin>0.5 0.5</origin>
-      <visible>!exists({game:image})</visible>
+      <visible>!exists({game:image}) &amp;&amp; !exists({game:thumbnail})</visible>
       <zIndex>6</zIndex>
     </image>
 

@@ -33,6 +33,33 @@ grep -qE 'gamelist\)[[:space:]]*GLVIEW="automatic"' "${REPO_ROOT}/docker/run-in-
 check "gamelist view uses GamelistViewStyle=automatic" $?
 
 echo
+echo "well-formedness (every theme XML in the repo):"
+
+# ES parses with pugixml, which tolerates things the XML spec forbids -- most
+# easily a literal "--" inside a <!-- comment -->. That means a malformed file
+# renders fine on device and only bites the tooling: every python3 check in
+# THIS file, and anyone reaching for xmllint. Checked repo-wide rather than
+# per-style, because the file that first hit this (_inc/aspect-8x7.xml) is
+# neither a style file nor otherwise parsed here.
+python3 - "${REPO_ROOT}" <<'INNER_PY'
+import pathlib, sys, xml.etree.ElementTree as ET
+
+root = pathlib.Path(sys.argv[1])
+paths = sorted(root.glob("theme.xml")) + sorted(root.glob("_inc/**/*.xml"))
+assert paths, "no theme XML found -- glob is wrong"
+failures = []
+for p in paths:
+    try:
+        ET.parse(p)
+    except ET.ParseError as e:
+        failures.append(f"{p.relative_to(root)}: {e}")
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+INNER_PY
+check "every theme XML file is well-formed to a strict parser" $?
+
+echo
 echo "style files:"
 
 STYLES=("card:detailed" "list:detailed" "grid:grid")
@@ -275,7 +302,10 @@ assert fb is not None, "no cardMediaFallback"
 assert media is not None, "no md_video"
 assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
     f"cardMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
-assert fb.findtext("visible") == "!exists({game:image})", \
+# Two-part guard: ES resolves md_video's snapshot to the THUMBNAIL when
+# <image> is empty (DetailedContainer.cpp:786-807), so guarding on the image
+# alone leaves this icon visible behind a box-art-only still.
+assert fb.findtext("visible") == "!exists({game:image}) && !exists({game:thumbnail})", \
     f"cardMediaFallback visible guard is {fb.findtext('visible')!r}"
 for tag in ("pos", "maxSize", "origin"):
     assert fb.findtext(tag) == media.findtext(tag), f"{tag} differs between cardMediaFallback and md_video"
@@ -365,7 +395,10 @@ assert fb is not None, "no listMediaFallback"
 assert media is not None, "no md_video"
 assert fb.findtext("path").strip() == "${mediaFallbackPath}", \
     f"listMediaFallback must bind ${{mediaFallbackPath}}, got {fb.findtext('path')!r}"
-assert fb.findtext("visible") == "!exists({game:image})", \
+# Two-part guard: ES resolves md_video's snapshot to the THUMBNAIL when
+# <image> is empty (DetailedContainer.cpp:786-807), so guarding on the image
+# alone leaves this icon visible behind a box-art-only still.
+assert fb.findtext("visible") == "!exists({game:image}) && !exists({game:thumbnail})", \
     f"listMediaFallback visible guard is {fb.findtext('visible')!r}"
 for tag in ("pos", "maxSize", "origin"):
     assert fb.findtext(tag) == media.findtext(tag), f"{tag} differs between listMediaFallback and md_video"
@@ -679,8 +712,26 @@ check "§10 scopes the three-visible-rows decision to style A" $?
 grep -q 'videoAudioEnabled' "${REPO_ROOT}/_inc/video-audio-on.xml"
 check "videoAudio subset sets videoAudioEnabled" $?
 
-! grep -q 'md_video' "${REPO_ROOT}/_inc/video-audio-on.xml"
-check "videoAudio no longer targets the hidden legacy md_video" $?
+# The subset must work through ${videoAudioEnabled}, not by overriding a video
+# element -- when it did the latter the target was hidden and the subset was a
+# no-op. A bare `grep -q md_video` would be a false positive on any comment
+# that merely NAMES the element, so assert the structure: no <video> element in
+# either variant file, and the variable set in both.
+python3 - "${REPO_ROOT}" <<'INNER_PY'
+import sys, xml.etree.ElementTree as ET
+failures = []
+for rel, want in (("_inc/video-audio-on.xml", "true"), ("_inc/video-audio-off.xml", "false")):
+    root = ET.parse(f"{sys.argv[1]}/{rel}").getroot()
+    if root.findall(".//video"):
+        failures.append(f"{rel}: declares a <video> element; it must only set the variable")
+    got = root.findtext(".//variables/videoAudioEnabled")
+    if got != want:
+        failures.append(f"{rel}: videoAudioEnabled is {got!r}, want {want!r}")
+if failures:
+    print("\n".join(failures), file=sys.stderr)
+    sys.exit(1)
+INNER_PY
+check "videoAudio drives the media slot through \${videoAudioEnabled}, not a video override" $?
 
 grep -q 'Gamelist Style' "${REPO_ROOT}/README.md"
 check "README documents the Gamelist Style knob" $?
