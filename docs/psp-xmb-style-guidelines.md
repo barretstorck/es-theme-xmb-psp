@@ -352,11 +352,15 @@ tables.)
 
 Reserved regions (do not place new content here):
 
-- **Top 0.10 vertical strip** — owned by the status bar. The clock at
-  `(0.84, 0.03)`, size `(0.14, 0.06)`, pins the right edge at
-  `0.84 + 0.14 = 0.98`.
-  Left-of-`x=0.75` of the top strip is technically free but
-  conventionally empty — PSP doesn't put anything there either.
+- **Top 0.10 vertical strip** — owned by the status bar, which is a
+  four-element cluster, not just the clock (§6.5). The battery glyph
+  pins the right edge at `0.98`; the clock, network glyph and battery
+  percentage sit to its left, and **their x positions differ per aspect
+  ratio** (`${statusClockX}` / `${statusNetX}` / `${statusPctX}`). The
+  cluster reaches furthest left at 1:1, where the clock box starts at
+  `0.650`. Treat everything right of `x=0.65` in the top strip as
+  occupied; left of that is technically free but conventionally empty —
+  PSP doesn't put anything there either.
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
   (`<helpsystem>` at `(0.02, 0.94)`). Don't overlay content here.
 - **Cross anchor region `(crossX±0.10, crossY±0.10)`** — owned by the
@@ -1070,7 +1074,7 @@ gamecount-show subset variant in `_inc/gamecount-show.xml`.
 ### 6.5 Top-right status cluster
 
 Four elements in one right-anchored cluster, defined in
-`_inc/common.xml`'s `<view name="screen">`. Left to right:
+`_inc/status-bar.xml`'s `<view name="screen">`. Left to right:
 
 | Element | Pos | Size | Notes |
 |:---|:---:|:---:|:---|
@@ -1078,6 +1082,23 @@ Four elements in one right-anchored cluster, defined in
 | `networkIcon` | `(0.863, 0.0612)` | `maxSize (0.033, 0.030)` | `origin (1, 0.5)`. Theme's own wifi glyph, `art/ui/network.png` |
 | `batteryText` | `(0.876, 0.0612)` | `fontSize 0.030` | `origin (0, 0.5)`. **pos.x is the LEFT edge** — see below |
 | `batteryIcon` | `(0.98, 0.0612)` | `maxSize (0.046, 0.030)` | `origin (1, 0.5)`. Holds the 0.98 right margin |
+
+**The three left-hand x positions are per-ratio variables.** A
+`<fontSize>` is a fraction of screen HEIGHT while an x position is a
+fraction of screen WIDTH, so the percentage's width *in width-fractions*
+grows as the screen gets squarer — `"100%"` is `0.058` of the width at
+1:1 against `0.045` at 4:3. At the 4:3 literals it runs into the glyph
+at both 1:1 and 8:7. `${statusClockX}` / `${statusNetX}` /
+`${statusPctX}` carry the per-ratio values, overridden in
+`_inc/aspect-*.xml`; the glyph stays at `0.98` everywhere. Same class of
+defect as the v0.11 cardMetadata overflow, and the same fix.
+
+**This is why the cluster is not in `_inc/common.xml`.** ES resolves
+`${variables}` at *element-parse* time, and `common.xml` is included
+long before `aspect-*.xml` — a screen view declared there reads the 4:3
+defaults and no per-ratio override can ever reach it. `theme.xml`
+includes `status-bar.xml` after the aspect files, the same ordering rule
+the gamelist style views follow.
 
 **`0.0612` is the clock's measured ink centre** at 1024x768 (its glyph
 rows are 36..58 px), not the centre of the clock's `0.06`-tall box. Every

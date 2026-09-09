@@ -230,6 +230,12 @@
   <include if="${screen.ratio} == '16/9'">./_inc/aspect-16x9.xml</include>
   <include if="${screen.ratio} == '1/1'">./_inc/aspect-1x1.xml</include>
 
+  <!-- The top-right status cluster. MUST parse after aspect-*.xml: its x
+       positions are per-ratio variables and views resolve ${variables} at
+       element-parse time, so declaring it in common.xml would silently pin
+       every ratio to the 4:3 values. Same trap as the gamelist styles below. -->
+  <include>./_inc/status-bar.xml</include>
+
   <!-- v0.12: the gamelist style subset. Each variant is a full <view>
        definition, so it MUST parse after aspect-*.xml — views resolve
        ${variables} at element-parse time, and a view parsed before the

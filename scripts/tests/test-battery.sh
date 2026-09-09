@@ -36,6 +36,7 @@ check() { # check <description> <condition-exit-code>
 }
 
 COMMON="${REPO_ROOT}/_inc/common.xml"
+STATUS="${REPO_ROOT}/_inc/status-bar.xml"
 THEME="${REPO_ROOT}/theme.xml"
 RENDER="${REPO_ROOT}/scripts/render.sh"
 NETART="${REPO_ROOT}/art/ui/network.png"
@@ -46,13 +47,16 @@ echo "== the file parses, and parses STRICTLY =="
 # pugixml (what ES uses) accepts "--" inside a comment even though it is
 # illegal XML, so a file that renders fine on device can still break every
 # python3/xmllint tool in this repo. That case has shipped here before.
-python3 -c "import xml.etree.ElementTree as ET; ET.parse('${COMMON}')" 2>/dev/null
-check "_inc/common.xml is strictly well-formed XML" $?
+for f in "${COMMON}" "${STATUS}" "${REPO_ROOT}"/_inc/aspect-*.xml; do
+  python3 -c "import xml.etree.ElementTree as ET,sys; ET.parse(sys.argv[1])" "$f" 2>/dev/null || { echo "  FAIL - $f is not well-formed"; fail=1; }
+done
+[[ "${fail}" -eq 0 ]]
+check "common.xml, status-bar.xml and every aspect-*.xml are strictly well-formed XML" $?
 
 echo
 echo "== ES's own second battery widget is suppressed =="
 
-python3 - "${COMMON}" <<'PY'
+python3 - "${STATUS}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 screen = [v for v in root.findall('view') if 'screen' in v.get('name', '').split(',')]
@@ -66,13 +70,13 @@ check "<batteryIndicator> is declared in the screen view and hidden (else it dou
 # Unlike batteryIcon, this component honours the theme: its render() early-
 # returns on !isVisible() and its update() never calls setVisible(). If a
 # future ES bump changes that, the widget doubles up again on hardware only.
-grep -q 'BatteryIndicatorComponent' "${COMMON}"
+grep -q 'BatteryIndicatorComponent' "${STATUS}"
 check "the batteryIndicator block names the ES component, so the reason survives an edit" $?
 
 echo
 echo "== the percentage uses the only mechanism that works here =="
 
-python3 - "${COMMON}" <<'PY'
+python3 - "${STATUS}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 screen = [v for v in root.findall('view') if 'screen' in v.get('name', '').split(',')]
@@ -89,14 +93,15 @@ check "the percentage is a native <batteryText>, named" $?
 # deliberately SPELLS the dead binding out in prose so the next author does not
 # retry it. A raw grep flags that explanation as the bug it warns about — the
 # same false positive this repo has hit with ${vars} inside comments.
-python3 - "${COMMON}" <<'PYBIND'
+python3 - "${STATUS}" "${COMMON}" <<'PYBIND'
 import sys, xml.etree.ElementTree as ET
-root = ET.parse(sys.argv[1]).getroot()
-for e in root.iter():
+for path in sys.argv[1:]:
+  root = ET.parse(path).getroot()
+  for e in root.iter():
     for v in [e.text or ''] + list(e.attrib.values()):
-        assert '{global:battery' not in v, (
-            f"<{e.tag} name={e.get('name')!r}> uses a {{global:battery*}} binding; "
-            "bindings are never resolved in the screen view")
+      assert '{global:battery' not in v, (
+          f"<{e.tag} name={e.get('name')!r}> uses a {{global:battery*}} binding; "
+          "bindings are never resolved in the screen view")
 PYBIND
 check "no {global:battery*} binding in any element (bindings are never resolved in the screen view)" $?
 
@@ -104,7 +109,7 @@ check "no {global:battery*} binding in any element (bindings are never resolved 
 # text, so the element is only ever as wide as its content and <alignment>
 # right</alignment> silently does nothing. An author who adds it will believe
 # the element is right-anchored and place the neighbours wrong.
-python3 - "${COMMON}" <<'PY'
+python3 - "${STATUS}" <<'PY'
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 t = root.find(".//batteryText")
@@ -118,7 +123,7 @@ check "<batteryText> avoids the two alignment properties this component ignores"
 echo
 echo "== the glyph element is spelled the way ES dispatches it =="
 
-python3 - "${COMMON}" <<'PY'
+python3 - "${STATUS}" <<'PY'
 import sys, os, xml.etree.ElementTree as ET
 repo = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[1])))
 root = ET.parse(sys.argv[1]).getroot()
@@ -143,7 +148,7 @@ check "<batteryIcon> is named and all 6 state images resolve on disk" $?
 echo
 echo "== the network glyph that replaces ES's =="
 
-python3 - "${COMMON}" <<'PY'
+python3 - "${STATUS}" <<'PY'
 import sys, os, xml.etree.ElementTree as ET
 repo = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[1])))
 root = ET.parse(sys.argv[1]).getroot()
@@ -191,17 +196,49 @@ check "theme.xml declares no battery subset (the theme cannot override ShowBatte
 check "no _inc/battery-*.xml subset variants have come back" $?
 
 echo
-echo "== cluster geometry, recomputed from the XML and real font metrics =="
+echo "== cluster geometry, at every aspect ratio the theme ships =="
 
-python3 - "${COMMON}" "${REPO_ROOT}" <<'PY'
+python3 - "${STATUS}" "${REPO_ROOT}" <<'PYGEO'
 import sys, os, xml.etree.ElementTree as ET
-from PIL import ImageFont
+from PIL import Image
 
-common, repo = sys.argv[1], sys.argv[2]
-SW, SH = 1024, 768          # the reference 4:3 target
-CLOCK_INK_CY = 0.0612       # measured: clock glyph rows 36..58 at 1024x768
+status, repo = sys.argv[1], sys.argv[2]
 
-root = ET.parse(common).getroot()
+# The five design surfaces, and the aspect file that overrides each. 4:3 has no
+# aspect file — it is common.xml's default.
+SURFACES = [
+    ("4:3",  1024, 768, None),
+    ("8:7",  1024, 896, "aspect-8x7.xml"),
+    ("3:2",   720, 480, "aspect-3x2.xml"),
+    ("16:9", 1280, 720, "aspect-16x9.xml"),
+    ("1:1",   720, 720, "aspect-1x1.xml"),
+]
+
+# WIDTH OF "100%" AS ES ACTUALLY RENDERS IT, as a fraction of screen width,
+# measured from `render.sh --view system --battery 100 --resolution WxH` and
+# recorded in docs/screenshots/v0.13-battery-widget/README.md.
+#
+# Measured, not computed: PIL's metrics for this font disagree with ES's
+# rasteriser by -12% to +23% across these sizes, so a computed width is not a
+# safe oracle in either direction. The guard below therefore checks that the
+# theme still RESERVES enough room for the measured width. The fontPath and
+# fontSize assertions underneath are what keep this table honest — change
+# either and the numbers must be re-measured.
+PCT_INK_W = {"4:3": 0.0449, "8:7": 0.0520, "3:2": 0.0514, "16:9": 0.0321, "1:1": 0.0575}
+MEASURED_AT_FONT = ("${fontRegular}", "0.030")
+
+CLOCK_INK_CY = 0.0612   # clock glyph rows 36..58 at 1024x768
+
+# Two minimums, because the clock's bound is a different kind of thing. The
+# clock is right-aligned inside a fixed 0.14 box, so its BOX edge is the
+# worst case its ink can reach (on device, "12:35 PM" ink stops 0.0036 short
+# of it); the other three are ink-to-ink. Shipped worst cases at 4:3 are
+# 0.0115 box-to-ink and 0.0137 ink-to-ink. Both defects this section exists
+# to catch were far below either: 0.0059 at 3:2 and 0.003 at 1:1.
+MIN_BOX_GAP = 0.010     # clock box edge -> network glyph ink
+MIN_INK_GAP = 0.012     # ink -> ink
+
+root = ET.parse(status).getroot()
 def el(tag, name):
     for e in root.iter(tag):
         if e.get('name') == name:
@@ -210,67 +247,89 @@ def el(tag, name):
 
 def pair(e, tag):
     v = e.findtext(tag)
-    return None if v is None else tuple(float(x) for x in v.split())
+    return None if v is None else tuple(v.split())
 
-def fitted_width(png, maxw, maxh):
-    """Replicate ES's aspect-preserving maxSize fit, in screen fractions."""
-    from PIL import Image
+def read_vars(path):
+    r = ET.parse(path).getroot()
+    return {c.tag: (c.text or '').strip() for v in r.findall('variables') for c in v}
+
+def fitted(png, maxw, maxh, W, H):
     im = Image.open(os.path.join(repo, png.lstrip('./')))
-    scale = min(maxw * SW / im.width, maxh * SH / im.height)
-    return im.width * scale / SW
+    scale = min(float(maxw) * W / im.width, float(maxh) * H / im.height)
+    return im.width * scale / W
 
 clock = el('text', 'clock')
 net   = el('networkIcon', 'networkStatus')
 pct   = el('batteryText', 'batteryPercent')
 icon  = el('batteryIcon', 'batteryStatus')
 
-# --- horizontal ladder, left to right -------------------------------------
-clock_right = pair(clock, 'pos')[0] + pair(clock, 'size')[0]
+assert pct.findtext('fontPath').strip() == MEASURED_AT_FONT[0], \
+    f"batteryText fontPath changed; PCT_INK_W must be re-measured"
+assert pct.findtext('fontSize').strip() == MEASURED_AT_FONT[1], \
+    f"batteryText fontSize changed; PCT_INK_W must be re-measured"
 
-net_w = fitted_width(net.findtext('path'), *pair(net, 'maxSize'))
-assert pair(net, 'origin') == (1.0, 0.5), "networkIcon origin must be (1, 0.5) for the ladder below to hold"
-net_right = pair(net, 'pos')[0]
-net_left = net_right - net_w
-
-# batteryText auto-sizes: pos.x is the LEFT edge and the string grows RIGHT.
-# The binding constraint is therefore the WIDEST string ES can produce, which
-# is "100%" — not the 2-digit case every screenshot happens to show.
-font_px = round(float(pct.findtext('fontSize')) * SH)
-# fontPath is ${fontRegular}; resolve it against the <variables> block rather
-# than hard-coding a filename, so a font swap moves this guard with it.
-theme_vars = {c.tag: (c.text or '').strip() for v in root.findall('variables') for c in v}
-font_ref = pct.findtext('fontPath').strip()
-if font_ref.startswith('${') and font_ref.endswith('}'):
-    font_ref = theme_vars[font_ref[2:-1]]
-font = ImageFont.truetype(os.path.join(repo, font_ref.lstrip('./')), font_px)
-pct_left = pair(pct, 'pos')[0]
-pct_right = pct_left + font.getbbox("100%")[2] / SW
-
-icon_w = fitted_width(icon.findtext('full'), *pair(icon, 'maxSize'))
-assert pair(icon, 'origin') == (1.0, 0.5), "batteryIcon origin must be (1, 0.5)"
-icon_right = pair(icon, 'pos')[0]
-icon_left = icon_right - icon_w
-
-MIN_GAP = 0.008
-ladder = [("clock", None, clock_right), ("network", net_left, net_right),
-          ("percent", pct_left, pct_right), ("glyph", icon_left, icon_right)]
-for (an, _, ar), (bn, bl, _) in zip(ladder, ladder[1:]):
-    gap = bl - ar
-    assert gap >= MIN_GAP, f"{an} -> {bn} gap is {gap:.4f} at worst-case width (min {MIN_GAP})"
-
-# The cluster keeps the right margin the clock used to hold on its own.
-assert abs(icon_right - 0.98) < 1e-6, f"glyph right edge is {icon_right}, expected the 0.98 margin"
-
-# --- vertical: every element centred on the clock's measured ink ----------
+# Every element must be anchored to the clock's ink centre, in every ratio —
+# these are literals in the element, not per-ratio.
 for name, e in (("networkIcon", net), ("batteryText", pct), ("batteryIcon", icon)):
     o = pair(e, 'origin')
-    assert o is not None and o[1] == 0.5, f"{name} needs origin y=0.5 to centre on the clock's ink"
-    y = pair(e, 'pos')[1]
-    assert abs(y - CLOCK_INK_CY) < 1e-6, f"{name} pos.y is {y}, expected the clock ink centre {CLOCK_INK_CY}"
-print(f"    ladder ok: clock<={clock_right:.4f} net {net_left:.4f}..{net_right:.4f} "
-      f"pct {pct_left:.4f}..{pct_right:.4f} (worst case) glyph {icon_left:.4f}..{icon_right:.4f}")
-PY
-check "cluster elements are ordered, clear each other at '100%', and share the clock's ink centre" $?
+    assert o and float(o[1]) == 0.5, f"{name} needs origin y=0.5"
+    y = float(pair(e, 'pos')[1])
+    assert abs(y - CLOCK_INK_CY) < 1e-6, f"{name} pos.y is {y}, expected {CLOCK_INK_CY}"
+assert float(pair(net, 'origin')[0]) == 1.0 and float(pair(icon, 'origin')[0]) == 1.0, \
+    "networkIcon and batteryIcon anchor from their RIGHT edge (origin x = 1)"
+
+base = read_vars(os.path.join(repo, '_inc', 'common.xml'))
+for label, W, H, afile in SURFACES:
+    v = dict(base)
+    if afile:
+        over = read_vars(os.path.join(repo, '_inc', afile))
+        # A new aspect file that forgets these silently inherits the 4:3
+        # values, which is the exact defect this section exists to catch.
+        for k in ('statusClockX', 'statusNetX', 'statusPctX'):
+            assert k in over, f"{afile} does not override {k}"
+        v.update(over)
+
+    def x(e, tag='pos'):
+        raw = pair(e, tag)[0]
+        return float(v[raw[2:-1]]) if raw.startswith('${') else float(raw)
+
+    clock_right = x(clock) + float(pair(clock, 'size')[0])
+    net_w  = fitted(net.findtext('path'), *pair(net, 'maxSize'), W, H)
+    net_right, net_left = x(net), x(net) - net_w
+    pct_left = x(pct)
+    pct_right = pct_left + PCT_INK_W[label]
+    icon_w = fitted(icon.findtext('full'), *pair(icon, 'maxSize'), W, H)
+    icon_right, icon_left = x(icon), x(icon) - icon_w
+
+    assert abs(icon_right - 0.98) < 1e-6, \
+        f"{label}: glyph right edge is {icon_right}, expected the 0.98 margin"
+    for (an, ar), (bn, bl), floor in (
+            (("clock", clock_right), ("network", net_left), MIN_BOX_GAP),
+            (("network", net_right), ("percent", pct_left), MIN_INK_GAP),
+            (("percent", pct_right), ("glyph", icon_left), MIN_INK_GAP)):
+        gap = bl - ar
+        assert gap >= floor, \
+            f"{label}: {an} -> {bn} gap is {gap:.4f} at '100%' (min {floor})"
+    print(f"    {label:5s} ok: clock<={clock_right:.4f} net {net_left:.4f}..{net_right:.4f} "
+          f"pct {pct_left:.4f}..{pct_right:.4f} glyph {icon_left:.4f}..{icon_right:.4f}")
+PYGEO
+check "the cluster clears itself at '100%' in all five aspect ratios" $?
+
+# The status bar CANNOT live in common.xml: ES resolves ${variables} at
+# element-parse time, and common.xml is included long before aspect-*.xml, so a
+# screen view declared there pins every ratio to the 4:3 values — silently, and
+# only visibly wrong on the squarer screens.
+python3 - "${REPO_ROOT}/theme.xml" <<'PYORDER'
+import sys
+t = open(sys.argv[1]).read()
+status = t.index('./_inc/status-bar.xml')
+for a in ('aspect-8x7.xml', 'aspect-3x2.xml', 'aspect-16x9.xml', 'aspect-1x1.xml'):
+    assert t.index(a) < status, f"status-bar.xml must be included after {a}"
+PYORDER
+check "theme.xml includes status-bar.xml after every aspect-*.xml" $?
+
+! grep -q 'batteryIcon\|batteryText\|networkIcon\|batteryIndicator' "${COMMON}"
+check "common.xml declares no status-cluster element (it parses too early for the per-ratio variables)" $?
 
 echo
 echo "== harness can drive the widget =="
