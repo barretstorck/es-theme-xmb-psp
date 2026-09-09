@@ -164,11 +164,17 @@
       <pos>0.575 0.505</pos>
       <size>0.395 0.04</size>
       <origin>0 0</origin>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.030</fontSize>
-      <!-- selectorGlow, NOT accent: accent is the wave-layer tint, so accent
-           text on the wave is blue-on-blue. The approved mockup used glow. -->
-      <color>${selectorGlow}</color>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>${listMetaFontSize}</fontSize>
+      <!-- #42: was ${selectorGlow}, which the approved v0.12 mockup called
+           for. Measured on a real render it is 1.82:1 against the wave crest
+           - the worst text anywhere in the theme, and no amount of weight or
+           size rescues a mid-blue on blue. helpAccent, the lightest accent
+           any colorset defines, only reaches 2.57:1, so body colour is the
+           only candidate that clears 3:1 (3.61). This line and listMeta below
+           give up their accent tint; the panel's accent identity now rests on
+           the selector bar and the system name. -->
+      <color>${textSecondary}</color>
       <text>{game:releaseyear}  •  {game:developer}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -186,10 +192,10 @@
     <text name="listStarTrack" extra="true">
       <pos>${listStarX} 0.548</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.028</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>${listMetaFontSize}</fontSize>
       <color>${textSecondary}</color>
-      <opacity>0.35</opacity>
+      <opacity>${starTrackOpacity}</opacity>
       <text>&#xF005;&#xF005;&#xF005;&#xF005;&#xF005;</text>
       <alignment>left</alignment>
       <zIndex>7</zIndex>
@@ -197,8 +203,8 @@
     <text name="listStars" extra="true">
       <pos>${listStarX} 0.548</pos>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.028</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>${listMetaFontSize}</fontSize>
       <color>${textPrimary}</color>
       <text>{game:stars}</text>
       <alignment>left</alignment>
@@ -210,9 +216,9 @@
       <pos>${listMetaX} 0.548</pos>
       <size>0.27 0.04</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.028</fontSize>
-      <color>${selectorGlow}</color>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>${listMetaFontSize}</fontSize>
+      <color>${textSecondary}</color>
       <text>{game:playercount}P  •  {game:genre}</text>
       <alignment>left</alignment>
       <multiLine>false</multiLine>
@@ -224,8 +230,8 @@
       <pos>0.575 ${listDescY}</pos>
       <size>0.395 ${listDescH}</size>
       <origin>0 0</origin>
-      <fontPath>${fontLight}</fontPath>
-      <fontSize>0.024</fontSize>
+      <fontPath>${fontBody}</fontPath>
+      <fontSize>0.026</fontSize>
       <color>${textSecondary}</color>
       <text>{game:desc}</text>
       <alignment>left</alignment>

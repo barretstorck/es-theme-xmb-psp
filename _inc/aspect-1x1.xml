@@ -33,7 +33,10 @@
          height-normalized font stays ~21.6px at 4:3's 0.030, too large for
          the narrower metadata columns here. 0.023 x 720 = 16.6px keeps the
          same pixel proportion 4:3 used (225px-wide box : 23px font). -->
-    <cardMetaFontSize>0.023</cardMetaFontSize>
+    <cardMetaFontSize>0.025</cardMetaFontSize>
+    <!-- #42: keeps metadata line 2 below line 1 at this ratio. Scaled from
+         the base pair (0.026/0.033) against 0.025. -->
+    <cardMeta2FontSize>0.020</cardMeta2FontSize>
 
     <!-- v0.12 gamelist styles: square screen means vertical space is the
          constraint; shrink the media envelope or it collides with the
@@ -51,5 +54,9 @@
          720x720. Shift listStarX left; kept clear of the textlist's right
          edge (0.525) with ~10px to spare. -->
     <listStarX>0.540</listStarX>
+    <!-- #42: 0.030 (the base) puts the track's right edge at 0.693 against
+         listMetaX 0.700 - inside the 0.010 clearance the guard demands.
+         720x720 is the squarest surface, so it is the binding ratio. -->
+    <listMetaFontSize>0.028</listMetaFontSize>
   </variables>
 </theme>
