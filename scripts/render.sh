@@ -147,6 +147,21 @@ check_pin VIDEO_AUDIO      videoAudio
 check_pin SCROLL_SPEED     scrollSpeed
 check_pin BUTTON_GLYPHS    buttonGlyphs
 
+# These two are ES settings rather than theme subsets, so check_pin cannot
+# validate them — but they are just as easy to get wrong, and both fail
+# silently. A rejected value is better than a render that quietly shows the
+# wrong thing. See the es_as_bool note in docker/run-in-container.sh for why
+# only these two spellings are allowed through.
+check_bool() { # check_bool <env-var-name>
+  local var="$1" val="${!1:-}"
+  [[ -z "${val}" ]] && return 0
+  if [[ "${val}" != "true" && "${val}" != "false" ]]; then
+    echo "bad ${var}: '${val}' — expected true or false" >&2; exit 2
+  fi
+}
+check_bool SHOW_HELP
+check_bool INVERT_BUTTONS
+
 # Build the image on first use.
 if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
   echo "Building ${IMAGE} (one-time, ~5-10 min)..."

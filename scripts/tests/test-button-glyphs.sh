@@ -72,8 +72,28 @@ set_pairs() { # set_pairs <file>
 # Strip XML comments. These files document the very traps they avoid — the
 # phrase <view name="grid"> appears in buttons-nintendo.xml's header explaining
 # why it must NOT be there — so a naive grep flags the explanation as the bug.
+# awk, not python3: the glyph-content check further down is skipped when
+# Pillow is absent, which is fine because it announces the skip. This guard
+# must never be skippable — a set file that declared a view would then pass
+# silently on a python3-less host, and that regression ships to every user who
+# pinned Gamelist View Style = grid.
 strip_comments() { # strip_comments <file>
-  python3 -c 'import re,sys; sys.stdout.write(re.sub(r"<!--.*?-->", "", open(sys.argv[1]).read(), flags=re.S))' "$1"
+  awk '''{
+    while (1) {
+      if (incomment) {
+        i = index($0, "-->")
+        if (i == 0) { $0 = ""; break }
+        $0 = substr($0, i + 3); incomment = 0
+      }
+      i = index($0, "<!--")
+      if (i == 0) break
+      rest = substr($0, i + 4); $0 = substr($0, 1, i - 1)
+      j = index(rest, "-->")
+      if (j == 0) { incomment = 1; break }
+      $0 = $0 substr(rest, j + 3)
+    }
+    print
+  }''' "$1"
 }
 
 echo "the property names must be ones ES actually reads:"

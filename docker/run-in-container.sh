@@ -205,7 +205,21 @@ key() {
   sleep "${wait}"
 }
 
-if [[ "${INVERT_BUTTONS}" == "true" ]]; then
+# ES parses these through pugixml's as_bool(), which accepts "true", "1", "yes"
+# and any leading-T/Y spelling. A bare == "true" here would disagree with ES on
+# INVERT_BUTTONS=1 — ES would invert, the harness would still send Return, and
+# every gamelist render would silently stop on the system carousel. That is the
+# exact bug this block was added to fix, so match as_bool()'s rule instead of
+# guessing. render.sh rejects anything outside true/false up front; this stays
+# permissive for direct container invocations.
+es_as_bool() { # es_as_bool <value>
+  case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
+    true|1|yes|y|t) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+if es_as_bool "${INVERT_BUTTONS}"; then
   CONFIRM_KEY="Escape"
 else
   CONFIRM_KEY="Return"
