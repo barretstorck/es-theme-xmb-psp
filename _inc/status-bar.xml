@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  es-theme-xmb-psp - the top-right status cluster (and ES's OSD suppression).
+
+  WHY THIS IS NOT IN common.xml: the cluster's x positions are per-ratio
+  ${statusClockX} / ${statusNetX} / ${statusPctX} variables, and ES resolves
+  variables at ELEMENT-PARSE time. common.xml is included first, long before
+  _inc/aspect-*.xml, so a screen view declared there reads the 4:3 defaults
+  and no per-ratio override can ever reach it — silently, with the layout
+  looking correct at 4:3 and the percentage running into the battery glyph at
+  1:1 and 8:7. theme.xml therefore includes this file AFTER the aspect
+  overrides, the same rule the gamelist style views follow.
+
+  See docs/psp-xmb-style-guidelines.md 6.5.
+  CC-BY-NC-SA 2.0. See CREDITS.md.
+-->
+<theme>
+  <formatVersion>7</formatVersion>
+
+  <!-- Hide ES's built-in OSD overlays so they don't double up with our
+       theme. controllerActivity is the white-pink square top-left. -->
+  <view name="screen">
+    <controllerActivity name="controllerActivity">
+      <visible>false</visible>
+    </controllerActivity>
+    <!-- ES draws a SECOND battery widget of its own: BatteryIndicatorComponent
+         (Window.cpp:157, rendered at :746), a ControllerActivityComponent
+         subclass pinned top-right at 0.955/0.0125 that shows wifi + battery
+         glyph + "NN%" in ES's own font. It is not the controllerActivity
+         above — hiding that one leaves this one drawing. It is why v0.10
+         concluded <visible>false</visible> "did not hide the icon on-device":
+         the theme was hiding its own batteryIcon while ES kept painting this.
+         Unlike batteryIcon (whose update() calls setVisible() every tick and
+         so overwrites any themed value), this one honours <visible> — its
+         render() early-returns on !isVisible() and nothing sets it back. -->
+    <batteryIndicator name="batteryIndicator">
+      <visible>false</visible>
+    </batteryIndicator>
+
+    <!-- Hiding batteryIndicator also removes ES's wifi glyph, so the theme
+         draws its own. Auto-hides when disconnected — NetworkIconComponent
+         ::update() does setVisible(ShowNetworkIndicator && connected). -->
+    <networkIcon name="networkStatus">
+      <pos>${statusNetX} 0.0612</pos>
+      <origin>1 0.5</origin>
+      <maxSize>0.033 0.030</maxSize>
+      <color>${textPrimary}</color>
+      <path>./art/ui/network.png</path>
+    </networkIcon>
+
+    <!-- Battery percentage (audit ST1). MUST be a native <batteryText>: a
+         binding-based <text extra="true">{global:batteryLevel}%</text> renders
+         EMPTY here, because nothing ever resolves bindings in the screen view.
+         Window.cpp:1258 builds the screen extras but no BindingManager::
+         updateBindings call exists for them (only SystemView, the gamelist
+         containers, Splash and the carousel/grid item templates do that). That
+         is the real cause of v0.10's "percentage would not render", and it is
+         unfixable from the theme — do not retry the binding.
+
+         batteryText auto-sizes its own width (mAutoCalcExtent.x() = 1,
+         BatteryTextComponent.cpp:52), which makes <alignment>right</alignment>
+         inert: the element is only ever as wide as its text, so pos.x is the
+         LEFT edge and the string grows RIGHTWARD toward the glyph. Placed for
+         the widest case, "100%" — see the geometry ladder in
+         scripts/tests/test-battery.sh, which recomputes it from the font. -->
+    <batteryText name="batteryPercent">
+      <pos>${statusPctX} 0.0612</pos>
+      <origin>0 0.5</origin>
+      <size>0.060 0.06</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.030</fontSize>
+      <color>${textPrimary}</color>
+    </batteryText>
+
+    <!-- Battery glyph, flush to the same 0.98 right margin the clock used to
+         hold. ES picks the state image itself from the charge level
+         (BatteryIconComponent.cpp:52-69) and calls setVisible(hasBattery), so
+         devices without a battery show nothing here and need no theme setting.
+
+         The element TAG must be <batteryIcon> (ES dispatches component types
+         by tag name, ThemeData.cpp:2145) and it MUST carry a name attribute
+         (unnamed elements are skipped, ThemeData.cpp:1506-1511). Both were hit
+         in v0.9.3.
+
+         pos.y 0.0612 + origin y 0.5 is the clock's MEASURED ink centre at
+         1024x768 (glyph rows 36..58 px), not the centre of the clock's 0.06
+         box — vertical alignment was the third v0.10 blocker and guessing at
+         it is what made it unresolvable. -->
+    <batteryIcon name="batteryStatus">
+      <pos>0.98 0.0612</pos>
+      <origin>1 0.5</origin>
+      <maxSize>0.046 0.030</maxSize>
+      <color>${textPrimary}</color>
+      <empty>./art/battery/battery-empty.png</empty>
+      <at25>./art/battery/battery-25.png</at25>
+      <at50>./art/battery/battery-50.png</at50>
+      <at75>./art/battery/battery-75.png</at75>
+      <full>./art/battery/battery-full.png</full>
+      <incharge>./art/battery/battery-incharge.png</incharge>
+    </batteryIcon>
+
+    <!-- ES's real wall-clock, top-right, enlarged (v0.6). Shifted left from
+         x=0.84 to clear the battery cluster: at 4:3 the right edge is
+         0.68 + 0.14 = 0.82, and the network glyph's LEFT edge is 0.830
+         (statusNetX is its right edge — origin x is 1), so the real
+         clearance is 0.010, not the 0.043 to statusNetX itself. -->
+    <text name="clock">
+      <visible>true</visible>
+      <pos>${statusClockX} 0.03</pos>
+      <size>0.14 0.06</size>
+      <fontPath>${fontRegular}</fontPath>
+      <fontSize>0.042</fontSize>
+      <color>${textPrimary}</color>
+      <alignment>right</alignment>
+    </text>
+  </view>
+</theme>
