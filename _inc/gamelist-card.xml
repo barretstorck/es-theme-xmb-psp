@@ -171,15 +171,26 @@
       <zIndex>8</zIndex>
     </image>
 
-    <!-- Media fallback when the selected game has no screenshot. Unlike the
-         thumbnail slot (cardFallback, left), this is the upper-right art slot
-         and would otherwise sit blank for an unscraped game. -->
+    <!-- Media fallback when the selected game has no art for the upper-right
+         slot at all. Unlike the thumbnail slot (cardFallback, left), this one
+         would otherwise sit blank for an unscraped game.
+
+         The guard has to match how ES actually resolves md_video's snapshot,
+         which is NOT just {game:image}:
+         DetailedContainer::updateControls seeds the snapshot with
+         `image.empty() ? thumbnail : image` and the src==IMAGE branch only
+         overrides it when the image path is non-empty
+         (DetailedContainer.cpp:786-807). So a box-art-only scrape (thumbnail
+         present, image absent) puts the THUMBNAIL in the slot. Guarding on
+         !exists({game:image}) alone would leave this icon visible underneath a
+         portrait box-art still, and a square icon behind a 3:4 still leaks on
+         both sides: the exact fault #41 set out to remove, one layer down. -->
     <image name="cardMediaFallback" extra="true">
       <path>${mediaFallbackPath}</path>
       <pos>${cardMediaX} ${cardMediaY}</pos>
       <maxSize>${cardMediaW} ${cardMediaH}</maxSize>
       <origin>0.5 0.5</origin>
-      <visible>!exists({game:image})</visible>
+      <visible>!exists({game:image}) &amp;&amp; !exists({game:thumbnail})</visible>
       <zIndex>6</zIndex>
     </image>
 

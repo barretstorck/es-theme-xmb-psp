@@ -1145,9 +1145,17 @@ declares it without `visible=false` and applies `ALL^PATH`
 `pos`/`maxSize`/`origin`/`zIndex` while the path stays bound to the
 selected game.
 
-`cardMediaFallback` (`${mediaFallbackPath}`, `zIndex 6`,
-`!exists({game:image})`) still backs the slot: `md_video`'s snapshot is
-`{game:image}`, which an unscraped game does not have.
+`cardMediaFallback` (`${mediaFallbackPath}`, `zIndex 6`) still backs the
+slot for a game with no art at all — but its guard is
+`!exists({game:image}) && !exists({game:thumbnail})`, **both halves
+required**. ES does not resolve `md_video`'s snapshot to `{game:image}`
+alone: `DetailedContainer::updateControls` seeds it with
+`image.empty() ? thumbnail : image`, and the `src == IMAGE` branch only
+overrides that when the image path is non-empty
+(`DetailedContainer.cpp:786-807`). So a box-art-only scrape puts the
+**thumbnail** in the slot. Guarding on the image alone left this icon
+visible underneath that still — and a square icon behind a 3:4 box art
+leaks on both sides, which is #41's own fault one layer down.
 
 **The rating is a pair too.** `{game:stars}` (`FileData.cpp:1924`)
 emits only filled glyphs — `for (i = 0; i < stars; i++)` — with no

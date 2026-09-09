@@ -33,7 +33,7 @@
          variable, gamelist-list.xml is out of scope to edit), so its pixel
          width scales with height alone. At 1024x896 that inflates the
          5-glyph track to where it lands flush against listMeta (0.700) with
-         ~0px clearance -- confirmed touching in the render. Shift listStarX
+         ~0px clearance (confirmed touching in the render). Shift listStarX
          left to restore a ~20px gap; listMetaX is left untouched so its
          0.27-wide box keeps the same right-edge margin as every other
          ratio. -->

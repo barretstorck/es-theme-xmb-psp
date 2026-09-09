@@ -2,9 +2,10 @@
 
 Two kinds, because a real scrape produces two kinds:
 
-* **Box art** (`media/box/`, `<thumbnail>`) — 256x256, solid colour, centred
-  label. Not real box art, just something recognisable for the carousel and
-  the gamelist's boxart slot.
+* **Box art** (`media/box/`, `<thumbnail>`) — 256x256 by default, solid colour,
+  centred label. Not real box art, just something recognisable for the carousel
+  and the gamelist's boxart slot. One entry is portrait on purpose; see its
+  comment.
 * **Screenshots** (`media/screenshots/`, `<image>`) — the gameplay still that
   feeds the media slot. Deliberately at *gameplay* aspect ratios, not square,
   and deliberately not matching their game's video: `<maxSize>` fits each file
@@ -33,6 +34,13 @@ THUMBS = {
     "nes/media/box/smb3.png":           ("Mario 3",         (220,  50,  50)),
     "nes/media/box/contra.png":         ("Contra",          ( 50,  50,  50)),
     "nes/media/box/no-genre.png":       ("No-Genre Game",   ( 90, 140, 180)),
+    # PORTRAIT, and the only game with a box but no screenshot. ES resolves
+    # md_video's snapshot to the THUMBNAIL when <image> is empty
+    # (DetailedContainer.cpp:786+), so this game's media slot shows a 3:4 still
+    # while the media fallback's guard -- which only asks about <image> -- would
+    # also fire. A square fallback behind a portrait still leaks on both sides,
+    # which is why this fixture is portrait rather than 256x256.
+    "psx/media/box/box-only.png":       ("Box-Only Game",   ( 60, 150, 140), (192, 256)),
 }
 
 # rel path -> (label, background rgb, (width, height))
@@ -76,8 +84,10 @@ def write(rel, img):
 
 
 def main():
-    for rel, (label, rgb) in THUMBS.items():
-        write(rel, placeholder(label, rgb, (256, 256)))
+    for rel, spec in THUMBS.items():
+        label, rgb = spec[0], spec[1]
+        size = spec[2] if len(spec) > 2 else (256, 256)
+        write(rel, placeholder(label, rgb, size))
     for rel, (label, rgb, size) in SCREENSHOTS.items():
         write(rel, placeholder(label, rgb, size, border=(255, 0, 255)))
 
