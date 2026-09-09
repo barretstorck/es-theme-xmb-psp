@@ -130,7 +130,7 @@ residual homebrew/port entries overlap with G10's
 branded-item-icon territory).
 
 **Evidence:** `art/system-icons/` listing (198 files);
-`_inc/system.xml:164-170` (per-system icon binding via
+`_inc/system.xml:142-146` (per-system icon binding via
 `${system.theme}`); `libretro/retroarch-assets` →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
 silhouettes); commits f170f40, 0afbb62.
@@ -1728,7 +1728,7 @@ These items were considered and dropped for **non-technical** reasons
 features. Listed so future audits don't re-discover them.
 
 - **Selected-icon scale-up.** Already shipped — `logoScale=1.5` in
-  both carousels (`_inc/system.xml:76`, common var
+  both carousels (`_inc/system.xml:90`, common var
   `gameCarLogoScale`).
 - **Category band behind icon row.** Re-examination of the PSP
   screenshots shows icons sit directly on the coloured background /

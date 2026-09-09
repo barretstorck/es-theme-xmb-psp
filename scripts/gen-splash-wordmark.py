@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen-splash-wordmark.py — generate the boot splash lockup (issue #10).
 
-Mirrors the procedural-asset pattern of scripts/gen-halo.py and
+Mirrors the procedural-asset pattern of scripts/gen-battery-icons.py and
 scripts/gen-chevrons.py. Produces:
   art/ui/splash-wordmark.png — "XMB for EmulationStation" over a hairline
                                rule, with the theme name beneath it

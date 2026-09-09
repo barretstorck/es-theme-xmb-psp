@@ -362,10 +362,14 @@ Reserved regions (do not place new content here):
   PSP doesn't put anything there either.
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
   (`<helpsystem>` at `(0.02, 0.94)`). Don't overlay content here.
-- **Cross anchor region `(crossX±0.10, crossY±0.10)`** — owned by the
-  selected category icon, which renders `0.18 × 0.24` around the
-  anchor at 4:3 (`logoScale=1.5`). Any element placed inside that
-  radius competes visually with the selected icon.
+- **Cross anchor region `(crossX±0.09, crossY±0.12)`** — owned by the
+  selected category icon, which renders `0.18 × 0.24` centred on the
+  anchor at 4:3 (`sysIconMaxW/H × logoScale=1.5`), so the keep-out box
+  is exactly the icon's own half-extents. It was `±0.10` square while
+  the halo existed and was sized to the halo's `0.28` footprint; the
+  halo is gone (§6.2) and the icon is taller than it is wide, so the
+  vertical reserve grows and the horizontal one shrinks. Any element
+  inside it competes visually with the selected icon.
 
 ### 2.4 Z-index stack
 
@@ -910,7 +914,7 @@ had pinned Gamelist View Style = grid. Guarded by
 
 ### 6.1 Category icons (system carousel)
 
-Top horizontal row. Defined in `_inc/system.xml:98-119`.
+Top horizontal row. Defined in `_inc/system.xml:76-97`.
 
 ```xml
 <carousel name="systemcarousel">
@@ -948,7 +952,7 @@ Top horizontal row. Defined in `_inc/system.xml:98-119`.
 
 **Selected logo z-order** sits above the carousel container so the
 selected icon paints over its slot reliably. The `<image name="logo">`
-element in `_inc/system.xml:164-168` has `<zIndex>6</zIndex>`; the
+element in `_inc/system.xml:142-146` has `<zIndex>6</zIndex>`; the
 carousel has `<zIndex>5</zIndex>`.
 
 ### 6.2 Selected-icon halo — removed
@@ -1001,7 +1005,7 @@ the two earlier tunes pass review and then fail in the hand.
 
 Below the selected category icon, displaying the system's `theme`
 shortname (e.g., "NES", "SNES", "PSX"). Defined in
-`_inc/system.xml:147-159`.
+`_inc/system.xml:125-137`.
 
 ```xml
 <text name="systemName" extra="true">
@@ -1035,7 +1039,7 @@ shortname (e.g., "NES", "SNES", "PSX"). Defined in
 
 When the user enables Game Count: Show, a second caption appears
 below the system name, cycling between the count text. Defined in
-`_inc/system.xml:125-135` (the carousel's `systemInfo` slot) and the
+`_inc/system.xml:103-113` (the carousel's `systemInfo` slot) and the
 gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ```xml
@@ -1636,7 +1640,7 @@ under Main Menu → UI Settings) overrides this.
 (~150ms with a soft cross-fade); ES's `slide` is much longer
 (~500-700ms) and reads as molasses. `instant` plus the carousel's
 own internal `fade` (`<defaultTransition>fade</defaultTransition>` in
-`_inc/system.xml:99`) gives a feel closer to PSP than either
+`_inc/system.xml:77`) gives a feel closer to PSP than either
 extreme.
 
 ### 7.3 Halo scroll fade

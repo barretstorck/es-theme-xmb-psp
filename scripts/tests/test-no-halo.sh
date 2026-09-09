@@ -15,6 +15,13 @@
 # the element. The element check therefore parses the XML and inspects real
 # `name` attributes.
 #
+# That still only catches things spelled "halo". A re-added glow called
+# something else is caught by two different checks instead: the system view's
+# mStaticBackgrounds membership is pinned to exactly the four wave elements,
+# and zIndex 4 - the band the halo occupied, between the wave layers and the
+# carousel - is asserted to stay empty. Those are the two properties any
+# back-layer glow must have, whatever it is named.
+#
 # NOTE: deliberately NOT `set -e` — see the note in test-gamelist-styles.sh.
 set -uo pipefail
 
@@ -79,6 +86,42 @@ check "art/halo.png is deleted" $?
 # way it sat on main for three releases. Catch that shape specifically.
 ! grep -rq 'staticBackgroundHalo' "${REPO_ROOT}/_inc" "${REPO_ROOT}/theme.xml" "${REPO_ROOT}/splash.xml"
 check "no staticBackgroundHalo left in the theme XML, commented or otherwise" $?
+
+[[ ! -e "${REPO_ROOT}/scripts/gen-halo.py" ]]
+check "the generator that recreates art/halo.png is deleted" $?
+
+echo
+echo "the back-layer slot it occupied stays empty:"
+
+python3 - "${REPO_ROOT}" <<'PY'
+import os, sys, xml.etree.ElementTree as ET
+root = sys.argv[1]
+bad = []
+# SystemView routes every element whose name starts with staticBackground into
+# mStaticBackgrounds and paints the group beneath the carousel. That set is the
+# wave, and only the wave.
+WAVE = {"staticBackgroundWave", "staticBackgroundLayer1",
+        "staticBackgroundLayer2", "staticBackgroundLayer3"}
+tree = ET.parse(os.path.join(root, "_inc", "system.xml"))
+found = {el.get("name") for el in tree.iter()
+         if (el.get("name") or "").startswith("staticBackground")}
+if found != WAVE:
+    bad.append(f"mStaticBackgrounds is {sorted(found)}, expected the four wave "
+               f"elements {sorted(WAVE)} - extra: {sorted(found - WAVE)}, "
+               f"missing: {sorted(WAVE - found)}")
+# zIndex 4 sat between the wave layers (0-3) and the carousel (5+). It is the
+# only band from which an element can light the selected icon from behind, so
+# anything landing there is the halo again under another name.
+for el in tree.iter():
+    z = el.find("zIndex")
+    if z is not None and (z.text or "").strip() == "4":
+        bad.append(f"<{el.tag} name={el.get('name')!r}> claims zIndex 4, the "
+                   "band the halo occupied - it is documented as free (2.4)")
+if bad:
+    print("\n".join(bad), file=sys.stderr); sys.exit(1)
+PY
+rc=$?
+check "system view holds only the four wave staticBackgrounds, and zIndex 4 is free" "${rc}"
 
 echo
 echo "the decision is documented where someone would look:"
