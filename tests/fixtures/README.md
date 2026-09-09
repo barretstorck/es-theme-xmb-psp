@@ -6,27 +6,44 @@ device library.
 
 ## Matrix
 
-| system | game | thumbnail | video | description | genre |
-|---|---|:-:|:-:|:-:|:-:|
-| snes | super-metroid | ✓ | ✓ | ✓ | ✓ |
-| snes | zelda3 | ✓ | | ✓ | ✓ |
-| snes | unscraped-game | | | | |
-| snes | no-desc | ✓ | | | ✓ |
-| psx | ff7 | ✓ | ✓ | ✓ | ✓ |
-| psx | mgs | ✓ | | ✓ | ✓ |
-| psx | no-video | ✓ | | ✓ | ✓ |
-| psx | no-thumb | | | ✓ | ✓ |
-| nes | smb3 | ✓ | | ✓ | ✓ |
-| nes | contra | ✓ | | ✓ | ✓ |
-| nes | no-genre | ✓ | | ✓ | |
-| nes | zero-metadata | | | | |
+`thumbnail` is `<thumbnail>`, the box-art slot. `screenshot` is `<image>`, the
+gameplay still that feeds the media slot — a separate file, as in a real scrape.
+
+| system | game | thumbnail | screenshot | video | description | genre |
+|---|---|:-:|:-:|:-:|:-:|:-:|
+| snes | super-metroid | ✓ | ✓ 4:3 | ✓ 8:7 | ✓ | ✓ |
+| snes | zelda3 | ✓ | box | | ✓ | ✓ |
+| snes | video-no-image | | | ✓ 8:7 | ✓ | ✓ |
+| snes | unscraped-game | | | | | |
+| snes | no-desc | ✓ | box | | | ✓ |
+| psx | ff7 | ✓ | ✓ 16:9 | ✓ 4:3 | ✓ | ✓ |
+| psx | mgs | ✓ | box | | ✓ | ✓ |
+| psx | no-video | ✓ | box | | ✓ | ✓ |
+| psx | no-thumb | | | | ✓ | ✓ |
+| nes | smb3 | ✓ | box | | ✓ | ✓ |
+| nes | contra | ✓ | box | | ✓ | ✓ |
+| nes | no-genre | ✓ | box | | ✓ | |
+| nes | zero-metadata | | | | | |
+
+"box" means `<image>` points at the box art, i.e. the still and the box art are
+the same file. Only the two games with videos have a distinct screenshot.
 
 The two videos are short synthetic clips (a frame counter and a sweep bar) at
 their systems' native gameplay resolutions — psx 320x240 (4:3), snes 256x224
 (8:7). They are deliberately unmistakable for the still box art, so a render
-proves a `<video>` is *playing* rather than showing its snapshot, and their
-differing aspect ratios exercise `<maxSize>`, which fits each file to its own
-rectangle.
+proves a `<video>` is *playing* rather than showing its snapshot.
+
+**The screenshots are deliberately WIDER than their clips**, and carry a magenta
+border — a colour that appears nowhere else in the theme. `<maxSize>` preserves
+each *file's* aspect, so a still and a clip in one slot fit to different
+rectangles; if the media slot is ever split back into an image plus a video, the
+still's magenta edges show around the video. That was issue #41, and a square
+placeholder cannot reproduce it — a 1:1 still fits *inside* a 4:3 clip and hides
+the fault completely.
+
+`snes/video-no-image` has a video but no `<image>` at all, which is the path
+where the media slot has nothing to show until the clip starts and the fallback
+icon underneath is what renders.
 
 Renders pin the Video Delay to 10s, so an ordinary capture shows the still
 screenshot; pass `VIDEO_DELAY=Instant --settle 4` to catch the video playing.
