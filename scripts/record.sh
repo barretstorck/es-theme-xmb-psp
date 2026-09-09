@@ -27,14 +27,14 @@ COLORSET="January Blue"
 LIBRARY=""
 FPS=10
 WIDTH=640
-COLORS=128
+COLORS=96
 KEEP_FRAMES=0
 OUT="${REPO_ROOT}/.dev/record.gif"
 # Default sequence: dwell on the carousel long enough for the wave to move,
 # walk several systems, drop into a gamelist, walk a few games, come back out.
 # The wave's fastest layer loops every 12s, so a take much shorter than that
 # shows almost no motion.
-SCRIPT_SPEC="right:1.6,right:1.6,right:1.6,confirm:3,down:1.2,down:1.2,down:1.2,back:2,right:1.6"
+SCRIPT_SPEC="right:1.4,right:1.4,right:1.4,confirm:2.5,down:1.1,down:1.1,down:1.1,back:1.5,right:1.4"
 
 usage() {
   cat <<EOF
@@ -58,9 +58,13 @@ Usage: record.sh [--resolution WxH] [--colorset NAME] [--library PATH]
                 (default: ${SCRIPT_SPEC})
   --width N     GIF output width in px   (default: 640, downscaled from the
                 capture resolution)
-  --colors N    GIF palette size, 2..256 (default: 128). The wave is a smooth
-                gradient and is the first thing quantisation bands — compare
-                sizes before committing an artifact.
+  --colors N    GIF palette size, 2..256 (default: 96). The wave is a smooth
+                gradient and is the first thing quantisation bands, so this was
+                chosen by comparing encodes rather than by taste: measured on a
+                139-frame take, 128 -> 64 colours saved only 5% (2.97MB ->
+                2.81MB), because every pixel of the wave changes every frame
+                and neither palette reduction nor frame-differencing has much
+                to work with. Length and --width are the real size levers.
   --out FILE    host path for the GIF    (default: .dev/record.gif)
   --keep-frames retain the captured PNGs next to the GIF, for inspecting a
                 take that navigated wrong
