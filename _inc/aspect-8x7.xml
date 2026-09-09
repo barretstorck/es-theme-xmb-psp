@@ -26,7 +26,6 @@
     <cardMediaW>0.40</cardMediaW>
     <cardMediaH>0.30</cardMediaH>
     <cardDescH>0.160</cardDescH>
-    <gridTileH>0.230</gridTileH>
 
     <!-- Added beyond the brief (found by rendering, not listed there):
          style B's listStars/listStarTrack fontSize is fixed at 0.028 (not a

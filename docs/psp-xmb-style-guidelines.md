@@ -1301,6 +1301,88 @@ elements rebind to the selected tile exactly as in the other styles.
 Degrades to the shared `_inc/media-fallback/` silhouettes for games
 without scraped box art. Full geometry: the v0.12 design spec §6.
 
+**Selection is size only** (v0.13, issue #43): the selected tile is
+enlarged to `autoLayoutSelectedZoom` 1.20 and nothing else changes —
+unselected tiles are at full brightness, and there is no filled
+selector box. Both `<gridtile>` blocks must set `backgroundColor` to a
+transparent value rather than omit it: omitting it does not remove the
+tile background, it falls back to ES's `:/frame.png` nine-patch tinted
+`0xAAAAEEFF` on the default tile and `0xFFFFFFFF` on the selected one
+(`resetProperties` assigns the pale tint to `mDefaultProperties` alone,
+GridTileComponent.cpp:67) and `renderBackground()` draws
+unconditionally. `<animateSelection>` stays `true`, so the size change
+is animated — a still render understates the cue.
+
+**Three grid facts that are not obvious from the XML:**
+
+1. **`gridTileW`/`gridTileH` are inert.** Whenever `<autoLayout>` is
+   set, `ImageGridComponent::calcGridDimension` recomputes `mTileSize`
+   from the grid rect and discards `<gridtile><size>`
+   (ImageGridComponent.h:1442-1447). Measured tile is 226px at 4:3, not
+   `0.185 × 1024 = 189`. Do **not** add per-ratio overrides for them —
+   four such overrides shipped in v0.12 and did nothing.
+2. **The grid rect is its own render clip** (`pushClipRect` at
+   ImageGridComponent.h:733), so a zoomed tile in the top row is cut
+   flat at the band edge unless the rect has headroom. The tiles occupy
+   a fixed *cell band* of `0.04 0.16 0.92 0.60`; the declared rect is
+   that band grown by the zoom overhang `(zoom − 1) × tile / 2` on every
+   side, with `<padding>` equal to the growth. Padding is subtracted
+   before the tile size is derived and added to the first tile's centre
+   (`:1444`, `:283`), so the grown rect changes nothing but clip room.
+3. **The margin is the binding constraint on the zoom.** Clearance
+   between the enlarged tile and its neighbour is
+   `(tile + margin) − tile × (zoom + 1) / 2`, so the smallest usable
+   margin is
+   `(zoom − 1) × band / 2 / (n + (n − 1)(zoom − 1) / 2)`. v0.12's
+   `0.012/0.020` capped the zoom at **1.109 horizontally** and 1.138
+   vertically, so its 1.14 was already *past* the horizontal one —
+   tile boxes overlapped by 3.6px at 1024 wide. The shipped
+   `0.024/0.032` clears the minimum by about 3px at 1024×768; a
+   threshold-exact margin leaves a sub-pixel gutter that anti-aliases
+   into contact.
+
+   That v0.12 overlap was invisible, and the reason matters before any
+   retune: `maxSize` art is *narrower than its own cell* unless the art
+   matches the cell's aspect, so the drawn art had clearance the boxes
+   did not. Square-ish Game Boy covers in a 226×223 cell drew 222px
+   wide and cleared until zoom 1.146 — which is where that figure comes
+   from. Art that fills its cell in the binding axis is the worst case
+   and the only safe thing to design against, and it collides at 1.109.
+   The formula and the guard both use the box, never the art.
+
+Because every live value is a fraction of the same screen dimension,
+these thresholds are **identical at all five aspect ratios** — verified
+by rendering solid-colour calibration tiles at each and measuring the
+drawn rects. `scripts/tests/test-grid-selection.sh` recomputes the
+whole derivation and fails on any inconsistency.
+
+**The info bar's fill must be `art/ui/panel-fill.png`, never
+`art/line-1px.png`.** The hairline asset is 256×4 with rows 0 and 3
+fully transparent — bleed rows that keep it crisp where it is used as a
+*rule* (style A's `cardLine`, style B's `listRule`). Stretched to a fill
+it renders only its opaque middle band: the v0.12 info bar declared
+`0.795–0.905` and drew `0.8229–0.8776`, half height and vertically
+centred, which is why the metadata row (ending at `0.902`) sat outside
+the box. Its text bands are variables in `_inc/common.xml`
+(`gridInfoY/H`, `gridTitleY/H`, `gridMetaY/H`, `gridStarX/W`), all at
+v0.12's values — promoting them must not move a pixel.
+
+**`<size>` is what bounds these rows, not a `clipRect`.** They are all
+single-line, non-scrolling text, and ES abbreviates that to `mSize.x`
+with `"..."` (TextComponent.cpp:376-379) — so a `clipRect` on any of
+them is inert. Verified: adding one to `gridTitle` changed zero pixels,
+and removing v0.12's `gridMeta` one changed the band by at most one LSB.
+Issue #43 asked for a `gridTitle` `clipRect` on the belief that a long
+title escaped the panel; it never did — `<size>` already stopped it at
+0.95, and what escaped was the panel, which was drawing at half height.
+The theme's "`<size>` alone does not clip" rule is about **multi-line**
+text: `cardDesc`/`listDesc` overflow *vertically*, which `<size>` does
+not bound, and that is what their clip rects are for.
+
+The abbreviation is gated on `mAutoScroll == NONE`, so adding a marquee
+to any of these rows removes their bound and a clip rect becomes the
+only one. `test-grid-selection.sh` enforces that pairing.
+
 **Requires ES's own Gamelist View Style = Automatic.** Three shared
 includes register a `detailed,gamecarousel` view unconditionally (or,
 for the scroll-speed trio, whichever single variant is active) —

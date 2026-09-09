@@ -115,7 +115,10 @@ UI Settings → Theme Configuration → **Gamelist Style**:
 - **PSP Card** (default) — the XMB card layout. Selected game expands into a
   large card with box art, screenshot/video, and a bounded description.
 - **List + Details** — a ten-row title list with art, metadata and description.
-- **Box Art Grid** — a wall of cover art with an info bar.
+- **Box Art Grid** — a wall of cover art with an info bar. The selected
+  game is shown by being **enlarged**, and nothing else: no highlight box,
+  and the other covers are not dimmed. A game title too long for the info
+  bar is trimmed at the bar's edge rather than spilling past it.
 
 In **PSP Card** and **List + Details** (Box Art Grid has no media slot by
 design), the screenshot becomes a video preview after the delay set by

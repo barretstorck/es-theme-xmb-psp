@@ -54,6 +54,14 @@ Usage: render.sh [--view V] [--resolution WxH] [--colorset NAME]
                 to <out>-1.png .. <out>-N.png  (default: 1)
   --frame-interval S  seconds between frames when --frames > 1  (default: 1)
 
+  Env pins for cursor position inside a gamelist (both default 0):
+    GAMELIST_DOWN=N   press Down N times. Walks rows in the Box Art Grid, and
+                      rows in the PSP Card / List + Details title lists.
+    GAMELIST_RIGHT=N  press Right N times. Walks COLUMNS, which only the Box
+                      Art Grid has — it is how a render reaches a tile at a
+                      column edge instead of always photographing the
+                      top-left corner.
+
   Env pins (optional, empty = theme default):
     ICON_SIZE=Boxart|Compact
     TITLE_VISIBILITY="PSP-Faithful"|"With Titles"
@@ -205,6 +213,7 @@ DOCKER_ARGS+=(
   -e VIEW="${VIEW}" -e RESOLUTION="${RESOLUTION}" -e COLORSET="${COLORSET}"
   -e OUTNAME="${OUTNAME}" -e HAS_LIBRARY="${HAS_LIBRARY}"
   -e GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
+  -e GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
   -e ICON_SIZE="${ICON_SIZE:-}" -e TITLE_VISIBILITY="${TITLE_VISIBILITY:-}"
   -e GAMELIST_STYLE="${GAMELIST_STYLE:-}" -e SCROLL_SPEED="${SCROLL_SPEED:-}"
   -e VIDEO_DELAY="${VIDEO_DELAY:-}" -e VIDEO_AUDIO="${VIDEO_AUDIO:-}"

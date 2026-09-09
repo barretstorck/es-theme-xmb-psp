@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Defaults (override via env or .env.local at repo root)
-DEVICE_IP="${DEVICE_IP:-192.168.1.4}"
-DEVICE_USER="${DEVICE_USER:-root}"
-THEME_NAME="${THEME_NAME:-es-theme-xmb-psp}"
+# Which of these came from the ENVIRONMENT, recorded before any default is
+# applied: `${VAR+y}` is set only if VAR was already defined, so an env value
+# that happens to equal a default is still honoured, and a var that was never
+# set still falls through to .env.local.
+#
+# The precedence matters. Sourcing .env.local unconditionally made the FILE win
+# over the environment, the opposite of what the usage text promises, so
+# `DEVICE_IP=192.168.0.52 ./scripts/ui.sh a` silently drove the .env.local
+# device instead. When that host is off it reads as the tool hanging or the
+# keypress being ignored, not as talking to the wrong machine.
+_had_ip="${DEVICE_IP+y}"; _had_user="${DEVICE_USER+y}"; _had_theme="${THEME_NAME+y}"
+_env_ip="${DEVICE_IP:-}"; _env_user="${DEVICE_USER:-}"; _env_theme="${THEME_NAME:-}"
 
 if [[ -f .env.local ]]; then
   set -a
@@ -12,6 +20,16 @@ if [[ -f .env.local ]]; then
   source .env.local
   set +a
 fi
+
+[[ -n "${_had_ip}" ]]    && DEVICE_IP="${_env_ip}"
+[[ -n "${_had_user}" ]]  && DEVICE_USER="${_env_user}"
+[[ -n "${_had_theme}" ]] && THEME_NAME="${_env_theme}"
+unset _had_ip _had_user _had_theme _env_ip _env_user _env_theme
+
+# Defaults last, for anything neither the environment nor .env.local supplied.
+DEVICE_IP="${DEVICE_IP:-192.168.1.4}"
+DEVICE_USER="${DEVICE_USER:-root}"
+THEME_NAME="${THEME_NAME:-es-theme-xmb-psp}"
 
 DEVICE="${DEVICE_USER}@${DEVICE_IP}"
 THEME_PATH="/userdata/themes/${THEME_NAME}/"
@@ -49,7 +67,7 @@ Subcommands:
   fallback   force device back to built-in 'carbon' theme (use when ES is
              stuck in a restart loop and input injection wouldn't reach it)
 
-Config (env or .env.local at repo root):
+Config (environment overrides .env.local at repo root):
   DEVICE_IP    (current: $DEVICE_IP)
   DEVICE_USER  (current: $DEVICE_USER)
   THEME_NAME   (current: $THEME_NAME)
