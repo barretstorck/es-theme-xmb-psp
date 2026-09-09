@@ -1873,22 +1873,27 @@ turn off things ES had already silenced.
 
 | File | Bound to | Role |
 |---|---|---|
-| `sounds/system-scroll.wav` | `<scrollSound>` on `<carousel>` | horizontal swoosh |
-| `sounds/navigate.wav` | `<scrollSound>` on the `<textlist>` / `<imagegrid>` of all three gamelist styles | vertical tick |
+| `sounds/navigate.wav` | `<scrollSound>` on the `<carousel>` **and** on the `<textlist>` / `<imagegrid>` of all three gamelist styles | the tick, every direction |
 | `sounds/select.wav` | `<sound name="launch">` and `<sound name="menuOpen">` | confirm |
 | `sounds/back.wav` | `<sound name="back">` | leaving a subfolder |
 
-The swoosh/tick split is audit A2, and the two are measurably distinct
-rather than merely differently named:
+**One scroll sound, both axes — settled on hardware.** Audit A2 asks
+for a distinct horizontal swoosh, and one was built: 870 Hz over
+200 ms, band-passed noise gliding 1100→600 Hz, RMS-matched to
+`navigate.wav` and measurably disjoint from it (97% of its energy under
+2 kHz against the tick's 79% over 5 kHz). It was deployed to the TrimUI
+Brick and **rejected by ear** — against Ant's existing set it read as
+out of place, not as PSP-faithful. The asset and its generator were
+deleted with it.
 
-| | dominant | energy < 2 kHz | energy > 5 kHz | duration |
-|---|---|---|---|---|
-| `system-scroll.wav` | 870 Hz | 97% | 0% | 200 ms |
-| `navigate.wav` | 6449 Hz | 5% | 79% | 232 ms |
+That is a spectral measurement losing to a listening test, which is the
+right outcome: the numbers only ever showed the two were *different*,
+never that the difference was *good*. See §10.
 
-`scripts/tests/test-sounds.sh` re-measures that separation, so a retune
-that collapses the two into the same register fails rather than
-silently undoing A2.
+`scripts/tests/test-sounds.sh` now guards the reversal instead — every
+`<scrollSound>` in the tree must resolve to the one shared
+`${soundNavigate}`, and both `sounds/system-scroll.wav` and
+`scripts/gen-swoosh.py` must stay absent.
 
 ### 9.4 Verifying sound changes
 
@@ -1908,9 +1913,11 @@ fire on transitions that reopen the audio device and so truncate the
 PCM capture. A name reported as `MISSING` there is a binding ES wanted
 and the theme did not supply.
 
-**Don't ship verbatim PSP samples** — copyright. Synthesize (see
-`scripts/gen-swoosh.py`) or use freesound.org CC-licensed PSP-style
-alternatives.
+**Don't ship verbatim PSP samples** — copyright. Synthesize (the
+deleted `scripts/gen-swoosh.py` is in this branch's history as a worked
+example, and the other `scripts/gen-*.py` show the house pattern) or use
+freesound.org CC-licensed PSP-style alternatives. Either way, **listen
+to it on the device before deciding it is right** — see §10.
 
 ---
 
@@ -1922,6 +1929,7 @@ evidence:
 
 | Decision | Settled in | Reason |
 |:---|:---:|:---|
+| **One scroll sound for both axes. There is no horizontal "swoosh".** | v1.0 (#21) | Audit A2 asks for a lower, softer sound on horizontal cross moves than on vertical ones. It was built (`gen-swoosh.py`, 870 Hz over 200 ms, RMS-matched to `navigate.wav` and spectrally disjoint from it), deployed to the TrimUI Brick, and rejected on listening — it sounded out of place against Ant's set. Asset and generator deleted. **A measurement showing two sounds are different is not evidence the difference is good; only hardware listening settles that.** Do not re-introduce a second scroll sound without listening on device first. `scripts/tests/test-sounds.sh` guards it. |
 | **There is no selected-icon halo, in either view.** | v0.9.1 (white over accent), **settled won't-do in v1.0 (#34)** | Three tunes failed the same way. The gaussian's bright core is narrower than the icon's own ink (159px footprint vs 147px ink, 95px core), so it lit the icon from inside rather than behind; enlarging it past the icon turns it into a regional wash, and an annulus reads as a donut. White vs `${selectorGlow}` made no difference to either failure. Selection is already carried by white-vs-dimmed, `logoScale=1.5` and the caption. Scaffold deleted — see §6.2 before proposing any glow layer. |
 | **Wave layers tinted `${accent}`, not `${waveTint}`.** | v0.3 | If layers tint waveTint they read as faint shadow ripples, not crests. Accent gives the bright luminous edge that defines PSP wave. |
 | **Carousel `<defaultTransition>fade</defaultTransition>`, not slide.** | v0.4 | Slide reads as too-mechanical; fade matches PSP's soft category cross-fade. |

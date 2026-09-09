@@ -57,12 +57,11 @@
     <starTrackOpacity>0.30</starTrackOpacity>
     <metaSecondaryOpacity>1</metaSecondaryOpacity>
 
-    <!-- The PSP tells horizontal cross moves apart from vertical sub-item
-         moves: the horizontal is a soft low swoosh, the vertical a bright
-         tick (audit A2). soundSystemScroll is the swoosh, soundNavigate the
-         tick — measured 870 Hz with 97% of its energy under 2 kHz against
-         6449 Hz with 79% over 5 kHz, so the pair never collides. -->
-    <soundSystemScroll>./sounds/system-scroll.wav</soundSystemScroll>
+    <!-- ONE scroll sound for both axes. The PSP does distinguish horizontal
+         cross moves from vertical sub-item moves (audit A2), and a low swoosh
+         was built and tried on the Brick for exactly that — it was rejected by
+         ear as out of place against this set. There is deliberately no
+         soundSystemScroll variable; see style guide §10. -->
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>

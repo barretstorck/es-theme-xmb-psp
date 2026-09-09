@@ -99,12 +99,18 @@ Configurable knobs, all under **UI Settings → Theme Configuration**:
 
 ### Navigation sounds
 
-The theme ships four sounds: a soft low **swoosh** when the system carousel
-moves sideways, a bright **tick** when a gamelist moves up or down, a
-**confirm** on launching a game or opening a gamelist menu, and a **back**
-sound when you leave a subfolder. The swoosh and the tick are deliberately
-different — that horizontal-versus-vertical distinction is how the real PSP
-XMB behaves.
+The theme ships three sounds: a **tick** whenever the selection moves, in any
+direction and in any view; a **confirm** on launching a game or opening a
+gamelist menu; and a **back** sound when you leave a subfolder.
+
+The real PSP XMB uses a lower, softer sweep for sideways moves than for
+up/down ones. That was built and tried on hardware, and it sounded out of
+place against the rest of this set — so both axes share the one tick. See
+[`docs/psp-authenticity-audit.md`](docs/psp-authenticity-audit.md) entry A2.
+
+Note that `back` is narrower than it sounds: EmulationStation only plays it
+when you leave a **subfolder** inside a gamelist, not when you leave a
+gamelist for the system carousel. Most libraries never trigger it.
 
 **You will hear none of them until you turn navigation sounds on.** This is
 EmulationStation's own switch, not a theme option, and it ships **off**:
