@@ -14,13 +14,10 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck source=lib/theme-subsets.sh
 source "${SCRIPT_DIR}/lib/theme-subsets.sh"
 
-# Pinned Knulli batocera-emulationstation commit (must match docker/Dockerfile
-# and render.sh). Recording adds no image content — the encode uses the
-# ImageMagick the image already ships — so this deliberately does NOT bump:
-# nobody rebuilds for this feature.
-ES_PIN="9bbb16a"
-HARNESS_REV="r2"
-IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"
+# Recording adds no image content — the encode uses the ImageMagick the image
+# already ships — so HARNESS_REV deliberately does not bump for this feature.
+# shellcheck source=lib/harness-image.sh
+source "${SCRIPT_DIR}/lib/harness-image.sh"
 
 RESOLUTION="1280x720"
 COLORSET="January Blue"
@@ -52,9 +49,11 @@ Usage: record.sh [--resolution WxH] [--colorset NAME] [--library PATH]
                 for more than the harness can deliver slows the capture down
                 rather than speeding the playback up.
   --script SPEC comma-separated 'key:seconds' steps driving navigation while
-                the capture loop runs. Keys are xdotool keysyms plus two
-                aliases: 'confirm' and 'back', which resolve through the same
-                INVERT_BUTTONS logic every other view uses.
+                the capture loop runs. The keys are a CLOSED set — up, down,
+                left, right, start, confirm, back — not raw xdotool keysyms;
+                see the note above RECORD_KEYS for why. 'confirm' and 'back'
+                resolve through the same INVERT_BUTTONS logic every other view
+                uses.
                 (default: ${SCRIPT_SPEC})
   --width N     GIF output width in px   (default: 640, downscaled from the
                 capture resolution)
@@ -71,16 +70,22 @@ Usage: record.sh [--resolution WxH] [--colorset NAME] [--library PATH]
 EOF
 }
 
+# Every --flag below dereferences $2. Under `set -u` a missing value dies with
+# "$2: unbound variable" and exit 1, instead of the exit-2 usage error the rest
+# of the argument handling is careful to give.
+need_val() { # need_val <flag> <count-remaining>
+  (( $2 >= 2 )) || { echo "bad $1: missing value" >&2; exit 2; }
+}
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --resolution)  RESOLUTION="$2"; shift 2 ;;
-    --colorset)    COLORSET="$2";   shift 2 ;;
-    --library)     LIBRARY="$2";    shift 2 ;;
-    --fps)         FPS="$2";        shift 2 ;;
-    --script)      SCRIPT_SPEC="$2";shift 2 ;;
-    --width)       WIDTH="$2";      shift 2 ;;
-    --colors)      COLORS="$2";     shift 2 ;;
-    --out)         OUT="$2";        shift 2 ;;
+    --resolution) need_val --resolution $#; RESOLUTION="$2"; shift 2 ;;
+    --colorset) need_val --colorset $#; COLORSET="$2";   shift 2 ;;
+    --library) need_val --library $#; LIBRARY="$2";    shift 2 ;;
+    --fps) need_val --fps $#; FPS="$2";        shift 2 ;;
+    --script) need_val --script $#; SCRIPT_SPEC="$2";shift 2 ;;
+    --width) need_val --width $#; WIDTH="$2";      shift 2 ;;
+    --colors) need_val --colors $#; COLORS="$2";     shift 2 ;;
+    --out) need_val --out $#; OUT="$2";        shift 2 ;;
     --keep-frames) KEEP_FRAMES=1;   shift ;;
     -h|--help)     usage; exit 0 ;;
     *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -135,16 +140,20 @@ fi
 # the container's key() helper swallows an unknown one, so a typo would record
 # a flawless GIF in which nothing navigates — which is exactly what the first
 # take of this feature produced. Reject it here instead.
-RECORD_KEYS="up down left right start confirm back"
+RECORD_KEYS="$(printf '%s\n' up down left right start confirm back)"
 IFS=',' read -ra _steps <<< "${SCRIPT_SPEC}"
 for _step in "${_steps[@]}"; do
   [[ -z "${_step}" ]] && continue
   _sym="${_step%%:*}"
   _wait="${_step#*:}"
   [[ "${_sym}" == "${_wait}" ]] && _wait=1
-  if ! grep -qw -- "${_sym}" <<<"${RECORD_KEYS}"; then
+  # -Fxq against a newline-delimited list, matching the colorset check above.
+  # `grep -qw` treated the key as a REGEX: "righ." and "r.ght" both passed
+  # host-side validation and only died after a ~15s container boot, which
+  # defeats the point of validating here at all.
+  if ! grep -Fxq -- "${_sym}" <<<"${RECORD_KEYS}"; then
     echo "bad --script: unknown key '${_sym}' in step '${_step}'." >&2
-    echo "  valid keys: ${RECORD_KEYS}" >&2
+    echo "  valid keys: $(tr '\n' ' ' <<<"${RECORD_KEYS}")" >&2
     exit 2
   fi
   if [[ ! "${_wait}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
@@ -158,6 +167,29 @@ done
 if [[ -z "${LIBRARY}" ]] && grep -q "confirm" <<<"${SCRIPT_SPEC}"; then
   echo "bad --script: it contains 'confirm' (enters a gamelist) but no" >&2
   echo "  --library was given, so the gamelist would record empty." >&2
+  exit 2
+fi
+
+# render.sh validates these before every render; forwarding them unchecked put
+# record.sh back in exactly the failure mode its own --colorset check exists to
+# prevent. ES silently ignores an unknown subset value and falls back to the
+# theme default, so GAMELIST_STYLE="Box Art Gird" produced a flawless
+# several-minute GIF of the DEFAULT style, exit 0.
+check_pin GAMELIST_STYLE   gamelistStyle
+check_pin ICON_SIZE        iconSize
+check_pin TITLE_VISIBILITY titleVisibility
+check_bool SHOW_HELP
+check_bool INVERT_BUTTONS
+check_bool CLOCK_12H
+
+# SHOW_BATTERY is render.sh's, not ours: it only does anything alongside the
+# synthetic /sys/class/power_supply mount, which record.sh does not set up. The
+# container has no battery, so the widget auto-hides and the setting renders
+# nothing. Rejecting it beats honouring it in name only.
+if [[ -n "${SHOW_BATTERY:-}" ]]; then
+  echo "bad SHOW_BATTERY: record.sh has no --battery, so the status-bar" >&2
+  echo "  battery would auto-hide and render nothing. Use render.sh for" >&2
+  echo "  battery captures." >&2
   exit 2
 fi
 
@@ -197,7 +229,7 @@ DOCKER_ARGS+=(
   -e GAMELIST_STYLE="${GAMELIST_STYLE:-}" -e ICON_SIZE="${ICON_SIZE:-}"
   -e TITLE_VISIBILITY="${TITLE_VISIBILITY:-}"
   -e SHOW_HELP="${SHOW_HELP:-false}" -e INVERT_BUTTONS="${INVERT_BUTTONS:-true}"
-  -e SHOW_BATTERY="${SHOW_BATTERY:-}" -e CLOCK_12H="${CLOCK_12H:-}"
+  -e CLOCK_12H="${CLOCK_12H:-}"
 )
 
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \

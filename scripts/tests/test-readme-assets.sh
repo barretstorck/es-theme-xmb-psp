@@ -17,8 +17,10 @@ check() { # check <description> <condition-exit-code>
 }
 
 # `check "$(cmd)" $?` would report the SUBSTITUTION's status, because bash
-# expands arguments left to right — so each guard stores its exit status in
-# `rc` on its own line and passes that.
+# expands arguments left to right. Guards whose MESSAGE contains a command
+# substitution therefore store the status in `rc` on its own line first. Guards
+# whose message is only parameter expansion pass `$?` directly, which is safe —
+# no command runs between the test and the read.
 
 echo "shared subset helper:"
 
@@ -60,11 +62,15 @@ check "record.sh exists and is executable" $?
 # fast. A 30s timeout means a failure to reject shows up as a timeout rather
 # than hanging the suite on an image build.
 #
-# Every case asserts on the MESSAGE as well as the exit status. Exit-status-only
-# guards passed here for the wrong reason during development: record.sh also
-# exits 2 when a script enters a gamelist with no --library, so five of six
-# "rejects X" checks were green while the validation they named did nothing.
-# `--script right:1` keeps that unrelated guard from firing first.
+# Every case asserts on the MESSAGE as well as the exit status, because an
+# exit-status-only guard passed here for the wrong reason: record.sh also exits
+# 2 when a script enters a gamelist with no --library, and the DEFAULT script
+# contains `confirm`. "--fps 08" was green while the fps check did nothing —
+# back then check_int accepted 08 as 8, so the run fell through to the library
+# guard. Rejecting leading zeros fixed that case, and the other five do now
+# fail at their own named check even with no --script; the message assertions
+# are what keep all six honest, and `--script right:1` is belt-and-braces so
+# the library guard can never mask a future one.
 #
 # "--fps 08" is the octal case: `(( 08 ))` is a parse error, not eight, and
 # `10#08` would silently accept it as eight. It must be rejected by name.
@@ -96,9 +102,22 @@ check "rejects a non-numeric wait in --script (got ${rc})" $?
 
 # The default script must itself be spelled in the vocabulary — a default that
 # silently no-ops is the same bug shipped one level further back.
-out="$(timeout 30 "${REC}" --library /tmp/library --colorset Nonesuch 2>&1)"
-grep -qi "colorset" <<<"${out}"
-check "the DEFAULT --script passes vocabulary validation" $?
+#
+# Getting this guard right is fiddly, and the first attempt was VACUOUS: it
+# passed `--colorset Nonesuch`, which record.sh rejects BEFORE it ever reaches
+# the script-vocabulary loop, and then asserted only that the word "colorset"
+# appeared in the output. Breaking the default script to "rihgt:1.4" left the
+# check green.
+#
+# This version relies on record.sh's validation ORDER instead. The vocabulary
+# loop runs BEFORE the library/confirm cross-check, so invoking with the real
+# default script and no --library must fail at the LIBRARY check. If the
+# default script contained a bad key it would fail earlier, with a different
+# message — so asserting on which message appears actually exercises the
+# default.
+out="$(timeout 30 "${REC}" --out /tmp/nope.gif 2>&1)"; rc=$?
+[[ "${rc}" -eq 2 ]] && grep -qi "library" <<<"${out}" && ! grep -qi "unknown key" <<<"${out}"
+check "the DEFAULT --script passes vocabulary validation (got ${rc})" $?
 
 # The no-library guard is itself worth pinning: a script that enters a gamelist
 # with no library records an empty list, which reads as a theme bug.
@@ -181,9 +200,35 @@ gifkb=$(( $(stat -c%s "${gif}" 2>/dev/null || echo 99999999) / 1024 ))
 [[ "${gifkb}" -le 3072 ]]
 check "the GIF is within the 3MB budget (${gifkb}KB)" $?
 
-thumbkb="$(du -sk "${REPO_ROOT}/docs/screenshots/colorsets" 2>/dev/null | cut -f1)"
+# APPARENT bytes via stat, not `du`. du reports allocated blocks, and on this
+# filesystem it reported 818KB for a directory whose files summed to 1.5MB —
+# a size guard that reads stale allocation is a size guard that does not fire.
+# Found by mutation-testing the style budget below, which stayed green after
+# the file it guards was inflated to 1.15MB.
+sum_bytes() { # sum_bytes <file>...
+  local t=0 f
+  for f in "$@"; do [[ -f "${f}" ]] && t=$(( t + $(stat -c%s "${f}") )); done
+  echo $(( t / 1024 ))
+}
+
+thumbkb="$(sum_bytes "${REPO_ROOT}"/docs/screenshots/colorsets/*.png)"
 [[ -n "${thumbkb}" && "${thumbkb}" -le 600 ]]
 check "the colorset thumbnails are within the 600KB budget (${thumbkb:-?}KB)" $?
+
+# The two guards above cover 2.8MB of the 4.15MB this work added; the style
+# shots and aspect rows had none. That is the wrong half to guard: the style
+# shots are the ones that were downscaled to fit, and nothing stopped a
+# regeneration from restoring Box Art Grid to the 805KB it started at. A
+# directory-wide ceiling catches whichever file grows.
+totalkb="$(sum_bytes "${REPO_ROOT}"/docs/screenshots/*.png \
+                     "${REPO_ROOT}"/docs/screenshots/*.gif \
+                     "${REPO_ROOT}"/docs/screenshots/*/*.png)"
+[[ -n "${totalkb}" && "${totalkb}" -le 18432 ]]
+check "docs/screenshots stays within its 18MB ceiling (${totalkb:-?}KB)" $?
+
+stylekb="$(sum_bytes "${REPO_ROOT}"/docs/screenshots/style-*.png)"
+[[ -n "${stylekb}" && "${stylekb}" -le 1024 ]]
+check "the style comparison shots stay within 1MB (${stylekb:-?}KB)" $?
 
 # The README told readers its gamelist shots were stale. Those shots have been
 # regenerated, so that paragraph is now false — and a false disclaimer is worse

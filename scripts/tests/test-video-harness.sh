@@ -31,16 +31,35 @@ check "Dockerfile installs vlc-plugin-base" $?
 grep -q 'ARG ES_PIN=9bbb16a' "${REPO_ROOT}/docker/Dockerfile"
 check "Dockerfile builds ES pin 9bbb16a" $?
 
-grep -q 'ES_PIN="9bbb16a"' "${REPO_ROOT}/scripts/render.sh"
-check "render.sh agrees on the pin" $?
+LIB="${REPO_ROOT}/scripts/lib/harness-image.sh"
+grep -q 'ES_PIN="9bbb16a"' "${LIB}"
+check "the shared harness-image lib agrees on the pin" $?
 
 # render.sh builds only when the image is MISSING, so changing docker/ without
 # bumping the tag leaves everyone on their first build forever.
-grep -q 'HARNESS_REV="r2"' "${REPO_ROOT}/scripts/render.sh"
+grep -q 'HARNESS_REV="r2"' "${LIB}"
 check "the image tag carries a harness revision" $?
 
-grep -q 'IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"' "${REPO_ROOT}/scripts/render.sh"
+grep -q 'IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"' "${LIB}"
 check "the tag is built from pin + revision" $?
+
+# The pin used to be copied into every script that runs the container. A guard
+# on one copy cannot catch a bump that misses the others, and the copies had
+# already reached four. Assert the lib is the ONLY declaration, and that every
+# script which runs the container sources it.
+# Anchored to a line-start ASSIGNMENT: `--build-arg ES_PIN="${ES_PIN}"` is a
+# use, not a declaration, and an unanchored match flags it.
+dupes="$(grep -rln '^ES_PIN=' "${REPO_ROOT}/scripts" --include='*.sh' \
+         | grep -v 'lib/harness-image.sh' | grep -v '/tests/' || true)"
+[[ -z "${dupes}" ]]
+check "no script re-declares ES_PIN (found: ${dupes:-none})" $?
+
+missing=""
+for s in render.sh record.sh render-readme-assets.sh; do
+  grep -q 'lib/harness-image.sh' "${REPO_ROOT}/scripts/${s}" || missing="${missing} ${s}"
+done
+[[ -z "${missing}" ]]
+check "every container-running script sources the lib (missing:${missing:- none})" $?
 
 echo
 echo "ES source patch:"
