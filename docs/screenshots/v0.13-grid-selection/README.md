@@ -1,13 +1,15 @@
 # Box Art Grid — selection cue and info bar (issue #43)
 
-Verification renders for the fix. All produced by `scripts/render.sh` against
-the Docker harness (desktop GL21), so they are a development aid rather than a
-release gate — the device renders via GLES2. **Not yet verified on hardware.**
+Verification renders for the fix. The top-level files come from
+`scripts/render.sh` against the Docker harness (desktop GL21); `device/` holds
+captures from the real TrimUI Brick (GLES2). **Verified on hardware** — see
+`device/README.md`.
 
 | File | What it shows |
 |---|---|
 | `before-after-4x3.png` | The `main` behaviour beside the fix, plus the fix with the cursor at a column edge and in the bottom row. 4:3, real scraped Game Boy art. |
 | `long-title-4x3.png` | The `nes/long-title` fixture (89 characters, with descenders) selected. ES abbreviates it with `...` at `<size>`'s 0.95, inside the panel's 0.97 — no clip rect involved; see the note below. |
+| `device/before-after-brick.png` | The same fix on the actual Brick, before and after, on both square box art and 16:9 art. |
 | `aspect-ratios.png` | All five supported ratios, rendered against solid-colour calibration tiles so the drawn rects can be measured exactly. |
 
 ## Why the calibration tiles
