@@ -334,7 +334,7 @@ shift when vertical real estate changes, principally at 1:1.
 
 | Region | y-range | x-range | Used by |
 |:---|:---:|:---:|:---|
-| Top status bar | `0.00 – 0.10` | `0.75 – 0.98` | Clock only (top-right cluster; battery glyph pulled in v0.10, restoration tracked as #4) |
+| Top status bar | `0.00 – 0.10` | `0.68 – 0.98` | Clock, network glyph, battery percentage, battery glyph — one right-anchored cluster (§6.5) |
 | Cross top row (system view) | `0.14 – 0.44` | full width | System carousel container (`pos.y=0.141, size.y=0.30`) |
 | Gamelist header (style A) | `0.0235 – 0.282` (rendered text ends ~`0.262`) | `crossX ± 0.07` | Pinned icon: `origin 0.5 0.5`, `pos.y=glLogoY=0.110`, `maxSize` height `0.173` → spans `0.110 ± 0.0865` = `0.0235–0.1965`. Caption (`md_systemName`): `origin 0.5 0`, `pos.y=glCaptionY=0.222`, `size.y=0.06` → declared box `0.222–0.282`; its `fontSize=0.040` single line of rendered text only reaches ~`0.262`, the remainder being unused box (`_inc/gamelist-card.xml`) |
 | Peek list (style A, icon column) | `0.21 – 0.96` | container full width; icons at `crossX` | `textlist name="gamelist"` — 3 slots (`glListTop=0.21`, `glListH=0.75`), row centers at y `0.335 / 0.585 / 0.835` |
@@ -352,11 +352,13 @@ tables.)
 
 Reserved regions (do not place new content here):
 
-- **Top 0.10 vertical strip** — owned by the status bar. The clock at
-  `(0.84, 0.03)`, size `(0.14, 0.06)`, pins the right edge at
-  `0.84 + 0.14 = 0.98`.
-  Left-of-`x=0.75` of the top strip is technically free but
-  conventionally empty — PSP doesn't put anything there either.
+- **Top 0.10 vertical strip** — owned by the status bar, which is a
+  four-element `<stackpanel>`, not just the clock (§6.5). The panel is
+  declared from `x=0.48` to the `0.98` margin and packs its contents
+  right-to-left, so how far left the cluster actually reaches depends on
+  which elements ES is showing. Treat the whole `0.48–0.98` span as
+  occupied; left of that is technically free but conventionally empty —
+  PSP doesn't put anything there either.
 - **Bottom 0.06 vertical strip** — owned by the helpsystem
   (`<helpsystem>` at `(0.02, 0.94)`). Don't overlay content here.
 - **Cross anchor region `(crossX±0.10, crossY±0.10)`** — owned by the
@@ -643,7 +645,7 @@ All `<fontSize>` values are normalized to screen height (0.0-1.0):
 | Element | Token | Size | Approx px @ 768px | Use |
 |:---|:---:|:---:|:---:|:---|
 | Card title (`cardTitle`) | `fontRegular` | `0.075` Boxart / `0.060` Compact (`cardTitleFontSize`) | 58 / 46 | Largest copy — the expanded card's game name, left-aligned above the rule. Set per Icon Size subset. |
-| Clock | `fontRegular` | `0.042` | 32 | Largest copy in the status bar. Right-aligned. |
+| Clock, battery percentage | `fontRegular` | `0.042` | 32 | Largest copy in the status bar. The two share one size deliberately — they are the cluster's only text and sit on the same line. |
 | Gamelist system caption (`md_systemName`) | `fontLight` | `0.040` | 31 | Under the pinned system icon in the gamelist header. |
 | System-name caption (system view) | `fontLight` | `0.034` | 26 | Below the selected category icon. |
 | Count caption | `fontLight` | `0.034` | 26 | When Game Count: Show. |
@@ -1069,21 +1071,113 @@ gamecount-show subset variant in `_inc/gamecount-show.xml`.
 
 ### 6.5 Top-right status cluster
 
-The status bar is **clock-only** as of v0.10. Defined in
-`_inc/common.xml:153-161`.
+Four elements in one right-anchored cluster, defined in
+`_inc/status-bar.xml`'s `<view name="screen">`. Right to left, which is
+also the child order in the XML:
 
-| Element | Pos | Size | Notes |
-|:---|:---:|:---:|:---|
-| Clock | `(0.84, 0.03)` | `(0.14, 0.06)` | `<fontSize>0.042</fontSize>` (largest text in UI), `alignment=right` — right edge at `0.84 + 0.14 = 0.98` |
+| Element | Notes |
+|:---|:---|
+| `batteryIcon` | Battery glyph. `maxSize (0.125, 1)` — panel-relative |
+| `batteryText` | `NN%`. Same `fontRegular` / `0.042` as the clock — one status-bar type style, not a hierarchy |
+| `networkIcon` | Theme's own wifi glyph, `art/ui/network.png`, `maxSize (0.09, 1)` |
+| `clock` | `fontSize 0.042`, the largest text in the UI |
 
-The battery glyph was pulled in v0.10: vertical-alignment and
-percentage-rendering bugs surfaced on-device and couldn't be
-resolved in that iteration. Restoration is tracked as issue #4;
-the `art/battery/battery-{empty,25,50,75,full,incharge}.png`
-assets and the batteryIcon syntax notes are retained in the tree
-for that attempt (ES picks the glyph automatically from
-`Utils::Platform::queryBatteryInformation().level` once a
-`batteryIcon` element is themed again).
+**The cluster is a `<stackpanel>`, not four positioned elements**, at
+`pos (0.48, 0.0462)`, `size (0.50, 0.030)`, `orientation horizontal`,
+`reverse true`. Its contents are *optional* and ES owns their
+visibility: *Show Battery Status* hides the percentage (ICON) or both
+battery elements (NO), *Show Clock* hides the clock, and the network
+glyph goes when there is no connection. Fixed positions reserve space
+for elements that may not exist — v1.0's first attempt left a 77 px hole
+where the percentage had been, and ~120 px of dead space against the
+right margin at NO. No ordering avoids this; only reflow does.
+`StackPanelComponent::performLayout()` skips invisible children, and its
+`update()` re-runs the layout when the visible children's total size
+changes, so the cluster re-packs itself the moment ES hides one.
+
+**Five things about the panel are ES's behaviour, not choices:**
+
+- **`<stackpanel>` has no `origin` property** (`ThemeData.cpp:72`).
+  Setting one parses to nothing, `pos` stays the top-left, and the panel
+  lands off the right of the screen — rendering *absolutely nothing*,
+  with no warning. `pos.x + size.x = 0.98` is what anchors the cluster.
+- **The panel is deliberately much wider than its contents.** Unused
+  width extends left and costs nothing, because reverse packing starts
+  at the right edge. That is what lets one set of literals serve all
+  five aspect ratios: a `<fontSize>` is a fraction of screen HEIGHT
+  while positions are fractions of WIDTH, so text takes a different share
+  of the width on every surface and any hand-placed layout has to be
+  re-tuned per ratio to stop it colliding. The widest the cluster gets is
+  `0.408` of the width — 1:1, 12-hour clock, `"100%"` — against the
+  panel's `0.50`. If contents ever *do* exceed the panel,
+  `performLayout` clamps the overflowing child rather than overflowing:
+  a too-narrow panel silently truncates the clock.
+- **Height is `0.030` — one glyph ink-height, not the strip's `0.06`.**
+  `performLayout` top-aligns image children whatever their origin: it
+  sets y to `pos.y - h*origin.y + panelH*origin.y` and the origin then
+  shifts the draw back by `h*origin.y`, so the `h` terms cancel and every
+  value lands at the panel's top. With the panel exactly as tall as the
+  glyphs, top-aligned *is* centred. `pos.y` is `0.0612 - 0.030/2`.
+- **Image children need `maxSize`, never `size`.** `performLayout` only
+  preserves aspect for images whose target is max; with `<size>` ES
+  stretches the art to the panel height.
+- **Text children centre themselves.** `TextComponent` defaults to
+  `ALIGN_CENTER` vertically (`TextComponent.cpp:13`), which is what puts
+  a `0.042` clock on the line of a `0.030`-tall panel. An explicit
+  `verticalAlignment=center` is pixel-identical — it is redundant, not
+  load-bearing.
+
+**`0.0612` is the clock's measured ink centre** at 1024x768 (its glyph
+rows are 36..58 px), not the centre of a `0.06`-tall box. The panel is
+centred on it. Guessing at this instead of measuring it is what made
+"the glyph never lines up with the clock" unresolvable in v0.10.
+
+**ES's own Window-owned clock is transparent, not hidden.** The panel's
+`<clock>` child is the one you see. `<text name="clock">` must still be
+declared — with no screen/clock element Window skins `mClock` from the
+helpsystem and parks it *bottom*-right (`Window.cpp:1274-1300`) — and it
+cannot be hidden with `<visible>`, because `ClockComponent::update()`
+calls `setVisible(DrawClock)` every frame and undoes it. Alpha `00` is
+the one property nothing overwrites.
+
+**Three things about this cluster are ES's behaviour, not choices:**
+
+- **ES draws a second battery widget of its own.**
+  `BatteryIndicatorComponent` (`Window.cpp:157`, rendered at `:746`) is a
+  wifi + glyph + `NN%` cluster pinned top-right in ES's own font. It is
+  *not* the `controllerActivity` the theme already hides. It must be
+  hidden explicitly or it doubles up with ours — and it is why v0.10
+  concluded `<visible>false</visible>` "doesn't hide the battery
+  on-device". Unlike `batteryIcon`, it honours `<visible>`.
+- **The percentage cannot be a binding.** A
+  `<text extra="true">{global:batteryLevel}%</text>` renders **empty**
+  here: `Window.cpp:1258` builds the screen extras, but no
+  `BindingManager::updateBindings` call exists for them (only SystemView,
+  the gamelist containers, Splash and the carousel/grid item templates get
+  one). Nothing logs. The native `<batteryText>` is the only mechanism
+  that works in this view.
+- **`<batteryText>` ignores `<alignment>` and `<verticalAlignment>`.**
+  `BatteryTextComponent.cpp:52` sets `mAutoCalcExtent.x() = 1` and resizes
+  to its own text, so the element is only ever as wide as its content:
+  `pos.x` is its left edge and the string grows *rightward*, toward the
+  glyph. It is placed for `"100%"`, the widest string ES can produce, not
+  for the two-digit case every screenshot happens to show.
+
+**Visibility is ES's setting, not a theme subset.** *UI Settings > Show
+Battery Status* (`GuiMenu.cpp:3928`) offers NO / ICON / ICON AND TEXT,
+stored as `""` / `"icon"` / `"text"`, and that is what gates both
+elements. A theme cannot override it: `BatteryIconComponent::update()`
+calls `setVisible(hasBattery)` on every tick and discards whatever the
+theme asked for. v0.10's Hide/Glyph/Glyph+Percentage subset could never
+have worked; do not re-add it. Devices with no battery show nothing here
+and need no setting at all.
+
+The glyph image itself is picked by ES from the charge level
+(`BatteryIconComponent.cpp:52-69`) across the six
+`art/battery/battery-{empty,25,50,75,full,incharge}.png` states.
+`art/ui/network.png` is authored at the same canvas height as the battery
+art on purpose: `<maxSize>` fits the *canvas*, so equal canvas heights are
+what make an equal authored stroke render as an equal stroke.
 
 ES renders the clock from `Settings::ClockMode12` (per
 `ClockComponent.cpp:30-34`) — either `%I:%M %p` (12-hour) or
@@ -1776,7 +1870,7 @@ evidence:
 | **`logoSize` aspect-ratio overrides (P1: pixels-square not fractions-square).** | v0.8 | Otherwise icons stretch on non-4:3 displays. |
 | **Selected-icon halo on the system carousel only — the gamelist has none.** | v0.9.3 round 4; reaffirmed by the v0.11 redesign | The old gamecarousel halo attempt was reverted (white halo behind white fallback text was unreadable). The v0.11 card list ships **without** a gamelist halo even though the fallback-icon prerequisite (G5's media fallbacks) is now wired: the expanded card's size dominance is the selection signal. (The system-view halo was pulled in v0.10 and restored + re-tuned in v0.11, PR #28 — see §6.2.) |
 | **`textPrimary = FFFFFF` always.** | v0.1 | Readable on every colorset's wave. Other primaries fail contrast on at least one of the 12. |
-| **Battery glyph + clock + (nothing) cluster in top-right.** | v0.9 — **battery glyph pulled in v0.10**, restoration tracked as #4 | PSP's status-bar pattern. Wifi-strength indicator is unsupportable (audit U12); date next to clock is unsupportable (audit U11). Status bar is clock-only on main (§6.5). |
+| **Clock + network + battery-percentage + battery-glyph cluster in top-right.** | v0.9, pulled in v0.10, **restored in #4** | PSP's status-bar pattern. The glyph holds the 0.98 right margin and the clock sits left of the cluster, so a device with no battery loses the two battery elements without leaving a hole at the screen edge. A wifi *signal-strength* indicator is still unsupportable (audit U12) — the network glyph is ES's binary connected/not, drawn in the theme's own style because hiding ES's `batteryIndicator` takes its wifi glyph with it. Date next to clock is unsupportable (audit U11). |
 | **The wave never opts out.** | v0.3 | The wave IS the theme. No `<subset name="wave">` for "wave off" because the result would be a static colored background, which isn't what PSP-XMB-theme means. |
 | **Cross anchor on `(crossX, crossY)`, not on absolute pixel offsets.** | v0.6 | Pixel offsets break on non-4:3. Anchor + per-ratio override is the working pattern. |
 | **`defaultTransition="instant"` at theme root.** | v0.6 | ES auto-transition falls back to slide otherwise; PSP feel is instant. |
