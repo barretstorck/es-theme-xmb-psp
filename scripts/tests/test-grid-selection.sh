@@ -43,10 +43,8 @@ COMMON="${REPO_ROOT}/_inc/common.xml"
 # status in `rc` on its own line and passes that.
 echo "selection cue is size only:"
 
-# Unselected tiles must not be dimmed. imageColor's alpha is the fade.
-grep -qE '<imageColor>FFFFFFFF</imageColor>' "${GRID}"
-check "some gridtile sets imageColor to fully opaque white" $?
-
+# Unselected tiles must not be dimmed - imageColor's alpha is the fade - and
+# the tile background must be suppressed in BOTH states.
 python3 - "${GRID}" <<'PY'; rc=$?
 import re, sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
