@@ -23,7 +23,7 @@
          replaced with separate cardGenre/cardStarTrack/cardPlayers columns;
          value kept as-is, still comfortably clears the star-track budget
          test below). -->
-    <cardMetaFontSize>0.027</cardMetaFontSize>
+    <cardMetaFontSize>0.030</cardMetaFontSize>
 
     <!-- v0.12 gamelist styles -->
     <cardMediaW>0.42</cardMediaW>

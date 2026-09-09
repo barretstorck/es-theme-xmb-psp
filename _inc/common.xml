@@ -14,17 +14,16 @@
     <waveTint>1E3A8A</waveTint>
     <accent>3B82F6</accent>
     <textPrimary>FFFFFF</textPrimary>
-    <textSecondary>B0C4DE</textSecondary>
+    <!-- #42 lifted textSecondary 55% toward white in every colorset and here.
+         The alternative was a body-text-only ${textBody}, leaving the
+         system-carousel caption where it was; the global lift was chosen from
+         rendered pixels, so the caption brightens too (measured 2.64 -> 3.52:1).
+         Six colorsets have accents so light that no ink colour reaches 3:1 on
+         their wave - see the table in the style guide; that is a palette
+         question, not a body-text one. -->
+    <textSecondary>DBE4F0</textSecondary>
     <selectorGlow>60A5FA</selectorGlow>
     <helpAccent>93C5FD</helpAccent>
-
-    <!-- #42: body text - gamelist metadata and descriptions - is its own
-         scope, separate from textSecondary. textSecondary also paints the
-         system-carousel caption and other chrome, which sits alone on the
-         wave at a large size and does not need the same treatment; body
-         text is small, dense, and sits over a MOVING background. Each
-         colorset overrides textBody; this is the no-colorset fallback. -->
-    <textBody>B0C4DE</textBody>
 
     <fontLight>./fonts/RobotoCondensed-Light.ttf</fontLight>
     <fontRegular>./fonts/RobotoCondensed-Regular.ttf</fontRegular>
@@ -40,14 +39,16 @@
          (ThemeData.cpp:1082) and only falls back to placeholder resolution on
          a domain_error, so a variable defined in terms of another variable is
          evaluated as an expression before it is ever treated as a string. -->
-    <fontBody>./fonts/RobotoCondensed-Light.ttf</fontBody>
+    <fontBody>./fonts/RobotoCondensed-Regular.ttf</fontBody>
 
-    <!-- #42: the two opacity cuts taken on top of textBody. The star track
-         is the dim half of the rating pair (it must stay below the filled
-         glyphs to read as "empty"), so it keeps a cut; metaSecondaryOpacity
-         is the card's year/developer line. -->
-    <starTrackOpacity>0.35</starTrackOpacity>
-    <metaSecondaryOpacity>0.75</metaSecondaryOpacity>
+    <!-- #42: the two opacity cuts body text used to take on top of its
+         colour. metaSecondaryOpacity (the card's year/developer line) is now
+         1 - it was a legibility tax for no hierarchy the 0.026 size was not
+         already carrying. starTrackOpacity cannot go to 1: the track is the
+         EMPTY half of the rating pair and has to stay visibly below the
+         filled glyphs, so it is raised 0.35 -> 0.45 rather than removed. -->
+    <starTrackOpacity>0.45</starTrackOpacity>
+    <metaSecondaryOpacity>1</metaSecondaryOpacity>
 
     <soundNavigate>./sounds/navigate.wav</soundNavigate>
     <soundSelect>./sounds/select.wav</soundSelect>
@@ -164,9 +165,12 @@
          left-aligned at one x; stars cannot flow after a variable-width
          genre. Side effect: the v0.11 "long genre pushes stars to line 2"
          fault becomes structurally impossible.
-         Budget at 4:3, cardMetaFontSize 0.030: track spans 0.530-0.645,
-         so genre is clipped at 0.135 and players starts at 0.680. Any
-         per-ratio change to cardMetaFontSize MUST re-check this. -->
+         Budget at 4:3, cardMetaFontSize 0.033 (#42): track spans
+         0.530-0.656, so genre is clipped at 0.135 and players starts at
+         0.680. Any per-ratio change to cardMetaFontSize MUST re-check this,
+         and so must a change to icon-size-boxart.xml / -compact.xml, which
+         re-declare cardMetaFontSize and parse AFTER this file. 1:1 is the
+         binding ratio - its ceiling is 0.0275 against 0.025 shipped. -->
     <cardGenreW>0.135</cardGenreW>
     <cardStarX>0.530</cardStarX>
     <cardPlayersX>0.680</cardPlayersX>
@@ -207,8 +211,8 @@
          full-width — it no longer has its own narrower column). -->
     <cardMetaY>0.602</cardMetaY>
     <cardMeta2Y>0.643</cardMeta2Y>
-    <cardMetaFontSize>0.030</cardMetaFontSize>
-    <cardDescFontSize>0.023</cardDescFontSize>
+    <cardMetaFontSize>0.033</cardMetaFontSize>
+    <cardDescFontSize>0.025</cardDescFontSize>
 
     <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
          peekIconW = 90/1024 = 0.088 (screen width cap); peekIconH = 90/176.6 =
@@ -230,6 +234,15 @@
     <listMediaH>0.30</listMediaH>
     <listStarX>0.575</listStarX>
     <listMetaX>0.700</listMetaX>
+
+    <!-- #42: the list panel's metadata size, previously a literal 0.028 on
+         each of the four elements. It has to be a variable for the same
+         reason cardMetaFontSize is one: the five-glyph star track is
+         height-normalised while listStarX/listMetaX are width-normalised, so
+         the track's share of the gap between them grows as the screen gets
+         squarer. At 1:1 the ceiling is 0.0294 - 0.030 overruns listMetaX by
+         3px, which test-gamelist-styles.sh catches. -->
+    <listMetaFontSize>0.030</listMetaFontSize>
     <listDescY>0.600</listDescY>
     <listDescH>0.280</listDescH>
 
@@ -274,7 +287,7 @@
          glyphs only (FileData.cpp:1924), so the track is a fixed five-glyph
          literal today, but nothing structural stopped it growing. -->
     <gridStarX>0.680</gridStarX>
-    <gridStarW>0.140</gridStarW>
+    <gridStarW>0.155</gridStarW>
   </variables>
 
   <!-- NOTE: "grid" is deliberately ABSENT from this list. Declaring it here

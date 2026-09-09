@@ -616,32 +616,36 @@ done
 echo
 echo "style B list-style star/meta budget:"
 
-# gamelist-list.xml's listStars/listStarTrack fontSize is a fixed literal
-# (0.028), not a variable -- it cannot be overridden per ratio without
-# editing the style file, which is out of scope here. Its pixel width still
-# scales with actual screen height, so at ratios whose width:height departs
-# far enough from 4:3 the 5-glyph track can run into listMeta even with no
-# fontSize change at all. Render verification caught this touching/
-# overlapping at 1024x896 and 720x720 (per-ratio design surfaces below).
+# listStars/listStarTrack take their size from ${listMetaFontSize} (#42;
+# before that it was a literal 0.028 on each element, which could not be
+# overridden per ratio at all). The track's pixel width scales with screen
+# HEIGHT while listStarX/listMetaX are fractions of WIDTH, so the squarer the
+# surface the larger the track's share of the gap between the two columns --
+# a ratio can collide with no fontSize change at all. Render verification
+# caught this touching/overlapping at 1024x896 and 720x720.
 python3 - "${REPO_ROOT}" <<'PY'
 import re, sys
 
 repo = sys.argv[1]
 list_xml = open(f"{repo}/_inc/gamelist-list.xml").read()
-fs = float(re.search(r'name="listStars".*?<fontSize>([^<]+)<', list_xml, re.S).group(1))
+size_expr = re.search(r'name="listStars".*?<fontSize>([^<]+)<', list_xml, re.S).group(1)
+assert size_expr == "${listMetaFontSize}", (
+    f"listStars fontSize is {size_expr!r}; this guard resolves "
+    "${listMetaFontSize} and would silently skip a literal")
 
 common = open(f"{repo}/_inc/common.xml").read()
-base = dict(re.findall(r"<(listStarX|listMetaX)>([^<]+)<", common))
+base = dict(re.findall(r"<(listStarX|listMetaX|listMetaFontSize)>([^<]+)<", common))
 
 # (width, height) of each ratio's design surface, matching the render matrix.
 DIMS = {"8x7": (1024, 896), "3x2": (1280, 854), "16x9": (1280, 720), "1x1": (720, 720)}
 
 failures = []
 for ratio, (w, h) in DIMS.items():
-    override = dict(re.findall(r"<(listStarX|listMetaX)>([^<]+)<",
+    override = dict(re.findall(r"<(listStarX|listMetaX|listMetaFontSize)>([^<]+)<",
                                 open(f"{repo}/_inc/aspect-{ratio}.xml").read()))
     sx = float(override.get("listStarX", base["listStarX"]))
     mx = float(override.get("listMetaX", base["listMetaX"]))
+    fs = float(override.get("listMetaFontSize", base["listMetaFontSize"]))
     glyph_w = fs * 0.85 * h
     track = (5 * glyph_w + 4 * glyph_w * 0.25) / w
     # A bare '<' is satisfied by a layout that is visually touching (zero

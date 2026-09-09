@@ -9,8 +9,7 @@
     <waveTint>9A3412</waveTint>
     <accent>F97316</accent>
     <textPrimary>FFFFFF</textPrimary>
-    <textSecondary>FED7AA</textSecondary>
-    <textBody>FED7AA</textBody>
+    <textSecondary>FFEDD9</textSecondary>
     <selectorGlow>FB923C</selectorGlow>
     <helpAccent>FED7AA</helpAccent>
   </variables>
