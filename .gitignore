@@ -16,3 +16,6 @@
 
 # SDD scratch workspace
 .superpowers/
+
+# cached upstream batocera es_systems.yml (make-library-systems.py fetches it)
+scripts/es_systems.yml.cache
