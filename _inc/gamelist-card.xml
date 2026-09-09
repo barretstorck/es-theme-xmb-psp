@@ -442,6 +442,10 @@
            tiny (set tiny below to suppress default text). See
            TextListComponent.h:611. -->
       <lines>3</lines>
+      <!-- The vertical tick. This textlist draws nothing (every colour is
+           transparent and the text is the itemTemplate's), but it is still the
+           component ES scrolls, so the sound belongs here. -->
+      <scrollSound>${soundNavigate}</scrollSound>
       <lineSpacing>1.0</lineSpacing>
       <fontSize>0.0001</fontSize>
       <primaryColor>00000000</primaryColor>

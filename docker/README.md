@@ -120,6 +120,76 @@ Note that `-layers OptimizeTransparency` leaves individual frames carrying only
 their changed pixels, so extracting one frame from the GIF shows garbage unless
 you `-coalesce` first. That is an artifact of the extraction, not of playback.
 
+## Audio (measuring what ES plays)
+
+Every other capture here is a screenshot, and a sound binding is invisible in
+one: a theme `<sound>` element ES never asks for reads exactly like a working
+one in the XML. That is not hypothetical — three of this theme's four sound
+bindings named element types EmulationStation never requests, so two of its
+sounds had never played in any release, and no render could show it (#21).
+
+`scripts/capture-audio.sh` closes that gap. It uses the same image, pin and
+container script as `render.sh` — capturing added no image content, since
+SDL's `disk` audio driver is built into the SDL2 the image has always shipped,
+so **`HARNESS_REV` was deliberately not bumped and nobody has to rebuild**.
+
+    ./scripts/capture-audio.sh --library /tmp/library
+    ./scripts/capture-audio.sh --library /tmp/library       --script "right:2,confirm:3,down:2" --expect sound,any,sound
+    ./scripts/capture-audio.sh --library /tmp/library --enable-sounds false       --expect silence,silence,silence,silence,silence,silence,silence,silence
+
+### Byte offsets are timestamps
+
+`VIEW=audio` sets `SDL_AUDIODRIVER=disk`, which runs the normal audio callback
+and writes the mixed output to a file instead of a device, pacing itself to
+real time. The container records `stat -c%s` on that file immediately before
+each keystroke, so the manifest beside the capture (`<out>.events.tsv`) holds
+a byte offset per key — and in a real-time stream an offset converts straight
+to a timestamp. No clock alignment is involved, so the two cannot drift.
+
+The format is fixed by `AudioManager`'s
+`Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2)` (`AudioManager.cpp:71`): signed
+16-bit little-endian stereo at 44100 Hz. To listen to a capture:
+
+    ffplay -f s16le -ar 44100 -ch_layout stereo .dev/audio.raw
+
+`scripts/analyze-audio.py` reports, per event, whether anything played and its
+onset, duration, peak and dominant frequency. `--expect` turns that into a
+test: a comma-separated `sound` / `silence` / `any` per step, non-zero exit on
+any mismatch.
+
+### EnableSounds has to be pinned, or every capture is a vacuous pass
+
+ES defaults `EnableSounds` to **false** (`Settings.cpp:168`) and both
+`Sound::init` and `Sound::play` check it (`Sound.cpp:70, 97`), so with it unset
+nothing the theme declares can make a noise. The TrimUI Brick carries no such
+key either, which is why a stock device is silent. `capture-audio.sh` pins it
+`true` by default; `--enable-sounds false` captures the stock state instead,
+and is how the master switch itself gets tested.
+
+### Silence is the expected result, so get a positive control
+
+An all-zero capture is also what a broken capture looks like. Before reading
+one as a finding, confirm the chain can hear anything at all — the pre-fix
+capture for #21 was 30.3s of exact zeros, and it took an independent
+SDL_mixer probe playing `sounds/navigate.wav` through the same driver
+(measured peak 18309) to establish that the silence was the theme and not the
+instrument.
+
+### Two bindings the PCM capture cannot reach
+
+`launch` and `menuOpen` fire on transitions that reopen the audio device,
+which makes the disk driver truncate and restart the file — so their audio is
+lost and the recorded offsets no longer point anywhere. `analyze-audio.py`
+refuses to report that as silence rather than producing a false negative.
+
+For those, `VIEW=audio` also pins `LogLevel=information` and copies ES's
+`es_log.txt` out beside the capture. `Sound::getFromTheme` logs
+`req sound [<view>.<element>]` and `   (missing)` (`Sound.cpp:32-38`), which
+is a complete record of which names ES asked the theme for and which
+resolved. `capture-audio.sh` prints it. A name marked `MISSING` is a binding
+ES wanted and the theme did not supply; a name the theme declares that never
+appears at all is one ES never asks for.
+
 ## Video
 
 Preview video plays here. That took two things, neither of them a rebuild at a

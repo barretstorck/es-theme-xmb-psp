@@ -16,6 +16,7 @@ GAMELIST_DOWN="${GAMELIST_DOWN:-0}"
 GAMELIST_RIGHT="${GAMELIST_RIGHT:-0}"
 SPLASH_AT="${SPLASH_AT:-0.4}"
 RECORD_SCRIPT="${RECORD_SCRIPT:-}"
+AUDIO_SCRIPT="${AUDIO_SCRIPT:-}"
 RECORD_FPS="${RECORD_FPS:-10}"
 RECORD_WIDTH="${RECORD_WIDTH:-640}"
 # Must match record.sh's COLORS default; this fallback only applies to a
@@ -63,7 +64,22 @@ XVFB_PID=$!
 sleep 2
 export DISPLAY=:99
 export LIBGL_ALWAYS_SOFTWARE=1
-export SDL_AUDIODRIVER=dummy
+
+# VIEW=audio captures what ES actually SENDS TO THE MIXER, which is the only
+# way to check a sound binding: a theme <sound> element that ES never asks for
+# is indistinguishable from a working one by reading the XML, and every other
+# view in this harness is a screenshot. SDL's "disk" driver runs the normal
+# audio callback and writes the mixed output to a file instead of a device,
+# pacing itself to real time — so byte offsets in that file ARE timestamps.
+# Format is fixed by AudioManager's Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2)
+# (AudioManager.cpp:71) = signed 16-bit little-endian stereo at 44100 Hz.
+ES_AUDIO_RAW=/tmp/es-audio.raw
+if [[ "${VIEW}" == "audio" ]]; then
+  export SDL_AUDIODRIVER=disk
+  export SDL_DISKAUDIOFILE="${ES_AUDIO_RAW}"
+else
+  export SDL_AUDIODRIVER=dummy
+fi
 
 # --- KNULLI directory layout ---
 mkdir -p "${ES_CFG}" /userdata/system/logs /userdata/roms \
@@ -203,6 +219,32 @@ if [[ -n "${SHOW_BATTERY}" ]]; then
   BATTERY_LINE="  <string name=\"ShowBattery\" value=\"${SHOW_BATTERY}\" />"$'\n'
 fi
 
+# Sound::getFromTheme logs " req sound [<view>.<element>]" and "   (missing)"
+# at LogInfo (Sound.cpp:32-38), which is a complete record of which element
+# names ES asked the theme for and which resolved — the one oracle that can see
+# the "launch" and "menuOpen" bindings, since both fire on transitions that
+# reopen or tear down the audio device and so cannot be caught in the PCM
+# capture. ES's own default is "error" (Log.cpp:41), so this has to be pinned.
+LOG_LEVEL="${LOG_LEVEL:-}"
+[[ "${VIEW}" == "audio" && -z "${LOG_LEVEL}" ]] && LOG_LEVEL=information
+LOGLEVEL_LINE=""
+if [[ -n "${LOG_LEVEL}" ]]; then
+  LOGLEVEL_LINE="  <string name=\"LogLevel\" value=\"${LOG_LEVEL}\" />"$'\n'
+fi
+
+# ES ships navigation sounds OFF: Settings.cpp:168 sets EnableSounds=false, and
+# Sound::init/Sound::play both bail on it (Sound.cpp:70, 97), so with it unset
+# NOTHING the theme declares can make a noise. The TrimUI Brick's own
+# es_settings.cfg does not carry the key either, so a stock device is silent
+# until the user turns on Menu > Sound Settings > "Enable Navigation Sounds".
+# Written only when asked for, so an unpinned render keeps that stock silence
+# rather than quietly testing a configuration no device has.
+ENABLE_SOUNDS="${ENABLE_SOUNDS:-}"
+SOUNDS_LINE=""
+if [[ -n "${ENABLE_SOUNDS}" ]]; then
+  SOUNDS_LINE="  <bool name=\"EnableSounds\" value=\"${ENABLE_SOUNDS}\" />"$'\n'
+fi
+
 # 12-hour clock. Off by default (ES's own default), but the Bricks are set to
 # it and it is ~1.7x wider, so it is the width the status cluster must fit.
 CLOCK_LINE=""
@@ -216,7 +258,7 @@ cat > "${ES_CFG}/es_settings.cfg" <<XML
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
-${SUBSET_LINES}${BATTERY_LINE}${CLOCK_LINE}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
+${SUBSET_LINES}${BATTERY_LINE}${CLOCK_LINE}${SOUNDS_LINE}${LOGLEVEL_LINE}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
   <bool name="InvertButtons" value="${INVERT_BUTTONS}" />
   <bool name="MusicEnabled" value="false" />
 </config>
@@ -285,6 +327,24 @@ key() {
   sleep "${wait}"
 }
 
+# Script vocabulary -> xdotool keysym. Shared by VIEW=record and VIEW=audio so
+# the two cannot drift; see the case body for why this is a closed set rather
+# than raw keysyms. Returns non-zero for an unknown name, leaving the caller to
+# report it with its own context.
+map_key_symbol() { # map_key_symbol <name>
+  case "$1" in
+    up)      printf 'Up' ;;
+    down)    printf 'Down' ;;
+    left)    printf 'Left' ;;
+    right)   printf 'Right' ;;
+    start)   printf 'space' ;;
+    select)  printf 'BackSpace' ;;
+    confirm) printf '%s' "${CONFIRM_KEY}" ;;
+    back)    printf '%s' "$([[ "${CONFIRM_KEY}" == "Return" ]] && echo Escape || echo Return)" ;;
+    *)       return 1 ;;
+  esac
+}
+
 # ES parses these through pugixml's as_bool(), which accepts "true", "1", "yes"
 # and any leading-T/Y spelling. A bare == "true" here would disagree with ES on
 # INVERT_BUTTONS=1 — ES would invert, the harness would still send Return, and
@@ -345,9 +405,9 @@ case "${VIEW}" in
     # always photographing the top-left corner.
     for _i in $(seq 1 "${GAMELIST_DOWN}"); do key Down 1; done
     for _i in $(seq 1 "${GAMELIST_RIGHT}"); do key Right 1; done ;;
-  record)
-    # Handled after this case: recording drives its own navigation, because
-    # the keys have to be pressed WHILE the capture loop is already running.
+  record|audio)
+    # Handled after this case: both drive their own navigation, because the
+    # keys have to be pressed WHILE the capture is already running.
     : ;;
   menu)
     # "start" button in the ES keyboard map is Space (key id 32).
@@ -364,6 +424,87 @@ esac
 if (( SETTLE > 0 )); then
   echo "settling ${SETTLE}s before capture" >&2
   sleep "${SETTLE}"
+fi
+
+# --- audio capture ---
+# The output is one continuous real-time PCM stream plus a manifest of the byte
+# offset at which each key was pressed. Offsets are taken from the file itself
+# rather than from a wall clock, so the two can never drift apart: the analyser
+# converts an offset straight to a timestamp and looks for sound in the window
+# after it. Silence in that window is the finding — it is what a theme <sound>
+# element ES never asks for produces.
+if [[ "${VIEW}" == "audio" ]]; then
+  if [[ -z "${AUDIO_SCRIPT}" ]]; then
+    echo "ERROR: VIEW=audio needs AUDIO_SCRIPT" >&2
+    exit 2
+  fi
+
+  # ES opens the audio device during startup, well before the 10s settle above,
+  # so by here the file should exist and be growing. If it never appears, SDL
+  # fell back or Mix_OpenAudio failed, and every event below would record a
+  # perfectly clean run of nothing — a false PASS for "no sound is expected"
+  # and a false FAIL for everything else. Refuse to produce that artifact.
+  if [[ ! -f "${ES_AUDIO_RAW}" ]]; then
+    echo "ERROR: SDL wrote no audio file at ${ES_AUDIO_RAW}." >&2
+    echo "  Mix_OpenAudio probably failed; ES log:" >&2
+    grep -i 'audio\|sdl' /tmp/es.log >&2 || true
+    exit 1
+  fi
+  _size_a="$(stat -c%s "${ES_AUDIO_RAW}")"
+  sleep 1
+  _size_b="$(stat -c%s "${ES_AUDIO_RAW}")"
+  if (( _size_b <= _size_a )); then
+    echo "ERROR: ${ES_AUDIO_RAW} is not growing (${_size_a} -> ${_size_b} bytes)." >&2
+    echo "  The SDL callback is not running, so nothing can be captured." >&2
+    exit 1
+  fi
+
+  MANIFEST=/tmp/es-audio-events.tsv
+  printf 'offset_bytes\tkey\n' > "${MANIFEST}"
+
+  IFS=',' read -ra _steps <<< "${AUDIO_SCRIPT}"
+  for _step in "${_steps[@]}"; do
+    [[ -z "${_step}" ]] && continue
+    _sym="${_step%%:*}"
+    _wait="${_step#*:}"
+    [[ "${_sym}" == "${_wait}" ]] && _wait=2
+    if [[ ! "${_wait}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      echo "ERROR: bad wait '${_wait}' in step '${_step}'" >&2
+      exit 2
+    fi
+    _name="${_sym}"
+    if ! _sym="$(map_key_symbol "${_sym}")"; then
+      echo "ERROR: unknown key '${_name}' in step '${_step}'" >&2
+      exit 2
+    fi
+    require_es_alive "during the audio script"
+    # Read the offset BEFORE pressing, so the recorded position is the last
+    # sample that is certainly pre-keystroke. The analyser's window opens here.
+    printf '%s\t%s\n' "$(stat -c%s "${ES_AUDIO_RAW}")" "${_name}" >> "${MANIFEST}"
+    key "${_sym}" "${_wait}"
+  done
+  require_es_alive "after the audio script"
+
+  # ES holds the last buffer until it exits; stopping it first flushes and
+  # closes the stream so the capture ends on a sample boundary.
+  kill "${ES_PID}" 2>/dev/null || true
+  wait "${ES_PID}" 2>/dev/null || true
+
+  cp "${ES_AUDIO_RAW}" "/harness-out/${OUTNAME%.raw}.raw"
+  cp "${MANIFEST}" "/harness-out/${OUTNAME%.raw}.events.tsv"
+  # Best-effort: the log is a second oracle, not the artifact. ES writes it to
+  # its user path, which Paths.cpp resolves differently per build, so find it
+  # rather than hardcoding a location that could silently stop matching.
+  ES_LOG="$(find /userdata -name es_log.txt -type f 2>/dev/null | head -1)"
+  if [[ -n "${ES_LOG}" ]]; then
+    cp "${ES_LOG}" "/harness-out/${OUTNAME%.raw}.es_log.txt"
+  else
+    echo "WARNING: no es_log.txt found; the sound-request report will be empty" >&2
+  fi
+  kill "${XVFB_PID}" 2>/dev/null || true
+  echo "captured $(stat -c%s "${ES_AUDIO_RAW}") bytes of s16le/44100/stereo" \
+       "-> /harness-out/${OUTNAME%.raw}.raw"
+  exit 0
 fi
 
 # --- recording ---
@@ -454,18 +595,10 @@ if [[ "${VIEW}" == "record" ]]; then
     # a perfectly good GIF in which no navigation happened. The script
     # vocabulary is therefore a closed set, mapped here and validated in
     # record.sh, rather than raw keysyms passed through.
-    case "${_sym}" in
-      up)      _sym="Up" ;;
-      down)    _sym="Down" ;;
-      left)    _sym="Left" ;;
-      right)   _sym="Right" ;;
-      start)   _sym="space" ;;
-      confirm) _sym="${CONFIRM_KEY}" ;;
-      back)    _sym="$([[ "${CONFIRM_KEY}" == "Return" ]] && echo Escape || echo Return)" ;;
-      *)
-        echo "ERROR: unknown key '${_sym}' in step '${_step}'" >&2
-        touch /tmp/record.stop; exit 2 ;;
-    esac
+    if ! _sym="$(map_key_symbol "${_sym}")"; then
+      echo "ERROR: unknown key '${_step%%:*}' in step '${_step}'" >&2
+      touch /tmp/record.stop; exit 2
+    fi
     require_es_alive "during the recording script"
     key "${_sym}" "${_wait}"
   done
