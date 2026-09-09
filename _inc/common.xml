@@ -213,11 +213,38 @@
     <videoDelay>5</videoDelay>
 
     <!-- v0.12 style D (Box Art Grid). Geometry from the approved mockup
-         d-boxart-grid.png: 4 columns x 2 visible rows, info bar beneath. -->
+         d-boxart-grid.png: 4 columns x 2 visible rows, info bar beneath.
+
+         gridTileW/gridTileH are the FALLBACK tile size, used only if the grid
+         ever stops declaring <autoLayout>: whenever autoLayout is set,
+         ImageGridComponent::calcGridDimension (ImageGridComponent.h:1442-1447)
+         recomputes mTileSize from the grid rect and discards <gridtile><size>.
+         They are therefore inert today. Do NOT add per-ratio overrides for
+         them — four such overrides shipped in v0.12 and did nothing, which is
+         what led issue #43 to believe tiles differ by aspect ratio. The live
+         geometry lives in _inc/gamelist-grid.xml's <imagegrid>, and because
+         every value there is a fraction of the same screen dimension, the
+         zoom's overlap threshold is identical at all five ratios. -->
     <gridTileW>0.185</gridTileW>
     <gridTileH>0.255</gridTileH>
+
+    <!-- Info bar bands, as variables so a ratio that ever needs to retune them
+         can, and so scripts/tests/test-grid-selection.sh can check that the
+         text bands sit inside the panel band. Panel spans gridInfoY to
+         gridInfoY + gridInfoH; each text row is bounded by a clipRect built
+         from its own Y/H pair, because <size> alone does not clip on this
+         build (GuiComponent.cpp:885,1269). -->
     <gridInfoY>0.795</gridInfoY>
+    <gridInfoH>0.110</gridInfoH>
+    <gridTitleY>0.808</gridTitleY>
+    <gridTitleH>0.062</gridTitleH>
+    <gridMetaY>0.862</gridMetaY>
+    <gridMetaH>0.040</gridMetaH>
+    <!-- The star pair's column. gridStarW bounds it: {game:stars} emits filled
+         glyphs only (FileData.cpp:1924), so the track is a fixed five-glyph
+         literal today, but nothing structural stopped it growing. -->
     <gridStarX>0.680</gridStarX>
+    <gridStarW>0.140</gridStarW>
   </variables>
 
   <!-- NOTE: "grid" is deliberately ABSENT from this list. Declaring it here
