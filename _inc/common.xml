@@ -365,27 +365,4 @@
     </helpsystem>
   </view>
 
-  <!-- Hide ES's built-in OSD overlays so they don't double up with our
-       theme. controllerActivity is the white-pink square top-left. -->
-  <view name="screen">
-    <controllerActivity name="controllerActivity">
-      <visible>false</visible>
-    </controllerActivity>
-    <!-- ES's real wall-clock, top-right, enlarged (v0.6); pos.x nudged
-         v0.10 pulled the batteryIcon — vertical-alignment and
-         percentage-rendering bugs surfaced on-device couldn't be
-         resolved in this iteration. Clock right-aligned at x=0.84
-         (right edge at 0.98) leaves the status bar clock-only for
-         now. art/battery/* assets and the batteryIcon syntax notes
-         are preserved in the tree for the restoration attempt. -->
-    <text name="clock">
-      <visible>true</visible>
-      <pos>0.84 0.03</pos>
-      <size>0.14 0.06</size>
-      <fontPath>${fontRegular}</fontPath>
-      <fontSize>0.042</fontSize>
-      <color>${textPrimary}</color>
-      <alignment>right</alignment>
-    </text>
-  </view>
 </theme>

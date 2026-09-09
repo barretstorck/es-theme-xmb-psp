@@ -102,8 +102,13 @@ fi
 # and /opt/es/es-core/src/ThemeData.cpp:
 #   mColorset = Settings::getInstance()->getString("ThemeColorSet");
 # All other (non-special) subsets use the generic key "subset.<name>" per
-# GuiMenu.cpp:3276 — that is why battery uses "subset.battery" and not a
-# named constant.
+# GuiMenu.cpp:3276 — hence the "subset.<name>" lines built below.
+#
+# The battery widget is deliberately NOT one of them. It has no theme subset:
+# visibility is ES's own ShowBattery setting (GuiMenu.cpp:3928 offers
+# NO / ICON / ICON AND TEXT as "" / "icon" / "text"), and a theme cannot
+# override it — BatteryIconComponent::update() calls setVisible() from
+# hasBattery on every tick, discarding whatever the theme asked for.
 
 # Gamelist view style. v0.12: use "automatic" for the plain gamelist view so
 # the theme's own root defaultView attribute selects the view type — that is
@@ -167,13 +172,32 @@ SUBSET_LINES+="  <string name=\"subset.videoDelay\" value=\"${VIDEO_DELAY}\" />"
 # what a user who flipped Menu > Invert Buttons sees.
 : "${INVERT_BUTTONS:=true}"
 
+# ShowBattery gates the status-bar battery elements. Written only when asked
+# for, so an unpinned render keeps ES's own default of "text" (Settings.cpp:180)
+# — the same value a stock device has. "none" is spelled as the empty string
+# because that is what ES stores for the menu's "NO" (GuiMenu.cpp:3928); an
+# absent key and an empty value are NOT the same thing here.
+SHOW_BATTERY="${SHOW_BATTERY:-}"
+BATTERY_LINE=""
+if [[ -n "${SHOW_BATTERY}" ]]; then
+  [[ "${SHOW_BATTERY}" == "none" ]] && SHOW_BATTERY=""
+  BATTERY_LINE="  <string name=\"ShowBattery\" value=\"${SHOW_BATTERY}\" />"$'\n'
+fi
+
+# 12-hour clock. Off by default (ES's own default), but the Bricks are set to
+# it and it is ~1.7x wider, so it is the width the status cluster must fit.
+CLOCK_LINE=""
+if [[ -n "${CLOCK_12H:-}" ]]; then
+  CLOCK_LINE="  <bool name=\"ClockMode12\" value=\"${CLOCK_12H}\" />"$'\n'
+fi
+
 cat > "${ES_CFG}/es_settings.cfg" <<XML
 <?xml version="1.0"?>
 <config>
   <string name="ThemeSet" value="es-theme-xmb-psp" />
   <string name="ThemeColorSet" value="${COLORSET}" />
   <string name="GamelistViewStyle" value="${GLVIEW}" />
-${SUBSET_LINES}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
+${SUBSET_LINES}${BATTERY_LINE}${CLOCK_LINE}  <bool name="ShowHelpPrompts" value="${SHOW_HELP}" />
   <bool name="InvertButtons" value="${INVERT_BUTTONS}" />
   <bool name="MusicEnabled" value="false" />
 </config>

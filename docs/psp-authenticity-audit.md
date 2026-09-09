@@ -1128,18 +1128,17 @@ filled-silhouette style as the hardware-system icons.
 unplugged or in a low-battery state), PSP shows the numeric
 percentage next to the icon.
 
-**Current theme:** No battery widget at all — the entire widget
-(glyph included) was pulled in v0.10 (8292b54). The assets survive
-(`art/battery/*`, `scripts/gen-battery-icons.py`); restoring the
-glyph is tracked as issue #4. This entry now DEPENDS on #4 landing
-the glyph first — there is currently nothing to put a numeric
-"next to".
+**Current theme: SHIPPED with #4.** A native `<batteryText>` sits
+between the network glyph and the battery glyph in the top-right
+cluster; ES fills it with `NN%` from the charge level. See style
+guide §6.5 for the geometry.
 
 **Reference:** Not visible in the captured reference videos — this
 is a known PSP firmware feature, optional.
 
-**Feasibility:** Ship-it once issue #4 restores the battery glyph.
-Two supported paths, both still valid.
+**Feasibility:** Shipped. Of the two paths sketched below only the
+first is real — **the binding-based alternative does not work in this
+view and is retained only as a warning.**
 
 **Workaround sketch (recommended — native batteryText element):**
 
@@ -1162,7 +1161,16 @@ Two supported paths, both still valid.
 `ShowBattery=text` setting — consistent with how `<batteryIcon>`
 honors `ShowBattery=icon`.
 
-**Alternative path (binding-based, no `ShowBattery` requirement):**
+**Dead path (binding-based) — DO NOT RETRY.** This is what v0.10
+tried, and it renders an empty element with no error of any kind. It
+looks like it should work, and the binding it uses is real; what is
+missing is anything that resolves bindings for screen-view extras.
+`Window.cpp:1258` builds them via `ThemeData::makeExtras(theme,
+"screen", this)` and no `BindingManager::updateBindings` call exists
+for that list — only SystemView (`:656`), DetailedContainer (`:1026`),
+ISimpleGameListView (`:728`), Splash and the carousel/grid item
+templates get one. Verified in the harness: the element renders blank
+even with `<visible>true</visible>`.
 
 ```xml
 <text name="batteryPercent" extra="true">
@@ -1177,14 +1185,14 @@ honors `ShowBattery=icon`.
 </text>
 ```
 
-`{global:batteryLevel}` returns the int level from
-`Utils::Platform::queryBatteryInformation().level`
-(`BindingManager.cpp:52-53`); `{global:battery}` is the `hasBattery`
-bool.
+`{global:batteryLevel}` and `{global:battery}` are genuinely
+registered (`BindingManager.cpp:52-53`) — they simply never get
+evaluated here, so the text is empty and `<visible>` never becomes
+true. The bindings work normally in the system and gamelist views.
 
-**Effort:** Trivial (after #4).
+**Effort:** Shipped as part of #4.
 
-**Dependencies:** issue #4 (battery-glyph restoration).
+**Dependencies:** none remaining.
 
 **Evidence:** 8292b54 (widget removal); `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
 (auto-extra registration), `:2147-2148` (createExtraComponent
@@ -1651,9 +1659,17 @@ global table confirms the same list. Knulli's `knulli-wifi` CLI
 (`ApiSystem.cpp:480`) exposes only enable/disable — no scan / level
 interface to the theme layer.
 
-**Closest we could get:** Binary present/absent via
-`{global:network}` — which is what ES's built-in `<networkIcon>`
-already shows.
+**Closest we could get — and now SHIPPED (#4):** binary
+present/absent, drawn in the theme's own style. Note the mechanism is
+*not* the `{global:network}` binding named above: bindings are never
+resolved in the `screen` view (`Window.cpp:1258` builds the screen
+extras and nothing calls `BindingManager::updateBindings` on them). It
+is a native `<networkIcon>` element, which auto-hides on its own —
+`NetworkIconComponent::update()` calls
+`setVisible(ShowNetworkIndicator && connected)`. The theme draws one
+because #4 hides ES's `batteryIndicator`, and that component owns ES's
+wifi glyph as well as its battery. The 4-bar strength reading remains
+unsupportable.
 
 **Evidence:** `BindingManager.cpp:18-71` (exhaustive registry);
 `ApiSystem.cpp:480` (knulli-wifi CLI surface); spike probe
@@ -1753,8 +1769,8 @@ features. Listed so future audits don't re-discover them.
   - **Highest-impact / verified-ship-it cluster (was: target
     v0.10):** S6 (continuous wave) + X1 (halo storyboard cleanup)
     SHIPPED in v0.10; X2 (description chevrons) shipped then
-    design-rejected on-device (4fbc7ca); ST1 (battery %) now
-    blocked on issue #4 restoring the battery glyph.
+    design-rejected on-device (4fbc7ca); ST1 (battery %) SHIPPED
+    with #4, together with the battery glyph itself.
   - **`<itemTemplate>` adoption cluster (target v0.10 or v0.11 — one
     coordinated XML rework unlocks G4, G7, G8, and the gamecarousel
     side of G3):** G4 (per-logo titles) + G7 (two-line selected
