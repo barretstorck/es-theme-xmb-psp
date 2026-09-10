@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- media-fallback: the cartridge glyph, shared by every system whose physical
+     media it represents (home consoles that took a full-size cartridge).
+
+     Sets ${mediaFallbackPath}, which the gamelist styles' fallback images
+     resolve to when a game has no scraped thumbnail.
+
+     ONE FILE PER GLYPH, NOT PER SYSTEM. There were 76 of these, each ten lines
+     of boilerplate setting one variable, and only seven distinct values among
+     them. The per-system split implied a per-system decision that did not
+     exist and made "which systems share this glyph?" unanswerable without
+     grepping all 76. Naming the file after the glyph makes the sharing the
+     visible fact it always was — editing this path changes it for all
+     24 systems listed below, which is the intent.
+
+     Systems using this glyph (24):
+       atari2600, atari5200, atari7800, atarijaguar,
+       colecovision, fds, intellivision, mastersystem, megadrive,
+       n64, n64dd, nes, pcengine, satellaview, sega32x, sg-1000,
+       sgb-msu1, sgb, snes-msu1, snes, sufami, supergrafx,
+       vectrex, virtualboy
+
+     To give one of them its own glyph, add a file for that glyph (or a
+     single-system one) and an <include if> AFTER this one in theme.xml —
+     later includes win the property merge. -->
+<theme>
+  <variables>
+    <mediaFallbackPath>./art/system-media/cartridge.png</mediaFallbackPath>
+  </variables>
+</theme>

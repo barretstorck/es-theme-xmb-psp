@@ -80,90 +80,72 @@
 
   <include>./_inc/common.xml</include>
 
-  <!-- v0.11 redesign: per-system media-fallback. Sets ${mediaFallbackPath}
-       so the gamelist itemTemplate's <tplFallbackIcon> image resolves to a
-       system-appropriate glyph when {game:thumbnail} is empty. Nested
-       variable indirection (${mediaFallback${system.theme}}) was spiked
-       and failed on this Knulli ES build, so this list of conditional
-       includes is the fallback path. _default loads first so unmapped
-       systems still resolve; matching system override wins by being
-       later in document order. -->
+  <!-- Media-fallback. Sets ${mediaFallbackPath} so the gamelist styles'
+       fallback image resolves to a system-appropriate glyph when
+       {game:thumbnail} is empty. Nested variable indirection
+       (${mediaFallback${system.theme}}) was spiked and failed on this Knulli
+       ES build, so conditional includes are the fallback path. _default
+       loads first so unmapped systems still resolve; a matching override
+       wins by being later in document order.
+
+       ONE INCLUDE PER GLYPH. This was 75 include lines pointing at 75
+       near-identical files, which between them held only SEVEN distinct
+       paths. It is now six lines and six files, each naming the systems
+       that share one glyph — see the header of each file for the list.
+
+       The `||` is real: <include if> is evaluated by MathExpr
+       (ThemeData.cpp:1178), whose operator table carries "||" at precedence
+       -3, below "==" at -1, so each comparison binds first
+       (MathExpr.cpp:94,820). Verified on pixels, not just on the source —
+       an unscraped PSX game still resolves to the disc glyph and an
+       unscraped NES game to the cartridge, with the card media slot
+       byte-identical to the per-system arrangement.
+
+       Attribute values are wrapped across lines on purpose: XML normalises a
+       newline inside an attribute to a space before MathExpr ever sees it,
+       and a thousand-character line is unreviewable in a diff. -->
   <include>./_inc/media-fallback/_default.xml</include>
-  <include if="${system.theme} == 'amiga'">./_inc/media-fallback/amiga.xml</include>
-  <include if="${system.theme} == 'amiga1200'">./_inc/media-fallback/amiga1200.xml</include>
-  <include if="${system.theme} == 'amiga500'">./_inc/media-fallback/amiga500.xml</include>
-  <include if="${system.theme} == 'amigacd32'">./_inc/media-fallback/amigacd32.xml</include>
-  <include if="${system.theme} == 'amigacdtv'">./_inc/media-fallback/amigacdtv.xml</include>
-  <include if="${system.theme} == 'amstradcpc'">./_inc/media-fallback/amstradcpc.xml</include>
-  <include if="${system.theme} == 'apple2'">./_inc/media-fallback/apple2.xml</include>
-  <include if="${system.theme} == 'apple2gs'">./_inc/media-fallback/apple2gs.xml</include>
-  <include if="${system.theme} == 'atari2600'">./_inc/media-fallback/atari2600.xml</include>
-  <include if="${system.theme} == 'atari5200'">./_inc/media-fallback/atari5200.xml</include>
-  <include if="${system.theme} == 'atari7800'">./_inc/media-fallback/atari7800.xml</include>
-  <include if="${system.theme} == 'atarijaguar'">./_inc/media-fallback/atarijaguar.xml</include>
-  <include if="${system.theme} == 'atarilynx'">./_inc/media-fallback/atarilynx.xml</include>
-  <include if="${system.theme} == 'atarist'">./_inc/media-fallback/atarist.xml</include>
-  <include if="${system.theme} == 'atomiswave'">./_inc/media-fallback/atomiswave.xml</include>
-  <include if="${system.theme} == 'c128'">./_inc/media-fallback/c128.xml</include>
-  <include if="${system.theme} == 'c64'">./_inc/media-fallback/c64.xml</include>
-  <include if="${system.theme} == 'colecovision'">./_inc/media-fallback/colecovision.xml</include>
-  <include if="${system.theme} == 'dos'">./_inc/media-fallback/dos.xml</include>
-  <include if="${system.theme} == 'dreamcast'">./_inc/media-fallback/dreamcast.xml</include>
-  <include if="${system.theme} == 'fbneo'">./_inc/media-fallback/fbneo.xml</include>
-  <include if="${system.theme} == 'fds'">./_inc/media-fallback/fds.xml</include>
-  <include if="${system.theme} == 'gamate'">./_inc/media-fallback/gamate.xml</include>
-  <include if="${system.theme} == 'gameandwatch'">./_inc/media-fallback/gameandwatch.xml</include>
-  <include if="${system.theme} == 'gamecom'">./_inc/media-fallback/gamecom.xml</include>
-  <include if="${system.theme} == 'gamegear'">./_inc/media-fallback/gamegear.xml</include>
-  <include if="${system.theme} == 'gb'">./_inc/media-fallback/gb.xml</include>
-  <include if="${system.theme} == 'gba'">./_inc/media-fallback/gba.xml</include>
-  <include if="${system.theme} == 'gbc'">./_inc/media-fallback/gbc.xml</include>
-  <include if="${system.theme} == 'intellivision'">./_inc/media-fallback/intellivision.xml</include>
-  <include if="${system.theme} == 'macintosh'">./_inc/media-fallback/macintosh.xml</include>
-  <include if="${system.theme} == 'mame'">./_inc/media-fallback/mame.xml</include>
-  <include if="${system.theme} == 'mastersystem'">./_inc/media-fallback/mastersystem.xml</include>
-  <include if="${system.theme} == 'megadrive'">./_inc/media-fallback/megadrive.xml</include>
-  <include if="${system.theme} == 'msx'">./_inc/media-fallback/msx.xml</include>
-  <include if="${system.theme} == 'msx1'">./_inc/media-fallback/msx1.xml</include>
-  <include if="${system.theme} == 'msx2'">./_inc/media-fallback/msx2.xml</include>
-  <include if="${system.theme} == 'n64'">./_inc/media-fallback/n64.xml</include>
-  <include if="${system.theme} == 'n64dd'">./_inc/media-fallback/n64dd.xml</include>
-  <include if="${system.theme} == 'namco22'">./_inc/media-fallback/namco22.xml</include>
-  <include if="${system.theme} == 'naomi'">./_inc/media-fallback/naomi.xml</include>
-  <include if="${system.theme} == 'naomi2'">./_inc/media-fallback/naomi2.xml</include>
-  <include if="${system.theme} == 'nds'">./_inc/media-fallback/nds.xml</include>
-  <include if="${system.theme} == 'neogeo'">./_inc/media-fallback/neogeo.xml</include>
-  <include if="${system.theme} == 'neogeocd'">./_inc/media-fallback/neogeocd.xml</include>
-  <include if="${system.theme} == 'nes'">./_inc/media-fallback/nes.xml</include>
-  <include if="${system.theme} == 'ngp'">./_inc/media-fallback/ngp.xml</include>
-  <include if="${system.theme} == 'ngpc'">./_inc/media-fallback/ngpc.xml</include>
-  <include if="${system.theme} == 'pc'">./_inc/media-fallback/pc.xml</include>
-  <include if="${system.theme} == 'pc88'">./_inc/media-fallback/pc88.xml</include>
-  <include if="${system.theme} == 'pc98'">./_inc/media-fallback/pc98.xml</include>
-  <include if="${system.theme} == 'pce-cd'">./_inc/media-fallback/pce-cd.xml</include>
-  <include if="${system.theme} == 'pcengine'">./_inc/media-fallback/pcengine.xml</include>
-  <include if="${system.theme} == 'pokemini'">./_inc/media-fallback/pokemini.xml</include>
-  <include if="${system.theme} == 'psp'">./_inc/media-fallback/psp.xml</include>
-  <include if="${system.theme} == 'psx'">./_inc/media-fallback/psx.xml</include>
-  <include if="${system.theme} == 'satellaview'">./_inc/media-fallback/satellaview.xml</include>
-  <include if="${system.theme} == 'saturn'">./_inc/media-fallback/saturn.xml</include>
-  <include if="${system.theme} == 'scummvm'">./_inc/media-fallback/scummvm.xml</include>
-  <include if="${system.theme} == 'sega32x'">./_inc/media-fallback/sega32x.xml</include>
-  <include if="${system.theme} == 'segacd'">./_inc/media-fallback/segacd.xml</include>
-  <include if="${system.theme} == 'sg-1000'">./_inc/media-fallback/sg-1000.xml</include>
-  <include if="${system.theme} == 'sgb-msu1'">./_inc/media-fallback/sgb-msu1.xml</include>
-  <include if="${system.theme} == 'sgb'">./_inc/media-fallback/sgb.xml</include>
-  <include if="${system.theme} == 'snes-msu1'">./_inc/media-fallback/snes-msu1.xml</include>
-  <include if="${system.theme} == 'snes'">./_inc/media-fallback/snes.xml</include>
-  <include if="${system.theme} == 'sufami'">./_inc/media-fallback/sufami.xml</include>
-  <include if="${system.theme} == 'supergrafx'">./_inc/media-fallback/supergrafx.xml</include>
-  <include if="${system.theme} == 'supervision'">./_inc/media-fallback/supervision.xml</include>
-  <include if="${system.theme} == 'vectrex'">./_inc/media-fallback/vectrex.xml</include>
-  <include if="${system.theme} == 'virtualboy'">./_inc/media-fallback/virtualboy.xml</include>
-  <include if="${system.theme} == 'wonderswan'">./_inc/media-fallback/wonderswan.xml</include>
-  <include if="${system.theme} == 'wonderswancolor'">./_inc/media-fallback/wonderswancolor.xml</include>
-  <include if="${system.theme} == 'x68000'">./_inc/media-fallback/x68000.xml</include>
-  <include if="${system.theme} == 'zxspectrum'">./_inc/media-fallback/zxspectrum.xml</include>
+  <include if="${system.theme} == 'amiga' || ${system.theme} == 'amiga1200' ||
+       ${system.theme} == 'amiga500' || ${system.theme} == 'amigacdtv' ||
+       ${system.theme} == 'amstradcpc' || ${system.theme} == 'atarist' ||
+       ${system.theme} == 'c128' || ${system.theme} == 'c64' ||
+       ${system.theme} == 'msx' || ${system.theme} == 'msx1' ||
+       ${system.theme} == 'msx2' || ${system.theme} == 'pc88' ||
+       ${system.theme} == 'pc98' || ${system.theme} == 'x68000' ||
+       ${system.theme} == 'zxspectrum'">./_inc/media-fallback/floppy.xml</include>
+  <include if="${system.theme} == 'amigacd32' || ${system.theme} == 'dreamcast' ||
+       ${system.theme} == 'naomi' || ${system.theme} == 'neogeocd' ||
+       ${system.theme} == 'pce-cd' || ${system.theme} == 'psx' ||
+       ${system.theme} == 'saturn' || ${system.theme} == 'segacd'">./_inc/media-fallback/cd.xml</include>
+  <include if="${system.theme} == 'apple2' || ${system.theme} == 'apple2gs' ||
+       ${system.theme} == 'dos' || ${system.theme} == 'macintosh' ||
+       ${system.theme} == 'pc' || ${system.theme} == 'scummvm'">./_inc/media-fallback/computer.xml</include>
+  <include if="${system.theme} == 'atari2600' || ${system.theme} == 'atari5200' ||
+       ${system.theme} == 'atari7800' ||
+       ${system.theme} == 'atarijaguar' ||
+       ${system.theme} == 'colecovision' || ${system.theme} == 'fds' ||
+       ${system.theme} == 'intellivision' ||
+       ${system.theme} == 'mastersystem' ||
+       ${system.theme} == 'megadrive' || ${system.theme} == 'n64' ||
+       ${system.theme} == 'n64dd' || ${system.theme} == 'nes' ||
+       ${system.theme} == 'pcengine' || ${system.theme} == 'satellaview' ||
+       ${system.theme} == 'sega32x' || ${system.theme} == 'sg-1000' ||
+       ${system.theme} == 'sgb-msu1' || ${system.theme} == 'sgb' ||
+       ${system.theme} == 'snes-msu1' || ${system.theme} == 'snes' ||
+       ${system.theme} == 'sufami' || ${system.theme} == 'supergrafx' ||
+       ${system.theme} == 'vectrex' || ${system.theme} == 'virtualboy'">./_inc/media-fallback/cartridge.xml</include>
+  <include if="${system.theme} == 'atarilynx' || ${system.theme} == 'gamate' ||
+       ${system.theme} == 'gameandwatch' || ${system.theme} == 'gamecom' ||
+       ${system.theme} == 'gamegear' || ${system.theme} == 'gb' ||
+       ${system.theme} == 'gba' || ${system.theme} == 'gbc' ||
+       ${system.theme} == 'nds' || ${system.theme} == 'ngp' ||
+       ${system.theme} == 'ngpc' || ${system.theme} == 'pokemini' ||
+       ${system.theme} == 'psp' || ${system.theme} == 'supervision' ||
+       ${system.theme} == 'wonderswan' ||
+       ${system.theme} == 'wonderswancolor'">./_inc/media-fallback/handheld-cart.xml</include>
+  <include if="${system.theme} == 'atomiswave' || ${system.theme} == 'fbneo' ||
+       ${system.theme} == 'mame' || ${system.theme} == 'namco22' ||
+       ${system.theme} == 'naomi2' || ${system.theme} == 'neogeo'">./_inc/media-fallback/arcade-board.xml</include>
 
   <subset name="colorset" displayName="PSP Color">
     <include name="January Blue">./colors/psp-jan-blue.xml</include>
