@@ -238,8 +238,9 @@
       <animateSelection>true</animateSelection>
       <!-- The vertical tick, same as the other two styles.
            ImageGridComponent::onScroll (ImageGridComponent.h:141) plays it.
-           A grid move is still a sub-item move, so it gets the tick and not
-           the carousel's swoosh. -->
+           A grid move is still a sub-item move — though as of the rejected
+           swoosh (style guide §10) the carousel plays this same tick, so
+           every axis in the theme now sounds alike. -->
       <scrollSound>${soundNavigate}</scrollSound>
       <zIndex>5</zIndex>
     </imagegrid>

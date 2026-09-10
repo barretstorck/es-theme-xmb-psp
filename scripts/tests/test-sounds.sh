@@ -279,8 +279,10 @@ scraped library):
   scripts/capture-audio.sh --library /tmp/library \
     --expect sound,sound,sound,any,sound,sound,sound,any
 
-  expected: the three carousel moves at ~870 Hz for ~200 ms (the swoosh),
-            the three gamelist moves at ~6450 Hz (the tick)
+  expected: all six moves at ~6450 Hz (the tick) — both axes share
+            ${soundNavigate}. The swoosh that would have made the three
+            carousel moves sound different was rejected on hardware; the
+            guard above asserts it stays gone.
 
   scripts/capture-audio.sh --library /tmp/library --enable-sounds false \
     --expect silence,silence,silence,silence,silence,silence,silence,silence
