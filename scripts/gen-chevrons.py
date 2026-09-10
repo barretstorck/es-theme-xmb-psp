@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """gen-chevrons.py — generate the description scroll affordance glyphs.
 
+PARKED: no theme XML consumes these glyphs. The scroll affordance is issue
+#9 (S5), deliberately parked outside the v1.0 milestone. The generated PNGs
+were removed from art/ in the v1.0 audit cleanup rather than shipping two
+unreferenced files to every device — art/ is installed verbatim. This
+generator is kept so #9 can recreate them byte-identically: run it, and the
+outputs land back in art/ui/. Do not commit the outputs until an element
+actually references them.
+
 Mirrors the procedural-asset pattern of scripts/gen-battery-icons.py and
 scripts/gen-battery-icons.py. Produces:
   art/ui/chevron-up.png   — white triangle, apex at top center
