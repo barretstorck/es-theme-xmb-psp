@@ -13,6 +13,7 @@
 # Keep in sync with the --exclude list in scripts/deploy.sh's `sync`
 # subcommand, which is the same decision for the on-device copy (it drops
 # the three text files as well, since nothing reads them at runtime).
+.github/            export-ignore
 docs/               export-ignore
 scripts/            export-ignore
 docker/             export-ignore
