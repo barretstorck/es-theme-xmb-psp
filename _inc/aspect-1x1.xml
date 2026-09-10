@@ -13,7 +13,6 @@
   <variables>
     <!-- Cross anchor + balance (P2): raise center, pull left -->
     <crossX>0.22</crossX>
-    <crossY>0.27</crossY>
     <captionY>0.38</captionY>
     <sysCarouselSizeW>2.32</sysCarouselSizeW>     <!-- K=1.62 × logoW=0.13 × 11 -->
     <sysCarouselPosX>-0.94</sysCarouselPosX>      <!-- crossX - sysCarouselSizeW/2 = 0.22 - 1.16 -->
@@ -23,11 +22,6 @@
     <sysIconMaxH>0.16</sysIconMaxH>
     <sysCarouselLogoW>0.13</sysCarouselLogoW>
     <sysCarouselLogoH>0.13</sysCarouselLogoH>
-
-    <!-- Vertical arm (P2): more room below the raised cross -->
-    <gameColX>0.06</gameColX>
-    <gameColTextY>0.47</gameColTextY>
-    <gameColH>0.46</gameColH>
 
     <!-- Card metadata font, renormalized for this ratio: at 720x720 the
          height-normalized font stays ~21.6px at 4:3's 0.030, too large for

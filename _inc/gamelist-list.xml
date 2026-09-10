@@ -75,8 +75,11 @@
       <pos>0.025 0.135</pos>
       <size>0.50 0.685</size>
       <lines>10</lines>
-      <!-- The vertical sub-item move: the bright tick, against the carousel's
-           low swoosh (audit A2). TextListComponent::onScroll plays it
+      <!-- The vertical sub-item move. Audit A2 wanted this tick set against
+           a lower swoosh on the horizontal axis; the swoosh was built, tried
+           on the Brick and rejected by ear, so both axes share
+           ${soundNavigate} (style guide §10).
+           TextListComponent::onScroll plays it
            (TextListComponent.h:127) from this property (:727); like the
            carousel's it defaults to empty, so an unset list is silent. -->
       <scrollSound>${soundNavigate}</scrollSound>

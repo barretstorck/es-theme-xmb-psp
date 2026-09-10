@@ -22,13 +22,8 @@
 # NOTE: deliberately NOT `set -e` — see the note in test-gamelist-styles.sh.
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-fail=0
-check() { # check <description> <condition-exit-code>
-  if [[ "$2" -eq 0 ]]; then echo "  ok   - $1"; else echo "  FAIL - $1"; fi
-  [[ "$2" -eq 0 ]] || fail=1
-}
+# shellcheck source=scripts/lib/test-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/test-lib.sh"
 
 # `check "$(cmd)" $?` would report the SUBSTITUTION's status, because bash
 # expands arguments left to right — so each python guard stores its exit
@@ -284,8 +279,10 @@ scraped library):
   scripts/capture-audio.sh --library /tmp/library \
     --expect sound,sound,sound,any,sound,sound,sound,any
 
-  expected: the three carousel moves at ~870 Hz for ~200 ms (the swoosh),
-            the three gamelist moves at ~6450 Hz (the tick)
+  expected: all six moves at ~6450 Hz (the tick) — both axes share
+            ${soundNavigate}. The swoosh that would have made the three
+            carousel moves sound different was rejected on hardware; the
+            guard above asserts it stays gone.
 
   scripts/capture-audio.sh --library /tmp/library --enable-sounds false \
     --expect silence,silence,silence,silence,silence,silence,silence,silence

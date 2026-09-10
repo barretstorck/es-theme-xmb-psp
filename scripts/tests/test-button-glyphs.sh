@@ -22,13 +22,8 @@
 # NOTE: deliberately NOT `set -e` — see the note in test-gamelist-styles.sh.
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-fail=0
-check() { # check <description> <condition-exit-code>
-  if [[ "$2" -eq 0 ]]; then echo "  ok   - $1"; else echo "  FAIL - $1"; fi
-  [[ "$2" -eq 0 ]] || fail=1
-}
+# shellcheck source=scripts/lib/test-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/test-lib.sh"
 
 THEME="${REPO_ROOT}/theme.xml"
 COMMON="${REPO_ROOT}/_inc/common.xml"
@@ -78,7 +73,7 @@ set_pairs() { # set_pairs <file>
 # silently on a python3-less host, and that regression ships to every user who
 # pinned Gamelist View Style = grid.
 strip_comments() { # strip_comments <file>
-  awk '''{
+  awk '{
     while (1) {
       if (incomment) {
         i = index($0, "-->")
@@ -93,7 +88,7 @@ strip_comments() { # strip_comments <file>
       $0 = $0 substr(rest, j + 3)
     }
     print
-  }''' "$1"
+  }' "$1"
 }
 
 echo "the property names must be ones ES actually reads:"

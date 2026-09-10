@@ -1,14 +1,20 @@
 # PSP XMB Authenticity Audit
 
 A standing reference catalog of every observable PSP XMB feature that this
-theme could plausibly approximate, scored against the v0.11 baseline
-**including the gamelist redesign (PR #32)** — single PSP-card row
-gamelist, right info panel removed, iconSize / titleVisibility /
-videoDelay subsets, per-system media fallbacks wired — on top of the
-earlier v0.11 work (PR #27 monochrome icons, PR #28 system halo —
-since removed, #34).
-Used as a wishlist / decision tool — entries here may or
-may not graduate into a versioned roadmap.
+theme could plausibly approximate, with a verdict per entry.
+
+Entries were first scored against the v0.11 baseline (PR #32's gamelist
+redesign — single PSP-card row, right info panel removed, iconSize /
+titleVisibility / videoDelay subsets, per-system media fallbacks — on top
+of PR #27's monochrome icons and PR #28's system halo). They have been
+carried forward since: v0.12 replaced the single gamelist with three
+selectable styles, and v1.0 settled the remaining sound, glyph, splash,
+grid and halo entries. Each entry's own **Status** line is authoritative
+and states which release settled it; where an entry describes behaviour
+that a later release changed, the text says so in place.
+
+Used as a wishlist / decision tool — entries here may or may not graduate
+into a versioned roadmap.
 
 **Inclusion rule:** An entry is listed in the active sections
 (S / G / ST / A / X) only if a meaningful partial workaround exists
@@ -27,10 +33,15 @@ aspect ratios should inherit any change unless noted.
   shipped). Entries G4, G5, G6, X1 in this audit are the audit-lens
   re-entries of roadmap items 2, 3+5, 1, and 4 respectively.
 - [`superpowers/specs/`](superpowers/specs/) — per-version design specs.
-- This audit is scoped to the v0.11 baseline, so its `_inc/gamelist.xml`
-  citations are historical evidence, not live paths: v0.12 split that file
-  into `_inc/gamelist-{card,list,grid}.xml` (PSP Card / List + Details /
-  Box Art Grid). See `superpowers/specs/2026-09-05-v0.12-gamelist-styles-design.md`.
+- v0.12 split `_inc/gamelist.xml` into `_inc/gamelist-{card,list,grid}.xml`
+  (PSP Card / List + Details / Box Art Grid). Citations here point at the
+  live files; entries whose element did not survive the split say so rather
+  than citing a path that no longer resolves. See
+  `superpowers/specs/2026-09-05-v0.12-gamelist-styles-design.md`.
+- Dated files under `superpowers/plans/` and `superpowers/specs/` are
+  point-in-time records and are NOT maintained against the current tree —
+  their `_inc/gamelist.xml` references are correct for the release they
+  describe.
 
 **Primary visual references:**
 - Four user-provided PSP XMB stills (cited as "PSP screenshot 1/2/3/4"
@@ -627,9 +638,14 @@ ES `THEMES.md` storyboard events section.
 issue #12), partially delivered.** The right info panel this entry
 wanted to extend no longer exists, so a "sidebar" of key-value rows
 is moot. What the redesign actually ships is a single metadata line
-on the expanded card: `{game:genre} · {game:stars}` (`cardMetadata`,
-`_inc/gamelist.xml:202-213`) — genre plus Unicode star glyphs. No
-labelled key-value block; no year / players / region rows.
+on the expanded card. As of v0.12 that is three fixed columns —
+`cardGenre` / `cardStars` / `cardPlayers` (`_inc/gamelist-card.xml:190`,
+`:222`, `:236`), plus `cardMeta2` (`:250`) — not the single
+`{game:genre} · {game:stars}` line named `cardMetadata` that v0.11
+shipped and that this entry was originally written against. Fixed
+columns were the point: they are what stops a long genre wrapping and
+pushing the stars onto a second line. Still no labelled key-value block
+and no region row.
 
 **PSP behaviour:** When a media item is selected (photo, music,
 video, game), metadata is rendered as labelled key-value pairs next
@@ -656,7 +672,8 @@ entry.
 **Dependencies:** none remaining (the old G6 coupling dissolved with
 the panel).
 
-**Evidence:** `_inc/gamelist.xml:202-213` (`cardMetadata`);
+**Evidence:** `_inc/gamelist-card.xml:190, 222, 236, 250` (the metadata
+columns that replaced v0.11's `cardMetadata`);
 `THEMES_BINDINGS.md` `{game:*}` bindings list; PR #32.
 
 ---
@@ -666,8 +683,8 @@ the panel).
 **Status: SUPERSEDED by the v0.11 gamelist redesign (PR #32,
 issue #13) — NOT shipped.** The gamecarousel this entry targeted is
 gone, and the shipped card list contains **no** `<reflexion>` on any
-element (verified: zero occurrences in `_inc/gamelist.xml` or
-anywhere in `_inc/`). If a reflection is still wanted, it is a new
+element (verified: zero occurrences anywhere in `_inc/`, across all
+three v0.12 style files). If a reflection is still wanted, it is a new
 one-line proposal against `cardBoxart` (see sketch below), not a
 pending item of the old design.
 
@@ -708,7 +725,7 @@ no `reflexion` usage post-PR #32.
 **Status: SHIPPED in the v0.11 gamelist redesign (PR #32,
 issue #14), gated behind a subset.** The card list's peek rows carry
 a per-row title element (`tplPeekTitle`, bound to `{game:name}`,
-`_inc/gamelist.xml:329-346`) rendered beside every row's icon via
+now `_inc/gamelist-card.xml:455`) rendered beside every row's icon via
 the textlist `<itemTemplate>`. Its opacity is
 `${titleUnselectedOpacity}`: **1** under Title Visibility = "With
 Titles" (Friendly) — every visible row shows icon + title, the PSP
@@ -739,7 +756,7 @@ double up with the card title.
 
 **Dependencies:** none remaining.
 
-**Evidence:** `_inc/gamelist.xml:329-346` (`tplPeekTitle` +
+**Evidence:** `_inc/gamelist-card.xml:455` (`tplPeekTitle` +
 activate/deactivate storyboards);
 `_inc/title-visibility-{strict,friendly}.xml`
 (`titleUnselectedOpacity` 0/1); `theme.xml:140-143` (subset
@@ -761,10 +778,11 @@ resolution).
   via `cardFallback` (expanded card) and `tplPeekFallback` (peek
   rows), both guarded by
   `<visible>!exists({game:thumbnail})</visible>`.
-- **Gamelist halo: NOT shipped — superseded.** The shipped
-  `_inc/gamelist.xml` contains **no halo element** (no `tplHalo`,
-  no `selectedGameHalo`; the peek textlist's selector is fully
-  transparent). The redesign's selection signal is the expanded
+- **Gamelist halo: NOT shipped — superseded.** No style file contains
+  **any halo element** (no `tplHalo`, no `selectedGameHalo`; the peek
+  textlist's selector is fully transparent). The system-view halo that
+  did ship was itself removed in v1.0 (#34), so there is now no halo
+  anywhere in the theme. The redesign's selection signal is the expanded
   card itself — the selected row's peek icon fades out and the
   ~2.7×-larger card boxart + oversized title take over — which
   makes a glow redundant. The orphaned `rowHaloW` / `rowHaloH`
@@ -806,11 +824,12 @@ outstanding task.
 
 **Dependencies:** S1 (icon design language — satisfied).
 
-**Evidence:** `theme.xml:39-114` (per-system includes);
-`_inc/media-fallback/` (75 files + `_default.xml`);
+**Evidence:** `theme.xml` media-fallback includes (six, one per glyph,
+covering the same 75 systems that once had a file each — see
+`_inc/media-fallback/*.xml` headers for the per-glyph system lists);
 `art/system-media/` (7 glyphs, b616057);
-`_inc/gamelist.xml:145-152, 310-324` (`cardFallback`,
-`tplPeekFallback`); absence of any halo element anywhere in the
+`_inc/gamelist-card.xml:123` (`cardFallback`) and `:436`
+(`tplPeekFallback`); absence of any halo element anywhere in the
 theme (verified by grep); 3d4a602 + 3396428 (system-halo restoration
 + tuning, both since removed).
 
@@ -858,8 +877,12 @@ on `cardMetadata` to suppress the bare-dot case.
 
 **Dependencies:** none remaining.
 
-**Evidence:** `_inc/gamelist.xml:150, 172, 315` (the three
-`exists()` guards); U2 (reflow unsupportable);
+**Evidence:** `_inc/gamelist-card.xml:128, 151, 441` (the three
+`exists()` guards — `:151` is now the two-term
+`!exists({game:image}) && !exists({game:thumbnail})` added in #41,
+because ES resolves a video's snapshot as image-or-thumbnail and a
+box-art-only scrape otherwise leaked the fallback icon around it);
+U2 (reflow unsupportable);
 `THEMES_BINDINGS.md:264-302`.
 
 ---
@@ -1267,8 +1290,12 @@ don't, either:
 **Effort:** Trivial (if existing assets are fine) / Small (if regen
 needed).
 
-**Dependencies:** A2 (`systemscroll` may want a distinct "swoosh"
-rather than reusing `navigate.wav`).
+**Dependencies:** none. This previously read as a live dependency on A2
+(a distinct "swoosh" for `systemscroll` rather than reusing
+`navigate.wav`) — both halves of which are settled and wrong: there is no
+`systemscroll` sound name in ES at all (scroll sounds are a
+`<scrollSound>` property, not a `<sound>` element), and A2 is WON'T DO
+after the swoosh was built, deployed to the Brick and rejected by ear.
 
 **Evidence:** `_inc/common.xml` `<view name="system,detailed,gamecarousel,menu">`
 sound block; `Sound.cpp:30-38, 70, 97`; `Settings.cpp:168`; `sounds/`
@@ -1373,9 +1400,12 @@ center frequency ~800 Hz, with a slight pitch bend).
 shows a small triangle at the cut edge indicating "more text below"
 (or above). Subtle but consistent across all PSP UI.
 
-**Current theme:** The description text element has
-`<container>true</container>` in `_inc/gamelist.xml:152`, which
-enables ES's built-in scroll behaviour. The text *does* scroll on
+**Current theme:** No longer accurate as written. There is no
+`<container>` element anywhere in the theme — v0.11's
+`<container>true</container>` is gone, and auto-scroll turned out to be
+two separate TextComponent properties (`<autoScroll>` to enable a
+direction, `<autoScrollSpeed>` for the rate), not a container. `cardDesc`
+(`_inc/gamelist-card.xml:285`) scrolls vertically inside a `clipRect`. The text *does* scroll on
 selection, but there's no visual cue that text is being cut at the
 container edge. This entry WAS implemented (4f003bc) and then
 deliberately reverted after on-device review (4fbc7ca): the
@@ -1413,8 +1443,9 @@ same description container.
 
 **Dependencies:** none.
 
-**Evidence:** `_inc/gamelist.xml:146-154` (description container);
-4f003bc (implementation), 4fbc7ca (design revert).
+**Evidence:** `_inc/gamelist-card.xml:285` (`cardDesc`, which replaced
+the v0.11 description container); 4f003bc (implementation),
+4fbc7ca (design revert).
 
 ---
 

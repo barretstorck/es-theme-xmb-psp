@@ -1,0 +1,21 @@
+# Keep `git archive` output — which is what GitHub serves as a release
+# tarball/zip — down to the theme payload ES actually loads.
+#
+# The documented install is a clone into /userdata/themes/, which puts the
+# full history plus ~18 MB of docs/ on the user's SD card. A release archive
+# built from this list is the theme itself and nothing else.
+#
+# LICENSE and CREDITS.md deliberately stay IN: the theme is CC-BY-NC-SA 2.0
+# and derived from Ant's "XMB Menu ES-DE", so the attribution has to travel
+# with the work. README.md stays for the install/customization instructions.
+#
+# Keep in sync with the --exclude list in scripts/deploy.sh's `sync`
+# subcommand, which is the same decision for the on-device copy (it drops
+# the three text files as well, since nothing reads them at runtime).
+docs/               export-ignore
+scripts/            export-ignore
+docker/             export-ignore
+tests/              export-ignore
+.env.local.example  export-ignore
+.gitignore          export-ignore
+.gitattributes      export-ignore
