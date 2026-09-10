@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Theme won't load / EmulationStation restart loop
+    url: https://github.com/barretstorck/es-theme-xmb-psp#troubleshooting
+    about: >
+      Recovery commands are in the README. Knulli stores the theme name in two
+      places, and if they diverge ES restart-loops — that one is not a bug in
+      the theme.

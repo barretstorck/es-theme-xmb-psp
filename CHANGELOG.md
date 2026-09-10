@@ -62,6 +62,27 @@ the public-release gate; closing it is the go/no-go.
   omitting `StrictHostKeyChecking=accept-new`.
 - Five theme variables deleted that nothing had consumed since v0.6/ae82df9.
 
+### Licensing and go-public readiness (#47)
+- `CREDITS.md` re-audited against the tree and rebuilt. Every directory under
+  `art/` is now accounted for — the table previously listed only inherited
+  assets, omitting the five directories of this port's own work, and still
+  filed `art/system-media/` under "Not yet used" after #41 wired all seven
+  glyphs into the gamelist.
+- Corrected the RetroArch attribution: 150 icons, not 134. The manifest has
+  mapped 150 since d520928, so the figure was wrong in all seven places four
+  documents repeated it — and CC-BY 4.0 makes an inaccurate count a false
+  attribution rather than a typo.
+- Documented the licence chain, including *why* CC-BY-NC-SA 2.0 is not a
+  choice: ShareAlike inherits it from the parent theme, and the NonCommercial
+  term is what blocks inclusion in commercial distro images.
+- Scrubbed a real LAN address that had reached three files with the
+  battery-widget screenshots.
+- New `no-secrets` whole-tree gate (credential shapes, non-example private
+  IPs, absolute home paths) and `test-credits-accounting.sh`, which re-derives
+  the icon counts from the tree and rejects any figure in the public docs that
+  is not one of them.
+- `CONTRIBUTING.md` and GitHub issue templates.
+
 ## [v0.12] — 2026-09-08 (`bd3c7cc`, untagged)
 
 ### Added

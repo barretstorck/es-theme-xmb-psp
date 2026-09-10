@@ -83,6 +83,7 @@ deliberately leaves their positions alone.
 - **Verified via Docker harness:** aspect ratios 4:3, 16:9, 3:2, 1:1, and 8:7 (render samples in the Screenshots section above).
 - **Likely works:** any Batocera/Knulli device whose screen falls into one of the verified ratios at any resolution, running batocera-emulationstation with `formatVersion 7` support.
 - **Other ratios** (21:9, 5:4, vertical, etc.) silently fall back to the 4:3 layout — may letterbox or stretch.
+- **Not verified:** ES-DE and other EmulationStation forks. The theme is written against batocera-emulationstation's `formatVersion 7`; other forks parse a different dialect and are known to ignore or mis-render parts of it. Establishing which forks actually work is tracked in [#46](https://github.com/barretstorck/es-theme-xmb-psp/issues/46) — reports welcome.
 
 ## Customization
 
@@ -299,6 +300,10 @@ references an image that is not in the tree, if the colorset gallery drifts
 from `theme.xml`, or if either committed artifact exceeds its size budget.
 
 The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
+
+## Contributing
+
+Bug reports, renders and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). You do not need a handheld to work on this theme: `scripts/render.sh` runs EmulationStation headless in Docker and screenshots the result.
 
 ## Credits and license
 
