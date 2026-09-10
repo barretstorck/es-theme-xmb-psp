@@ -105,10 +105,10 @@ drawn at the same line weight, fits inside a square footprint, and is
 read as a silhouette.
 
 **Current theme:** Shipped in v0.11 (PR #27). `art/system-icons/`
-now carries 198 icons: 134 shortnames adopted from the RetroArch
+now carries 201 icons: 150 shortnames adopted from the RetroArch
 `monochrome` set (f170f40) plus 8 hand-authored port icons in the
 same filled-silhouette style via `scripts/gen-port-icons.py`
-(0afbb62), all with a pre-burned drop shadow (see S3). Roughly 56
+(0afbb62), all with a pre-burned drop shadow (see S3). 43
 legacy Knulli icons remain for shortnames neither mapped nor
 hand-authored.
 
@@ -154,9 +154,9 @@ silhouettes); commits f170f40, 0afbb62.
 S1 (PSP-style filled-silhouette iconography) and partially for G10
 (branded auto-collection icons).
 
-**Current theme:** Shipped in v0.11 (PR #27). 134 RetroArch
+**Current theme:** Shipped in v0.11 (PR #27). 150 RetroArch
 `monochrome` icons are in `art/system-icons/`;
-`scripts/ra-mapping.tsv` (191 lines) and
+`scripts/ra-mapping.tsv` (209 lines) and
 `scripts/import-ra-icons.sh` landed on main via d520928. Note: the
 shipped TSV/script header still defaulted to `automatic` — being
 fixed in this same branch.
@@ -178,7 +178,7 @@ CREDITS.md attribution).
    ```
 
 2. **Author a mapping TSV** at `scripts/ra-mapping.tsv` — DONE
-   (d520928; 134 mapped shortnames). Two tab-separated columns:
+   (d520928; 150 mapped shortnames). Two tab-separated columns:
    Knulli shortname, RetroArch filename-without-extension. Examples:
    ```
    snes	Nintendo - Super Nintendo Entertainment System
@@ -227,7 +227,7 @@ CREDITS.md attribution).
 5. **Update CREDITS.md** — DONE (c07eca2, `CREDITS.md:57-66`). The
    block originally proposed here cited the *automatic* set; the
    shipped block credits the **`monochrome`** set
-   (`xmb/monochrome/png/`, CC-BY 4.0), covering the ~134 mapped
+   (`xmb/monochrome/png/`, CC-BY 4.0), covering the 150 mapped
    icons, the utility/auto-collection icons, and its role as design
    reference for the 8 hand-authored port icons
    (`scripts/gen-port-icons.py`).

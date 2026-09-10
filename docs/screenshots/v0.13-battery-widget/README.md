@@ -12,7 +12,7 @@ while this kept painting.
 
 ## `device-after.png` — the same device, this branch
 
-TrimUI Brick (192.168.0.52), Knulli, April Green, 1024x768, captured with
+TrimUI Brick (192.168.1.4), Knulli, April Green, 1024x768, captured with
 `knulli-screenshot` under the normal `S31emulationstation` service.
 
 Measured ink bands, left to right:

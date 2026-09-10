@@ -729,7 +729,7 @@ This theme follows that hierarchy:
 
 - **Hardware-system icons** (NES, SNES, PSX, etc.) — filled-silhouette
   treatment. Served by a hybrid set: Knulli's per-system silhouettes
-  retained where they read as PSP-style, with ~134 shortnames adopted
+  retained where they read as PSP-style, with 150 shortnames adopted
   from RetroArch's `monochrome` icon set (CC-BY 4.0 filled-silhouette,
   see audit S1a and #23) for visual coherence, plus 8 hand-authored
   port icons in matching style.

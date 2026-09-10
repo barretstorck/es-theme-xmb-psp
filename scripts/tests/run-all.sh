@@ -146,6 +146,73 @@ if bad:
     print("\n".join(bad)); sys.exit(1)
 PY
 
+# The repository is public (#47), so anything committed here is published the
+# moment it lands — cloneable and indexable before it can be taken back. The
+# v1.0 audit found the tree had already drifted past its own recorded state:
+# the note saying "the real device address does not appear" was written while a
+# real LAN address sat in three files, having arrived with the battery-widget
+# screenshots long after the check was last run. A scan that only runs when
+# someone remembers to run it is how that happens.
+#
+# Scoped to what a scan can actually decide. Credential SHAPES (key headers,
+# vendor token prefixes) are unambiguous. A password VALUE is not, so the one
+# rule here is structural: no assignment may carry a literal secret, and the
+# documented Knulli default `linux` is allowlisted by exact value because it is
+# published in Knulli's own docs and is the whole point of .env.local.example.
+run_one "no-secrets" python3 - <<'PY_SECRETS'
+import re, subprocess, sys
+
+files = subprocess.run(['git', 'ls-files'], capture_output=True, text=True,
+                       check=True).stdout.split()
+bad = []
+
+# One example address, documented as such. Any other RFC1918 address is either
+# somebody's real device or a stale copy of one.
+EXAMPLE_IP = '192.168.1.4'
+PRIVATE_IP = re.compile(r'\b(?:192\.168|10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01]))'
+                        r'\.\d{1,3}\.\d{1,3}\b')
+SECRET_SHAPE = re.compile(
+    r'BEGIN (?:RSA|OPENSSH|EC|DSA|PGP) PRIVATE KEY'
+    r'|AKIA[0-9A-Z]{16}'
+    r'|gh[pousr]_[A-Za-z0-9]{20,}'
+    r'|xox[baprs]-[A-Za-z0-9-]{10,}'
+    r'|sk-[A-Za-z0-9]{20,}')
+# A credential-shaped name assigned a literal. Interpolations (${VAR}, $VAR),
+# empty values and the documented default are not literals we are leaking.
+#
+# Two assignment spellings, and neither may be preceded by `${`: bash parameter
+# expansion puts a colon straight after a credential-shaped name without
+# assigning anything, so `${NAS_PASS:+SET}` — an idiom whose entire purpose is
+# to avoid printing the value — read as an assignment of the literal "+SET".
+# A gate that cries wolf on the safe idiom trains people to ignore it.
+CRED_NAME = r'(?<!\$\{)\b(SSHPASS|PASSWORD|PASSWD|API[_-]?KEY|SECRET|TOKEN|NAS_PASS)\b'
+ASSIGNED = re.compile(
+    r'(?i)' + CRED_NAME + r'(?:=|:[ \t])[ \t]*["\']?([^\s"\'#$}]{3,})')
+HOME_PATH = re.compile(r'/(?:Users|home)/(?!runner\b)[A-Za-z0-9._-]+')
+
+for f in files:
+    try:
+        with open(f, encoding='utf-8') as fh:
+            lines = fh.readlines()
+    except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
+        continue  # binary asset, or a submodule/symlink entry
+    for i, line in enumerate(lines, 1):
+        for ip in PRIVATE_IP.findall(line):
+            if ip != EXAMPLE_IP:
+                bad.append(f"{f}:{i} private IP {ip} (only {EXAMPLE_IP} is the documented example)")
+        if SECRET_SHAPE.search(line):
+            bad.append(f"{f}:{i} credential-shaped literal")
+        m = ASSIGNED.search(line)
+        if m and m.group(2) != 'linux':
+            bad.append(f"{f}:{i} {m.group(1)} assigned a literal value")
+        for h in HOME_PATH.findall(line):
+            bad.append(f"{f}:{i} absolute home path {h}")
+
+if bad:
+    print("\n".join(bad)); sys.exit(1)
+print(f"scanned {len(files)} tracked files")
+PY_SECRETS
+
 if command -v shellcheck >/dev/null 2>&1; then
   run_one "shellcheck" shellcheck -x -S warning -e SC2319,SC2034 \
     scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh

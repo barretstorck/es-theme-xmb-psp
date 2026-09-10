@@ -84,7 +84,7 @@ the public-release gate; closing it is the go/no-go.
 
 ### Added
 - Monochrome system icons adopted from the RetroArch `monochrome` XMB set:
-  134 shortnames plus 8 hand-authored port icons, with pre-burned drop
+  150 shortnames plus 8 hand-authored port icons, with pre-burned drop
   shadows (#27).
 - Per-system media fallback glyphs for unscraped games.
 - `iconSize`, `titleVisibility` and `videoDelay` subsets.
