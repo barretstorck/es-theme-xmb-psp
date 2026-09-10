@@ -10,10 +10,15 @@
   the user's GamelistViewStyle is "automatic", or names a view this style does
   not define (ViewController.cpp:697-720).
 
-  The waveLayer elements below are duplicated verbatim from
-  _inc/wave-motion.xml ON PURPOSE. Knulli build quirk: storyboard-animated
-  extra="true" elements declared only in that include do not animate on
-  gamelist views. Do not "clean up" the duplication.
+  The wave layers are NOT declared here. They come from
+  _inc/wave-motion.xml, whose <view name="detailed,gamecarousel"> covers this
+  style's view. theme.xml includes wave-motion.xml AFTER the gamelistStyle
+  subset, and ES merges per view+element with the last declaration winning
+  (properties at ThemeData.cpp:1856, and a same-event <storyboard> replaces
+  the earlier one outright at ThemeData.cpp:1925) — so a copy here could only
+  ever be overwritten. This file used to carry one anyway, under a "Knulli
+  build quirk" comment claiming storyboards in that include do not animate on
+  gamelist views. That claim was false; see the #44 spike.
 
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
@@ -65,53 +70,6 @@
       <zIndex>0</zIndex>
     </image>
 
-    <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
-         declared only inside _inc/wave-motion.xml do not animate on
-         gamelist views on this Knulli ES build. The three waveLayer
-         declarations below are duplicated verbatim from
-         _inc/wave-motion.xml so they sit directly in the view block. -->
-    <image name="waveLayer1" extra="true">
-      <path>./art/wave/wave-layer-1.png</path>
-      <pos>0.0 0.5</pos>
-      <size>2.00 1.10</size>
-      <origin>0.0 0.5</origin>
-      <color>${accent}</color>
-      <opacity>0.85</opacity>
-      <zIndex>1</zIndex>
-      <storyboard>
-        <animation property="x" from="0.0" to="-1.0"
-                   duration="30000" mode="linear"
-                   repeat="forever"/>
-      </storyboard>
-    </image>
-    <image name="waveLayer2" extra="true">
-      <path>./art/wave/wave-layer-2.png</path>
-      <pos>0.0 0.5</pos>
-      <size>2.00 1.10</size>
-      <origin>0.0 0.5</origin>
-      <color>${accent}</color>
-      <opacity>0.85</opacity>
-      <zIndex>2</zIndex>
-      <storyboard>
-        <animation property="x" from="0.0" to="-1.0"
-                   duration="20000" mode="linear"
-                   repeat="forever"/>
-      </storyboard>
-    </image>
-    <image name="waveLayer3" extra="true">
-      <path>./art/wave/wave-layer-3.png</path>
-      <pos>0.0 0.5</pos>
-      <size>2.00 1.10</size>
-      <origin>0.0 0.5</origin>
-      <color>${accent}</color>
-      <opacity>0.85</opacity>
-      <zIndex>3</zIndex>
-      <storyboard>
-        <animation property="x" from="0.0" to="-1.0"
-                   duration="12000" mode="linear"
-                   repeat="forever"/>
-      </storyboard>
-    </image>
 
     <!-- Pinned system icon. v0.11 v7 (PR #32 on-device tweaks): LOWERED to
          (crossX, glLogoY) and SHRUNK to a 0.13-square maxSize per the

@@ -21,10 +21,18 @@
   info-bar elements below rebind to the selected tile on cursor change exactly
   as in the other views.
 
-  The waveLayer elements below are duplicated verbatim from
-  _inc/wave-motion.xml ON PURPOSE. Knulli build quirk: storyboard-animated
-  extra="true" elements declared only in that include do not animate on
-  gamelist views. Do not "clean up" the duplication.
+  The waveLayer elements below ARE duplicated from _inc/wave-motion.xml, and
+  here that is load-bearing: wave-motion.xml declares
+  <view name="detailed,gamecarousel"> and this style is <view name="grid">, so
+  nothing merges and deleting these leaves the grid with a flat background.
+  (Styles A and B need no copy — same view names, so wave-motion.xml reaches
+  them. The "Knulli build quirk" this comment used to cite was false; the real
+  constraint is view-name scope. See the #44 spike.)
+
+  Do NOT "fix" this by adding grid to wave-motion.xml's view list.
+  wave-motion.xml is included unconditionally, so that would make
+  hasView("grid") true for every user and hijack anyone who pinned Gamelist
+  View Style = grid — the regression b5e2063 fixed.
 
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
@@ -101,11 +109,10 @@
       <zIndex>0</zIndex>
     </image>
 
-    <!-- KNULLI BUILD QUIRK: storyboard-animated extra="true" elements
-         declared only inside _inc/wave-motion.xml do not animate on
-         gamelist views on this Knulli ES build. The three waveLayer
-         declarations below are duplicated verbatim from
-         _inc/wave-motion.xml so they sit directly in the view block. -->
+    <!-- Duplicated from _inc/wave-motion.xml because that file declares
+         <view name="detailed,gamecarousel"> and this style is
+         <view name="grid">, so its declarations never reach this view.
+         Keep the three in sync with wave-motion.xml when tuning the wave. -->
     <image name="waveLayer1" extra="true">
       <path>./art/wave/wave-layer-1.png</path>
       <pos>0.0 0.5</pos>
