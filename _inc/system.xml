@@ -76,7 +76,9 @@
     <carousel name="systemcarousel">
       <defaultTransition>fade</defaultTransition>
       <type>horizontal</type>
-      <!-- Box top y=0.141, height 0.30 -> bar centerline y=0.291 (= crossY).
+      <!-- Box top y=0.141, height 0.30 -> bar centerline y=0.291. That is
+           the cross's vertical anchor, set here rather than read from a
+           variable (the unused crossY was removed in v1.0).
            Container shifted + widened so its center (the selection point)
            lands at x=0.24 (= crossX) and the icon row spans the full screen
            width: pos.x = crossX - size.x/2 = 0.24 - 0.80 = -0.56.
