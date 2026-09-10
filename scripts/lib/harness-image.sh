@@ -11,6 +11,7 @@
 # HARNESS_REV is bumped whenever docker/ changes the IMAGE'S CONTENTS.
 # docker/run-in-container.sh is bind-mounted at run time and never COPYd, so
 # editing it is NOT a reason to bump.
+# All three are consumed by the scripts that source this file.
 ES_PIN="9bbb16a"
 HARNESS_REV="r2"
 IMAGE="es-xmb-harness:knulli-${ES_PIN}-${HARNESS_REV}"
