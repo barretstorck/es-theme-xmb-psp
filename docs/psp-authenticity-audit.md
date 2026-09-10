@@ -109,7 +109,7 @@ now carries 201 icons: 150 shortnames adopted from the RetroArch
 `monochrome` set (f170f40) plus 8 hand-authored port icons in the
 same filled-silhouette style via `scripts/gen-port-icons.py`
 (0afbb62), all with a pre-burned drop shadow (see S3). 43
-legacy Knulli icons remain for shortnames neither mapped nor
+icons inherited from XMB Menu ES-DE remain for shortnames neither mapped nor
 hand-authored.
 
 **Reference:** PSP screenshots 1 (briefcase Settings icon) and 4 (game

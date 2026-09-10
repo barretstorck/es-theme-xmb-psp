@@ -162,8 +162,12 @@ PY
 run_one "no-secrets" python3 - <<'PY_SECRETS'
 import re, subprocess, sys
 
-files = subprocess.run(['git', 'ls-files'], capture_output=True, text=True,
-                       check=True).stdout.split()
+# -z / split on NUL: `git ls-files` quotes paths containing spaces, and
+# splitting on whitespace would turn one such path into two unreadable ones --
+# which the read below would then skip, silently exempting the file from the
+# whole scan.
+files = [f for f in subprocess.run(['git', 'ls-files', '-z'], capture_output=True,
+                                   text=True, check=True).stdout.split('\0') if f]
 bad = []
 
 # One example address, documented as such. Any other RFC1918 address is either
@@ -186,8 +190,37 @@ SECRET_SHAPE = re.compile(
 # to avoid printing the value — read as an assignment of the literal "+SET".
 # A gate that cries wolf on the safe idiom trains people to ignore it.
 CRED_NAME = r'(?<!\$\{)\b(SSHPASS|PASSWORD|PASSWD|API[_-]?KEY|SECRET|TOKEN|NAS_PASS)\b'
+# Two spellings, deliberately asymmetric:
+#   NAME = value        shell/env. Bare values allowed, and spaces around the
+#                       equals sign allowed -- a padded assignment leaks just
+#                       as well as a tight one.
+#   "name": "value"     JSON/YAML. The value MUST be quoted. Unquoted is how
+#                       ordinary prose reads ("the secret: keep it safe"), and a
+#                       gate that fires on prose is a gate people learn to skip.
 ASSIGNED = re.compile(
-    r'(?i)' + CRED_NAME + r'(?:=|:[ \t])[ \t]*["\']?([^\s"\'#$}]{3,})')
+    r'(?i)' + CRED_NAME + r'["\']?[ \t]*'
+    r'(?:=[ \t]*["\']?([^\s"\'`#$}]{3,})'
+    r'|:[ \t]*["\']([^\s"\'`#$}]{3,})["\'])')
+# Values that are obviously stand-ins, not leaks. `linux` is Knulli's published
+# default root password and the entire point of .env.local.example.
+#
+# CASE-SENSITIVE, and that is the whole design. The last alternative exempts
+# UPPER_CASE names, because an unexpanded env var is not a secret -- but under
+# re.IGNORECASE it also matches `hunter2sekrit`, which is to say every real
+# value, and the gate silently stops finding anything. It did exactly that, and
+# only the should-fail half of the mutation table caught it. An all-uppercase
+# literal secret is the accepted cost of the exemption.
+#
+# `<[^>]*>?` tolerates a missing closing bracket on purpose: the value capture
+# stops at whitespace, so `<your password>` arrives here as `<your`.
+PLACEHOLDER = re.compile(
+    r'^(?:linux|LINUX'
+    r'|<[^>]*>?'
+    r'|\.{3}|[xX]{3,}'
+    r'|[Cc]hangeme|CHANGEME'
+    r'|[Yy]our[-_]?\w*|YOUR[-_]?\w*'
+    r'|\$?\{?[A-Z][A-Z0-9_]*\}?'
+    r')$')
 HOME_PATH = re.compile(r'/(?:Users|home)/(?!runner\b)[A-Za-z0-9._-]+')
 
 for f in files:
@@ -202,9 +235,15 @@ for f in files:
                 bad.append(f"{f}:{i} private IP {ip} (only {EXAMPLE_IP} is the documented example)")
         if SECRET_SHAPE.search(line):
             bad.append(f"{f}:{i} credential-shaped literal")
-        m = ASSIGNED.search(line)
-        if m and m.group(2) != 'linux':
-            bad.append(f"{f}:{i} {m.group(1)} assigned a literal value")
+        # finditer, not search. This repo's own sshpass idiom puts the
+        # allowlisted default first and the command after it, so a second
+        # assignment later on the same line is entirely ordinary -- and a
+        # leftmost-only match would report the allowlisted one and stop
+        # before ever reaching the leak.
+        for m in ASSIGNED.finditer(line):
+            value = m.group(2) or m.group(3)
+            if value and not PLACEHOLDER.match(value):
+                bad.append(f"{f}:{i} {m.group(1)} assigned a literal value")
         for h in HOME_PATH.findall(line):
             bad.append(f"{f}:{i} absolute home path {h}")
 

@@ -62,8 +62,10 @@ body:
         - **ES drops every icon/path property on an element** when a `${var}`
           in it resolves to nothing — so a variable that only exists under some
           subsets is a silent blanking bug, not a fallback.
-        - Animation is storyboard property animation on static PNGs. No video,
-          no animated GIF: this ES build doesn't support them.
+        - **Theme-authored animation is storyboard property animation on
+          static PNGs.** Animated GIFs and video as *theme art* aren't
+          supported by this ES build — that's why the wave is layered PNGs.
+          Game preview video is a different thing and does work (`md_video`).
 
   - type: checkboxes
     id: scope

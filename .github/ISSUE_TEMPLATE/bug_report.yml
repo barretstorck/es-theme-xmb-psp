@@ -73,8 +73,8 @@ body:
     attributes:
       label: Screenshot
       description: |
-        Drag the image in. On Knulli/Batocera, `batocera-screenshot` writes to
-        `/userdata/screenshots`. Contributors with the repo checked out can
+        Drag the image in. Knulli ships `knulli-screenshot` and Batocera ships
+        `batocera-screenshot`; either writes to `/userdata/screenshots`. Contributors with the repo checked out can
         reproduce a capture headlessly with `scripts/render.sh` — no device
         needed. See `docker/README.md`.
 
