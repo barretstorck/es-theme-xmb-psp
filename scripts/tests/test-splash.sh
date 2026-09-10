@@ -17,13 +17,8 @@
 # NOTE: deliberately NOT `set -e` — see the note in test-gamelist-styles.sh.
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-fail=0
-check() { # check <description> <condition-exit-code>
-  if [[ "$2" -eq 0 ]]; then echo "  ok   - $1"; else echo "  FAIL - $1"; fi
-  [[ "$2" -eq 0 ]] || fail=1
-}
+# shellcheck source=scripts/lib/test-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/test-lib.sh"
 
 SPLASH="${REPO_ROOT}/splash.xml"
 WORDMARK="${REPO_ROOT}/art/ui/splash-wordmark.png"
