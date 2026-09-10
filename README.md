@@ -1,312 +1,216 @@
 # es-theme-xmb-psp
 
-A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation), built and tuned for **Knulli Scarab on the TrimUI Brick** (4:3, 1024×768).
+A PSP XMB theme for [batocera-emulationstation](https://github.com/batocera-linux/batocera-emulationstation) — built and tuned for **Knulli on the TrimUI Brick** (4:3, 1024×768).
 
 ![Navigating the XMB carousel and a gamelist](docs/screenshots/xmb-navigation.gif)
 
-> Status: **v0.13, working toward v1.0** (see [CHANGELOG.md](CHANGELOG.md)) — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 150 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **Three user-selectable gamelist styles** (see Gamelist Style below): a PSP-card layout where each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description; a ten-row list with metadata and description; and a box-art grid. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. **Status bar with clock, network glyph and battery glyph + percentage**, the battery elements driven by ES's own Show Battery Status setting. **A themed boot splash**, **three selectable face-button glyph sets** (Nintendo / PSP / Xbox), **navigation sounds on both axes**, and a **Scroll Speed** knob for the auto-scrolling description. Default colorset is January Blue.
+The XMB cross, a continuously animated wave, twelve PSP-month colorsets, three
+gamelist layouts and dedicated icons for 170+ systems. Five tuned aspect ratios,
+a themed boot splash, navigation sounds and a colorset-themed ES menu. Current
+version and release history are in [CHANGELOG.md](CHANGELOG.md).
+
+## Install
+
+No SSH, no git — download an archive and drop one folder on the SD card.
+
+1. **Download the theme.** On this repo's page use **Code ▸ Download ZIP**, or take
+   a direct link:
+   [`main.zip`](https://github.com/barretstorck/es-theme-xmb-psp/archive/refs/heads/main.zip)
+   · [`main.tar.gz`](https://github.com/barretstorck/es-theme-xmb-psp/archive/refs/heads/main.tar.gz)
+2. **Power the device off** and put its SD card in your computer. Knulli's data
+   partition is labelled **`SHARE`** — that's `/userdata` on the device.
+3. **Extract the archive.** It unpacks to a folder named `es-theme-xmb-psp-main`
+   (GitHub appends the branch name). **Rename it to `es-theme-xmb-psp`.** It is
+   about 3 MB — the archive is trimmed to the theme payload ES actually loads,
+   so the docs, scripts and test harness in this repo don't land on your card.
+4. **Move that folder into `SHARE/themes/`**, creating `themes` if it isn't there.
+   When you're done the card should contain `SHARE/themes/es-theme-xmb-psp/theme.xml`.
+5. Eject the card safely, put it back in the device and boot.
+6. In EmulationStation: **Main Menu ▸ UI Settings ▸ Theme Set ▸ `es-theme-xmb-psp`**.
+7. **Main Menu ▸ Quit ▸ Restart Emulation Station.**
+
+> **`SHARE` doesn't show up on your computer?** Some cards format that partition as
+> ext4, which Windows and macOS can't read without extra software. Copy the folder
+> over the network instead — Knulli runs a Samba share by default, so browse to
+> `\\<device-ip>\share` (or `\\KNULLI\share`) with the device powered on and drop
+> the renamed folder into its `themes` directory.
+
+If the theme leaves ES unable to start, see
+[docs/troubleshooting.md](docs/troubleshooting.md) for the command that forces the
+device back to the built-in `carbon` theme.
 
 ## Colorsets
 
-Twelve PSP-month palettes, picked in **UI Settings → Theme Configuration → PSP
-Color**. Every one retints the wave, the icons, the captions and the boot
-splash together. Default is January Blue.
+Twelve PSP-month palettes, picked in **UI Settings ▸ Theme Configuration ▸ PSP
+Color**. Each one retints the wave, the icons, the captions, the ES menu and the
+boot splash together.
 
-| | | | |
-|:---:|:---:|:---:|:---:|
-| ![](docs/screenshots/colorsets/january-blue.png)<br>**January Blue** | ![](docs/screenshots/colorsets/february-violet.png)<br>**February Violet** | ![](docs/screenshots/colorsets/march-pink.png)<br>**March Pink** | ![](docs/screenshots/colorsets/april-green.png)<br>**April Green** |
-| ![](docs/screenshots/colorsets/may-yellow-green.png)<br>**May Yellow-Green** | ![](docs/screenshots/colorsets/june-yellow.png)<br>**June Yellow** | ![](docs/screenshots/colorsets/july-amber.png)<br>**July Amber** | ![](docs/screenshots/colorsets/august-orange.png)<br>**August Orange** |
-| ![](docs/screenshots/colorsets/september-red.png)<br>**September Red** | ![](docs/screenshots/colorsets/october-crimson.png)<br>**October Crimson** | ![](docs/screenshots/colorsets/november-slate.png)<br>**November Slate** | ![](docs/screenshots/colorsets/december-aqua.png)<br>**December Aqua** |
+![The twelve colorsets](docs/screenshots/colorsets.png)
 
-## Screenshots
+Left to right, top to bottom: January Blue (the default), February Violet,
+March Pink, April Green, May Yellow-Green, June Yellow, July Amber, August
+Orange, September Red, October Crimson, November Slate, December Aqua.
 
-### Gamelist styles (4:3, January Blue)
+## Gamelist styles
 
-Three user-selectable layouts, all shown with real scraped media —
-box art, screenshots, ratings and descriptions.
+Three layouts, in **UI Settings ▸ Theme Configuration ▸ Gamelist Style**.
 
 | PSP Card (default) | List + Details | Box Art Grid |
 |:---:|:---:|:---:|
 | ![](docs/screenshots/style-psp-card.png) | ![](docs/screenshots/style-list-details.png) | ![](docs/screenshots/style-box-art-grid.png) |
+| Each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description. | A ten-row title list with art, metadata and description. | A wall of cover art with an info bar. Selection is shown by enlarging the cover — no highlight box, no dimming. |
 
-### System view (XMB cross + system carousel)
+**Box Art Grid needs UI Settings ▸ Gamelist View Style = Automatic** (ES's own
+default, in a different menu). Pinned to Detailed or Gamecarousel, ES ignores the
+theme's requested view and renders an unstyled gamelist instead. The theme can't
+detect or override that.
 
-| 4:3 (1024×768) | 16:9 (1280×720) | 3:2 (720×480) | 1:1 (720×720) | 8:7 (1024×896) |
-|:---:|:---:|:---:|:---:|:---:|
-| ![](docs/screenshots/system-4x3.png) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/system-8x7.png) |
+In PSP Card and List + Details the screenshot becomes a video preview after
+**Video Delay**. Whether that slot shows a real screenshot or a second copy of the
+box art is down to your scraper: it reads the game's `<image>` tag, which most
+scrapers fill separately from `<thumbnail>`.
 
-### Gamelist — PSP Card style (default: Boxart icons, PSP-Faithful titles)
+## Settings
 
-| 4:3 | 16:9 | 3:2 | 1:1 | 8:7 |
-|:---:|:---:|:---:|:---:|:---:|
-| ![](docs/screenshots/gamelist-4x3.png) | ![](docs/screenshots/gamelist-16x9.png) | ![](docs/screenshots/gamelist-3x2.png) | ![](docs/screenshots/gamelist-1x1.png) | ![](docs/screenshots/gamelist-8x7.png) |
+All under **Main Menu ▸ UI Settings ▸ Theme Configuration**. Defaults are listed
+first.
 
-### Gamelist toggles (4:3, January Blue)
+| Setting | Values | What it does |
+|---|---|---|
+| **PSP Color** | January Blue … December Aqua | Colorset — see above |
+| **Gamelist Style** | PSP Card · List + Details · Box Art Grid | Gamelist layout — see above |
+| **Icon Size** | Boxart · Compact | PSP Card row icons: scraped box art, or small uniform thumbnails |
+| **Title Visibility** | PSP-Faithful · With Titles | Whether unselected PSP Card rows show a title beside the icon |
+| **Video Delay** | 5 seconds · Instant · 2 seconds · 10 seconds | How long a game stays selected before its screenshot becomes a preview video |
+| **Video Audio** | Off · On | Audio on that preview video (also gated by ES's own *Enable video preview audio*) |
+| **Scroll Speed** | Normal · Slow · Fast | How fast a long description scrolls. No effect in Box Art Grid, which shows a caption rather than a description |
+| **Game Count** | Hide · Show | Whether the system caption also cycles to an "X GAMES" counter |
+| **Button Icons** | Nintendo · PSP · Xbox | Face-button glyphs in the help strip — see below |
 
-| Boxart + With Titles | Compact + PSP-Faithful | Compact + With Titles |
+Two things this theme deliberately does **not** put a knob on:
+
+- **The wave animation** is always on. There is no opt-out and no per-system or
+  per-device override.
+- **The battery readout** follows *UI Settings ▸ Show Battery Status* — `NO` hides
+  it, `ICON` shows the glyph, `ICON AND TEXT` (the ES default) shows glyph and
+  percentage. The status bar re-packs itself around whatever is showing, so a
+  device with no battery, a hidden clock or no network connection just gets a
+  shorter cluster still flush to the right margin. The network glyph is ES's
+  binary connected/not-connected indicator redrawn in the theme's style; a
+  PSP-style 4-bar signal strength isn't available to themes at all.
+
+### Icon Size and Title Visibility
+
+|  | **PSP-Faithful** (default) | **With Titles** |
 |:---:|:---:|:---:|
-| ![](docs/screenshots/v0.11/redesign-boxart-friendly-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-strict-4x3-january-blue.png) | ![](docs/screenshots/v0.11/redesign-compact-friendly-4x3-january-blue.png) |
-
-### Boot splash
-
-Shown for the whole of EmulationStation's boot, tinted by whichever colorset is
-selected. The mark is the theme's own — there is no Sony wordmark anywhere in
-this repo. The label and the progress bar are ES's; the theme styles them but
-deliberately leaves their positions alone.
-
-| 4:3 — January Blue | 4:3 — August Orange | 1:1 — December Aqua |
-|:---:|:---:|:---:|
-| ![](docs/screenshots/splash-4x3.png) | ![](docs/screenshots/splash-4x3-august-orange.png) | ![](docs/screenshots/splash-1x1.png) |
-
-## Known limitations
-
-- System icon coverage is mixed-source. Of the 201 icons in `art/system-icons/`: 150 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), 13 less-common shortnames retain distinct icons from the previous XMB Menu ES-DE set, and the remaining 30 are the generic `_default.png` placeholder and copies of it, standing in for systems with no dedicated icon. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
-- Gamelist rows show each game's scraped `thumbnail` (box art) when Icon Size is `Boxart`. A game with no thumbnail scraped falls back to its system's media-type silhouette (cartridge, CD, floppy, etc. — see `art/system-media/`). Scrape your library with box/thumbnail media for full boxart rows, or use the `Compact` icon size.
-
-## Install
-
-1. SSH into your device. The Knulli default credentials are `root` / `linux`:
-   ```
-   ssh root@<your-device-ip>
-   ```
-2. Clone (or copy) this repo into `/userdata/themes/`:
-   ```
-   cd /userdata/themes && git clone <repo-url> es-theme-xmb-psp
-   ```
-3. In EmulationStation: **Main Menu → UI Settings → Theme Set → `es-theme-xmb-psp`**.
-4. (Optional) pick a colorset: **UI Settings → Theme Configuration → PSP Color → choose one**.
-5. Restart EmulationStation: **Main Menu → Quit → Restart Emulation Station**.
-
-## Compatibility
-
-- **Verified on-device:** Knulli Scarab on TrimUI Brick (4:3, 1024×768).
-- **Verified via Docker harness:** aspect ratios 4:3, 16:9, 3:2, 1:1, and 8:7 (render samples in the Screenshots section above).
-- **Likely works:** any Batocera/Knulli device whose screen falls into one of the verified ratios at any resolution, running batocera-emulationstation with `formatVersion 7` support.
-- **Other ratios** (21:9, 5:4, vertical, etc.) silently fall back to the 4:3 layout — may letterbox or stretch.
-- **Not verified:** ES-DE and other EmulationStation forks. The theme is written against batocera-emulationstation's `formatVersion 7`; other forks parse a different dialect and are known to ignore or mis-render parts of it. Establishing which forks actually work is tracked in [#46](https://github.com/barretstorck/es-theme-xmb-psp/issues/46) — reports welcome.
-
-## Customization
-
-Configurable knobs, all under **UI Settings → Theme Configuration**:
-- **Gamelist Style** — PSP Card / List + Details / Box Art Grid; see below
-- **PSP Color** — colorset (twelve PSP-month palettes; default January Blue)
-- **Icon Size** — PSP Card gamelist row icons as scraped boxart (`Boxart`, default) or small uniform icons (`Compact`)
-- **Title Visibility** — PSP Card unselected rows show icon only (`PSP-Faithful`, default) or icon + title (`With Titles`)
-- **Video Delay** — how long a game stays selected before its screenshot becomes a preview video (Instant / 2s / 5s / 10s)
-- **Video Audio** — mute or allow audio on that preview video (also subject to ES's own global "Enable video preview audio" setting)
-- **Game Count** — whether the system-name caption stays on the name only (Hide, default) or also cycles to an "X GAMES" counter (Show)
-- **Scroll Speed** — how fast a long game description scrolls through its box (Normal / Slow / Fast). Applies to the PSP Card and List + Details styles; it has **no effect in Box Art Grid**, which shows a caption rather than a description
-- **Button Icons** — which face-button glyphs the bottom help strip uses: `Nintendo` (default), `PSP` or `Xbox`; see below
-
-### Navigation sounds
-
-The theme ships three sounds: a **tick** whenever the selection moves, in any
-direction and in any view; a **confirm** on launching a game or opening a
-gamelist menu; and a **back** sound when you leave a subfolder.
-
-The real PSP XMB uses a lower, softer sweep for sideways moves than for
-up/down ones. That was built and tried on hardware, and it sounded out of
-place against the rest of this set — so both axes share the one tick. See
-[`docs/psp-authenticity-audit.md`](docs/psp-authenticity-audit.md) entry A2.
-
-Note that `back` is narrower than it sounds: EmulationStation only plays it
-when you leave a **subfolder** inside a gamelist, not when you leave a
-gamelist for the system carousel. Most libraries never trigger it.
-
-**You will hear none of them until you turn navigation sounds on.** This is
-EmulationStation's own switch, not a theme option, and it ships **off**:
-
-> **Main Menu → Sound Settings → Enable Navigation Sounds**
-
-There is no theme-side toggle, because that switch already gates every sound
-this theme can make — a second control would only be able to turn things off
-that ES had already silenced.
+| **Boxart** (default) | ![](docs/screenshots/toggle-boxart-psp-faithful.png) | ![](docs/screenshots/toggle-boxart-with-titles.png) |
+| **Compact** | ![](docs/screenshots/toggle-compact-psp-faithful.png) | ![](docs/screenshots/toggle-compact-with-titles.png) |
 
 ### Button Icons
 
-UI Settings → Theme Configuration → **Button Icons** picks the face-button
-glyphs in the help strip along the bottom of the screen:
-
-| | shown on the east / south / north / west buttons |
+| | east / south / north / west |
 |---|---|
 | **Nintendo** (default) | A · B · X · Y |
 | **PSP** | ○ Circle · ✕ Cross · △ Triangle · □ Square |
 | **Xbox** | B · A · Y · X |
 
-Nintendo is the default because the theme's primary target, the TrimUI Brick,
-silkscreens its buttons in that layout — a help strip reading "✕ Enter" tells a
-Brick owner nothing about which button to press. Pick **PSP** for full XMB
-authenticity, or **Xbox** for a controller in the Xbox/SDL layout (most USB and
-Bluetooth gamepads).
+Nintendo is the default because the Brick silkscreens its buttons that way — a
+help strip reading "✕ Enter" tells a Brick owner nothing. Each glyph is pinned to
+a physical button position rather than to a label, so the setting stays correct
+whichever way **Menu ▸ Invert Buttons** is set. D-pad, shoulder, START and SELECT
+glyphs are shared by all three sets. Glyphs are monochrome and colorset-tinted, so
+Xbox's four-colour coding isn't reproduced — ES multiplies help icons by the
+theme's icon colour, which can't preserve four hues.
 
-Each glyph is pinned to a physical button position rather than to a label, so
-the setting stays correct whichever way **Menu → Invert Buttons** is set. That
-option changes which button confirms and which goes back, and the help strip's
-*text* follows it — but a given shape never moves to a different button.
+### Navigation sounds
 
-The d-pad, shoulder, START and SELECT glyphs are shared by all three sets:
-those are the same on every layout. Shoulders stay `L`/`R` rather than becoming
-`LB`/`RB` for the Xbox set, which is also what the Brick's own shoulders say.
-The glyphs are monochrome and tinted with the colorset, so Xbox's green/red/
-blue/yellow colour coding is not reproduced — ES multiplies help icons by the
-theme's icon colour, which cannot preserve four separate hues.
+A **tick** on every selection move in any view, a **confirm** on launching a game
+or opening a gamelist menu, and a **back** sound when leaving a subfolder.
 
-### Gamelist Style
+**You will hear none of them until you turn navigation sounds on** — that's ES's
+own switch, not a theme option, and it ships off: **Main Menu ▸ Sound Settings ▸
+Enable Navigation Sounds**. ES doesn't reload sound files it skipped while the
+setting was off, so restart EmulationStation after enabling it.
 
-UI Settings → Theme Configuration → **Gamelist Style**:
+## Screenshots
 
-- **PSP Card** (default) — the XMB card layout. Selected game expands into a
-  large card with box art, screenshot/video, and a bounded description.
-- **List + Details** — a ten-row title list with art, metadata and description.
-- **Box Art Grid** — a wall of cover art with an info bar. The selected
-  game is shown by being **enlarged**, and nothing else: no highlight box,
-  and the other covers are not dimmed. A game title too long for the info
-  bar is trimmed at the bar's edge rather than spilling past it.
+### System view and gamelist, per aspect ratio
 
-In **PSP Card** and **List + Details** (Box Art Grid has no media slot by
-design), the screenshot becomes a video preview after the delay set by
-**Video Delay**. Videos play at their own aspect ratio; a clip that was
-scraped with letterboxing baked in will keep it. Whether that slot shows an
-actual screenshot or a second copy of the box art depends on your scraper:
-it's driven by the game's `<image>` tag, which most scrapers fill
-separately from `<thumbnail>` — if your scraper (or a manual edit) points
-both at the same file, the media slot will just mirror the box art.
+| | System view | Gamelist |
+|---|:---:|:---:|
+| **4:3** (1024×768) | ![](docs/screenshots/system-4x3.png) | ![](docs/screenshots/gamelist-4x3.png) |
+| **16:9** (1280×720) | ![](docs/screenshots/system-16x9.png) | ![](docs/screenshots/gamelist-16x9.png) |
+| **3:2** (720×480) | ![](docs/screenshots/system-3x2.png) | ![](docs/screenshots/gamelist-3x2.png) |
+| **1:1** (720×720) | ![](docs/screenshots/system-1x1.png) | ![](docs/screenshots/gamelist-1x1.png) |
+| **8:7** (1024×896) | ![](docs/screenshots/system-8x7.png) | ![](docs/screenshots/gamelist-8x7.png) |
 
-**Box Art Grid requires UI Settings → Gamelist View Style = Automatic**
-(ES's own default, under a different menu from this theme's settings). If
-that setting is pinned to Detailed or Gamecarousel, ES ignores this theme's
-requested view and renders an unstyled gamelist instead of the grid — this
-theme cannot detect or override that preference. Switching back to
-Automatic restores the grid.
+### Boot splash
 
-The old Gamelist View Style knob this theme used to expose (`detailed` /
-`gamecarousel`) was removed in v0.11, when both view-style names resolved
-to the same single card layout. v0.12's Gamelist Style is a different,
-theme-level choice — it doesn't read ES's own Gamelist View Style setting
-at all (except for the Box Art Grid interaction above).
+Shown for the whole of EmulationStation's boot, tinted by the selected colorset.
+The mark is the theme's own — there is no Sony wordmark anywhere in this repo.
 
-The wave animation is always on with no opt-out. No per-system or per-device overrides — the theme intentionally ships minimal.
-
-The status bar runs clock, network glyph, battery percentage and battery glyph as one right-anchored cluster that **re-packs itself around whatever is showing**. **The battery elements are controlled by EmulationStation's own setting, not by the theme** — *UI Settings > Show Battery Status*: NO hides both, ICON shows the glyph alone, ICON AND TEXT (the ES default) shows the glyph and the percentage. A device with no battery shows neither, automatically. In every case the cluster simply gets shorter and stays flush to the right margin — no gaps are left behind, and the same is true when *Show Clock* is off or there is no network connection. The network glyph is EmulationStation's binary connected/not-connected indicator, redrawn in the theme's style; a PSP-style 4-bar signal strength is not available to themes at all.
+| 4:3 — January Blue | 4:3 — August Orange | 1:1 — December Aqua |
+|:---:|:---:|:---:|
+| ![](docs/screenshots/splash-4x3.png) | ![](docs/screenshots/splash-4x3-august-orange.png) | ![](docs/screenshots/splash-1x1.png) |
 
 ## How the wave is built
 
-The PSP XMB wave is rendered entirely via ES storyboard property animation on static PNGs — no video, no animated GIF (animated images aren't supported in this ES build):
+The PSP XMB wave is rendered entirely by ES storyboard property animation over
+static PNGs — no video and no animated GIF, since animated images aren't supported
+in this ES build:
 
-- A flat dark colorset-tinted `wave.png` provides the canvas.
-- Three transparency-channel PNGs (`wave-layer-{1,2,3}.png`) are stacked on top, each with a sine-shaped opaque-to-transparent boundary at a different vertical position. Tinted with `${accent}` so each appears as a bright wave band.
-- Each layer is 2× screen width with a horizontally-seamless pattern (integer cycles per screen width) and scrolls left at a different rate (30s / 20s / 12s per full cycle). The seamless wrap makes the storyboard repeat visually invisible.
-- A pure-white 4-pixel rim highlight at each wave's upper edge makes the crest pop against the body.
+- A flat, dark, colorset-tinted `wave.png` provides the canvas.
+- Three transparency-channel PNGs (`wave-layer-{1,2,3}.png`) stack on top, each
+  with a sine-shaped opaque-to-transparent boundary at a different vertical
+  position. Tinted with `${accent}`, each reads as a bright wave band.
+- Each layer is 2× screen width and horizontally seamless (integer cycles per
+  screen width), scrolling left at its own rate — 30s, 20s and 12s per full cycle.
+  The seamless wrap makes the storyboard's repeat visually invisible.
+- A pure-white 4-pixel rim highlight along each wave's upper edge makes the crest
+  pop against the body.
 
-The PNGs are generated procedurally by a small Python script (see commit history for `wave-layer-*.png` for parameters). They're sized at 2048×1080 so the design scales cleanly to higher-resolution devices than the 1024×768 Brick this was developed on.
+The layers are generated procedurally by a small Python script and sized
+2048×1080, so the design scales cleanly past the 1024×768 Brick it was built on.
+The animation runs continuously and does not reset when you move along the system
+carousel.
 
-## Troubleshooting
+## Compatibility
 
-If the theme breaks EmulationStation on startup, SSH still works. To force the device back to the built-in `carbon` theme:
+- **Verified on-device:** Knulli Scarab on TrimUI Brick (4:3, 1024×768).
+- **Verified in the Docker render harness:** 4:3, 16:9, 3:2, 1:1 and 8:7.
+- **Likely fine:** any Batocera/Knulli device whose screen falls into one of those
+  ratios at any resolution, running batocera-emulationstation with `formatVersion 7`.
+- **Other ratios** (21:9, 5:4, vertical…) silently fall back to the 4:3 layout, and
+  may letterbox or stretch.
+- **Not verified:** ES-DE and other EmulationStation forks — they parse a different
+  dialect and are known to ignore or mis-render parts of this one. Tracked in
+  [#46](https://github.com/barretstorck/es-theme-xmb-psp/issues/46); reports welcome.
 
-**Knulli:**
-```
-ssh root@<your-device-ip> "knulli-settings-set theme.set carbon && sed -i 's|<string name=\"ThemeSet\" value=\"[^\"]*\"|<string name=\"ThemeSet\" value=\"carbon\"|' /userdata/system/configs/emulationstation/es_settings.cfg && knulli-es-swissknife --restart"
-```
+## Known limitations
 
-**Batocera:**
-```
-ssh root@<your-device-ip> 'batocera-settings-set theme.set carbon && batocera-es-swissknife --restart'
-```
+- **Icon coverage is mixed-source.** Of the 201 icons in `art/system-icons/`, 150
+  come from the RetroArch `monochrome` XMB set, 8 ports are hand-authored in the
+  same style, 13 uncommon shortnames keep icons from the previous XMB Menu ES-DE
+  set, and 30 are the generic `_default.png` placeholder. To add one, drop
+  `<system-shortname>.png` into `art/system-icons/` and run it through
+  `scripts/apply-shadow.py` **once** — the script isn't idempotent. ES
+  auto-collections use an `auto-` prefix (`auto-favorites.png`, `auto-lastplayed.png`).
+- **Gamelist rows need scraped box art.** With Icon Size on `Boxart`, a game with no
+  scraped `thumbnail` falls back to its system's media-type silhouette (cartridge,
+  CD, floppy — see `art/system-media/`). Scrape with box/thumbnail media, or switch
+  to `Compact`.
 
-Knulli stores the theme name in two places (`theme.set` in `knulli.conf` and `ThemeSet` in `es_settings.cfg`) — if they diverge, ES enters a restart loop. The Knulli command above updates both atomically.
+## More
 
-**No sounds at all?** EmulationStation ships with navigation sounds turned
-**off** — see [Navigation sounds](#navigation-sounds) above. Turn on *Main
-Menu → Sound Settings → Enable Navigation Sounds*.
-
-**Still nothing after turning it on?** Restart EmulationStation. ES skips
-loading a sound file entirely while that setting is off, and switching it on
-does not reload the ones it already skipped — they are only re-read when the
-audio system restarts, which happens at ES startup and on returning from a
-game. Launching and quitting any game works too.
-
-## Development
-
-Theme development and verification use the **Docker render harness** — it runs batocera-emulationstation headless in Docker and screenshots the theme at any resolution, with no physical device required. See [`docker/README.md`](docker/README.md):
-
-```
-./scripts/render.sh --view system
-./scripts/render.sh --view gamelist --library <path> --resolution 1280x720
-VIDEO_DELAY=Instant ./scripts/render.sh --view gamelist --library <path> --settle 4
-./scripts/render.sh --view splash --library <path>          # SPLASH_AT=0.4 by default
-```
-
-`--view splash` is the odd one out: it launches ES *with* the boot splash the
-harness otherwise suppresses, and grabs the frame `SPLASH_AT` seconds later.
-That frame is transient — it is gone within about a second, sooner at smaller
-resolutions — so the capture is a race rather than a settled state. Sweep it
-with `--frames N --frame-interval 0.2` (both accept fractions) and keep the
-frame that lands; an all-black capture means ES had not opened its window yet,
-and a carousel means the splash was already over.
-
-Preview video plays in the harness. Renders pin the Video Delay to 10s so a
-capture lands on the still screenshot rather than an arbitrary video frame;
-pass `VIDEO_DELAY` and `--settle` when the video is what you want to see.
-
-The harness can also **hear** itself, which a screenshot cannot:
-`scripts/capture-audio.sh` runs ES under SDL's `disk` audio driver and
-measures the mixer's actual output, so a sound binding can be verified rather
-than assumed. `--expect` turns a capture into a pass/fail test.
-
-```
-./scripts/capture-audio.sh --library /tmp/library
-./scripts/capture-audio.sh --library /tmp/library \
-  --script "right:2,confirm:3,down:2" --expect sound,any,sound
-```
-
-Note that ES ships navigation sounds **off**, so the tool pins `EnableSounds`
-on by default — otherwise every capture would be silent and pass vacuously.
-See [`docker/README.md`](docker/README.md) for the details.
-
-
-### Regenerating the README's screenshots
-
-Every image this README commits is produced by one script, so no one has to
-work out which flag combination made which file:
-
-```
-./scripts/render-readme-assets.sh --library /tmp/library
-./scripts/render-readme-assets.sh --library /tmp/library --only colorsets
-./scripts/render-readme-assets.sh --library /tmp/library --skip-gif
-```
-
-It needs a library with **real scraped media** — box art, screenshots,
-ratings and full-length descriptions. `tests/fixtures/library` is deliberately
-degenerate (its longest description is 74 characters) and would make the
-layout look better than it is; it is the regression corpus, not the marketing
-corpus. The script refuses to run without `--library` for that reason.
-
-The animated GIF comes from `scripts/record.sh`, which drives navigation with
-a scripted key sequence while capturing frames on a uniform interval:
-
-```
-./scripts/record.sh --library /tmp/library --keep-frames
-./scripts/record.sh --library /tmp/library --script "right:1.5,right:1.5" --fps 8
-```
-
-Its defaults reproduce the committed GIF. The capture rate tops out near 11fps
-— a screen grab costs about 90ms at 1280×720 — and the GIF's frame delay is
-derived from the rate actually achieved, so a slower machine produces a longer
-capture rather than a GIF that plays too fast.
-
-`scripts/tests/test-readme-assets.sh` guards the result: it fails if the README
-references an image that is not in the tree, if the colorset gallery drifts
-from `theme.xml`, or if either committed artifact exceeds its size budget.
-
-The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
-
-## Contributing
-
-Bug reports, renders and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). You do not need a handheld to work on this theme: `scripts/render.sh` runs EmulationStation headless in Docker and screenshots the result.
+- [Troubleshooting](docs/troubleshooting.md) — recovering a device that won't boot
+  into ES, and silent navigation sounds.
+- [Development](docs/development.md) — the Docker render harness, audio capture,
+  and regenerating this README's screenshots. No handheld required.
+- [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Credits](CREDITS.md)
 
 ## Credits and license
 
-This is a derivative work. See [CREDITS.md](CREDITS.md) for the full attribution chain.
-
-Licensed under **Creative Commons CC-BY-NC-SA 2.0** — see [LICENSE](LICENSE). You may share and adapt this theme for non-commercial purposes, must credit the upstream authors, and must license derivatives under the same terms.
+This is a derivative work — see [CREDITS.md](CREDITS.md) for the full attribution
+chain. Licensed under **Creative Commons CC-BY-NC-SA 2.0** ([LICENSE](LICENSE)):
+share and adapt for non-commercial purposes, credit the upstream authors, and
+license derivatives under the same terms.
