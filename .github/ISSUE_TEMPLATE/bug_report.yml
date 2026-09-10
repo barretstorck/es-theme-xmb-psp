@@ -1,0 +1,89 @@
+name: Bug report
+description: Something in the theme renders or behaves wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A theme bug is almost always **a property on an element in a file**, and
+        the fastest reports say which. If you already know, put it in — if you
+        don't, describe what you saw and we'll find it.
+
+        Please don't paste a photo of a screen taken with a phone if you can
+        avoid it: EmulationStation can screenshot itself, and a real capture
+        shows the pixels.
+
+  - type: input
+    id: version
+    attributes:
+      label: Theme version
+      description: From `CHANGELOG.md`, or the git commit you're on.
+      placeholder: "v1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device, firmware and screen
+      description: >
+        Resolution and aspect ratio matter more than the model name — the theme
+        ships five tuned ratios and most layout bugs are specific to one.
+      placeholder: "TrimUI Brick, Knulli Scarab, 1024x768 (4:3)"
+    validations:
+      required: true
+
+  - type: input
+    id: es-fork
+    attributes:
+      label: EmulationStation fork and version
+      description: >
+        batocera-emulationstation, ES-DE, or something else. This theme targets
+        batocera-emulationstation with `formatVersion 7`; on other forks the
+        same XML can render differently or be ignored outright.
+      placeholder: "batocera-emulationstation (Knulli build)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happens, and what you expected instead
+      description: Both halves, please — "it looks wrong" doesn't say which way.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >
+        Include any theme settings involved: colorset, Gamelist Style, Icon
+        Size, Title Visibility, Button Icons, Scroll Speed. Several bugs have
+        turned out to be one subset combination rather than the theme at large.
+      placeholder: |
+        1. UI Settings > Theme Configuration > Gamelist Style = Box Art Grid
+        2. Open any system with more than 8 games
+        3. Scroll to the last row
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: |
+        Drag the image in. Knulli ships `knulli-screenshot` and Batocera ships
+        `batocera-screenshot`; either writes to `/userdata/screenshots`. Contributors with the repo checked out can
+        reproduce a capture headlessly with `scripts/render.sh` — no device
+        needed. See `docker/README.md`.
+
+  - type: textarea
+    id: suspect
+    attributes:
+      label: Where you think it lives
+      description: >
+        Optional, and genuinely useful. File and element, e.g.
+        `_inc/gamelist-grid.xml`, the `gridInfoPanel` image. Per-ratio overrides
+        live in `_inc/aspect-*.xml` and load *after* the mode subsets, so they
+        win.

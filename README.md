@@ -4,7 +4,7 @@ A PSP XMB-style theme for [batocera-emulationstation](https://github.com/batocer
 
 ![Navigating the XMB carousel and a gamelist](docs/screenshots/xmb-navigation.gif)
 
-> Status: **v0.13, working toward v1.0** (see [CHANGELOG.md](CHANGELOG.md)) — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 134 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **Three user-selectable gamelist styles** (see Gamelist Style below): a PSP-card layout where each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description; a ten-row list with metadata and description; and a box-art grid. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. **Status bar with clock, network glyph and battery glyph + percentage**, the battery elements driven by ES's own Show Battery Status setting. **A themed boot splash**, **three selectable face-button glyph sets** (Nintendo / PSP / Xbox), **navigation sounds on both axes**, and a **Scroll Speed** knob for the auto-scrolling description. Default colorset is January Blue.
+> Status: **v0.13, working toward v1.0** (see [CHANGELOG.md](CHANGELOG.md)) — PSP-style variant only. **System icons adopted from the RetroArch `monochrome` XMB set** (filled-silhouette style, CC-BY 4.0): 150 system shortnames mapped from the RA set plus 8 hand-authored port icons in the same style, all with pre-burned drop shadows. **Three user-selectable gamelist styles** (see Gamelist Style below): a PSP-card layout where each game is a collapsed row that expands into a card with box art, a screenshot that becomes a preview video, and a bounded description; a ten-row list with metadata and description; and a box-art grid. Five tuned aspect ratios (4:3, 16:9, 3:2, 1:1, 8:7), with constant gap-to-icon ratio for the system carousel across all ratios. Twelve user-selectable PSP-month colorsets, **continuous PSP XMB wave animation that no longer resets on system carousel navigation**, XMB cross layout, optional game counter, a colorset-themed EmulationStation menu, universal system icon coverage. **Status bar with clock, network glyph and battery glyph + percentage**, the battery elements driven by ES's own Show Battery Status setting. **A themed boot splash**, **three selectable face-button glyph sets** (Nintendo / PSP / Xbox), **navigation sounds on both axes**, and a **Scroll Speed** knob for the auto-scrolling description. Default colorset is January Blue.
 
 ## Colorsets
 
@@ -60,7 +60,7 @@ deliberately leaves their positions alone.
 
 ## Known limitations
 
-- System icon coverage is mixed-source: 134 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), and ~56 less-common shortnames retain icons from the previous XMB Menu ES-DE set. Systems still without a specific icon fall back to a generic `_default.png` placeholder. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
+- System icon coverage is mixed-source. Of the 201 icons in `art/system-icons/`: 150 shortnames use icons from the RetroArch `monochrome` XMB set, 8 ports use hand-authored icons in the same style (`scripts/gen-port-icons.py`), 13 less-common shortnames retain distinct icons from the previous XMB Menu ES-DE set, and the remaining 30 are the generic `_default.png` placeholder and copies of it, standing in for systems with no dedicated icon. To add or replace an icon, drop `<system-shortname>.png` into `art/system-icons/` — but run it through `scripts/apply-shadow.py` once (the script is not idempotent; don't re-run it on an already-shadowed icon) so it matches the pre-burned drop-shadow treatment of the shipped icons. See [CREDITS.md](CREDITS.md) for icon sources and licenses. Note: ES auto-collections use theme-folder names with an `auto-` prefix (e.g., `auto-allgames.png`, `auto-favorites.png`, `auto-lastplayed.png`) rather than the short collection name.
 - Gamelist rows show each game's scraped `thumbnail` (box art) when Icon Size is `Boxart`. A game with no thumbnail scraped falls back to its system's media-type silhouette (cartridge, CD, floppy, etc. — see `art/system-media/`). Scrape your library with box/thumbnail media for full boxart rows, or use the `Compact` icon size.
 
 ## Install
@@ -83,6 +83,7 @@ deliberately leaves their positions alone.
 - **Verified via Docker harness:** aspect ratios 4:3, 16:9, 3:2, 1:1, and 8:7 (render samples in the Screenshots section above).
 - **Likely works:** any Batocera/Knulli device whose screen falls into one of the verified ratios at any resolution, running batocera-emulationstation with `formatVersion 7` support.
 - **Other ratios** (21:9, 5:4, vertical, etc.) silently fall back to the 4:3 layout — may letterbox or stretch.
+- **Not verified:** ES-DE and other EmulationStation forks. The theme is written against batocera-emulationstation's `formatVersion 7`; other forks parse a different dialect and are known to ignore or mis-render parts of it. Establishing which forks actually work is tracked in [#46](https://github.com/barretstorck/es-theme-xmb-psp/issues/46) — reports welcome.
 
 ## Customization
 
@@ -299,6 +300,10 @@ references an image that is not in the tree, if the colorset gallery drifts
 from `theme.xml`, or if either committed artifact exceeds its size budget.
 
 The legacy on-device scripts (`scripts/deploy.sh`, `scripts/ui.sh`) are retained as a dormant fallback only and are no longer part of the routine workflow.
+
+## Contributing
+
+Bug reports, renders and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). You do not need a handheld to work on this theme: `scripts/render.sh` runs EmulationStation headless in Docker and screenshots the result.
 
 ## Credits and license
 

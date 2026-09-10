@@ -49,7 +49,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 #
 # The precedence matters. Sourcing .env.local unconditionally made the FILE win
 # over the environment, the opposite of what the usage text promises, so
-# `DEVICE_IP=192.168.0.52 ./scripts/ui.sh a` silently drove the .env.local
+# `DEVICE_IP=192.168.1.4 ./scripts/ui.sh a` silently drove the .env.local
 # device instead. When that host is off it reads as the tool hanging or the
 # keypress being ignored, not as talking to the wrong machine.
 _had_ip="${DEVICE_IP+y}"; _had_user="${DEVICE_USER+y}"

@@ -1,0 +1,75 @@
+name: Feature request
+description: Propose a change to how the theme looks or behaves
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This theme has a specific goal: reproduce the PSP's XMB on
+        EmulationStation. That makes **"the PSP did it this way"** the strongest
+        argument available here, and it's worth reaching for before "it would be
+        nice if".
+
+        `docs/psp-xmb-style-guidelines.md` is the house style, and
+        `docs/psp-authenticity-audit.md` tracks where the theme still departs
+        from the real thing — your idea may already be written up in one of
+        them.
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What should change
+      description: Describe the end state, not the implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: authenticity
+    attributes:
+      label: How the real XMB does this
+      description: >
+        A screenshot, a capture, or a pointer into the authenticity audit. If
+        the PSP had no equivalent, say so plainly and make the case on its own
+        merits instead — that's a legitimate answer, not a disqualifying one.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - System view (carousel, wave, XMB cross)
+        - Gamelist (PSP Card / List + Details / Box Art Grid)
+        - Status bar (clock, network, battery)
+        - Audio (navigation sounds)
+        - Boot splash
+        - Colorsets
+        - Dev tooling / render harness
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: What this would have to not break
+      description: |
+        The constraints that catch most proposals here:
+
+        - **Five aspect ratios**, all tuned by hand (4:3, 16:9, 3:2, 1:1, 8:7).
+          Anything positional needs checking at all five.
+        - **Subset combinations** multiply: Gamelist Style x Icon Size x Title
+          Visibility x Button Icons x Scroll Speed.
+        - **ES drops every icon/path property on an element** when a `${var}`
+          in it resolves to nothing — so a variable that only exists under some
+          subsets is a silent blanking bug, not a fallback.
+        - **Theme-authored animation is storyboard property animation on
+          static PNGs.** Animated GIFs and video as *theme art* aren't
+          supported by this ES build — that's why the wave is layered PNGs.
+          Game preview video is a different thing and does work (`md_video`).
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: I've checked the open issues and the authenticity audit for this already
