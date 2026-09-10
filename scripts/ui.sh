@@ -70,17 +70,9 @@ DEVICE_IP="${DEVICE_IP:-192.168.1.4}"
 DEVICE_USER="${DEVICE_USER:-root}"
 DEVICE="${DEVICE_USER}@${DEVICE_IP}"
 
-if [[ -n "${SSHPASS:-}" ]]; then
-  if ! command -v sshpass >/dev/null 2>&1; then
-    echo "SSHPASS is set but 'sshpass' is not installed." >&2
-    echo "Install with: brew install hudochenkov/sshpass/sshpass" >&2
-    exit 1
-  fi
-  export SSHPASS
-  SSH=(sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new)
-else
-  SSH=(ssh)
-fi
+# shellcheck source=scripts/lib/device-ssh.sh
+source "${SCRIPT_DIR}/lib/device-ssh.sh"
+device_ssh_setup
 
 usage() {
   sed -n '3,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
