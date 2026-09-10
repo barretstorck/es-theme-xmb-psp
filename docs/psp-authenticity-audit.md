@@ -106,9 +106,9 @@ read as a silhouette.
 
 **Current theme:** Shipped in v0.11 (PR #27). `art/system-icons/`
 now carries 201 icons: 150 shortnames adopted from the RetroArch
-`monochrome` set (f170f40) plus 8 hand-authored port icons in the
+`monochrome` set (3bbaed0) plus 8 hand-authored port icons in the
 same filled-silhouette style via `scripts/gen-port-icons.py`
-(0afbb62), all with a pre-burned drop shadow (see S3). 43
+(c9ddcd0), all with a pre-burned drop shadow (see S3). 43
 icons inherited from XMB Menu ES-DE remain for shortnames neither mapped nor
 hand-authored.
 
@@ -123,7 +123,7 @@ filled silhouettes are the house style now.
 **Workaround sketch (as landed):** Adopted the RetroArch
 `monochrome` XMB icon set via the S1a workflow. Of the shortnames
 that had no RA equivalent, 8 popular ports were hand-authored in
-the filled-silhouette style (`scripts/gen-port-icons.py`, 0afbb62);
+the filled-silhouette style (`scripts/gen-port-icons.py`, c9ddcd0);
 the residual gap is ~29 unmatched homebrew / ports (full list in
 S1a). The 5 retro micros the old plan worried about (CoCo, Acorn
 Electron, Game & Watch, NEC PC-88, TI-99) ARE present in
@@ -144,7 +144,7 @@ branded-item-icon territory).
 `_inc/system.xml:149-153` (per-system icon binding via
 `${system.theme}`); `libretro/retroarch-assets` →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
-silhouettes); commits f170f40, 0afbb62.
+silhouettes); commits 3bbaed0, c9ddcd0.
 
 ---
 
@@ -157,7 +157,7 @@ S1 (PSP-style filled-silhouette iconography) and partially for G10
 **Current theme:** Shipped in v0.11 (PR #27). 150 RetroArch
 `monochrome` icons are in `art/system-icons/`;
 `scripts/ra-mapping.tsv` (209 lines) and
-`scripts/import-ra-icons.sh` landed on main via d520928. Note: the
+`scripts/import-ra-icons.sh` landed on main via 6614f3b. Note: the
 shipped TSV/script header still defaulted to `automatic` — being
 fixed in this same branch.
 
@@ -178,7 +178,7 @@ CREDITS.md attribution).
    ```
 
 2. **Author a mapping TSV** at `scripts/ra-mapping.tsv` — DONE
-   (d520928; 150 mapped shortnames). Two tab-separated columns:
+   (6614f3b; 150 mapped shortnames). Two tab-separated columns:
    Knulli shortname, RetroArch filename-without-extension. Examples:
    ```
    snes	Nintendo - Super Nintendo Entertainment System
@@ -204,7 +204,7 @@ CREDITS.md attribution).
    per row.
 
 3. **Author a copy script** at `scripts/import-ra-icons.sh` — DONE
-   (d520928; note the `automatic` default path below is what
+   (6614f3b; note the `automatic` default path below is what
    shipped — see Current theme):
    ```bash
    #!/usr/bin/env bash
@@ -222,9 +222,9 @@ CREDITS.md attribution).
 
 4. **A/B-test before swap** — DONE (the A/B on-device pass is what
    rejected `automatic` (PR #22, #23) and selected `monochrome`;
-   the real swap landed as f170f40).
+   the real swap landed as 3bbaed0).
 
-5. **Update CREDITS.md** — DONE (c07eca2, `CREDITS.md:57-66`). The
+5. **Update CREDITS.md** — DONE (26513bf, `CREDITS.md:57-66`). The
    block originally proposed here cited the *automatic* set; the
    shipped block credits the **`monochrome`** set
    (`xmb/monochrome/png/`, CC-BY 4.0), covering the 150 mapped
@@ -250,7 +250,7 @@ other mapped shortname.
 
 **Truly-unmatched homebrew / ports:** 8 of the original 37 gaps
 were hand-authored in v0.11 in the filled-silhouette style via
-`scripts/gen-port-icons.py` (0afbb62): `gzdoom`, `prboom`,
+`scripts/gen-port-icons.py` (c9ddcd0): `gzdoom`, `prboom`,
 `eduke32`, `devilutionx`, `fallout1-ce`, `fallout2-ce`, `mrboom`,
 `openjazz`. Residual gap is ~29 ports (the enumeration below keeps
 a few extra names the original count tracked loosely): `abuse`,
@@ -265,8 +265,8 @@ fall back to `_default.png`.
 
 **Evidence:** `libretro/retroarch-assets` repo →
 `xmb/monochrome/png/` (256×256 white-on-transparent filled
-silhouettes) and `COPYING` (CC-BY 4.0 license); commits d520928,
-f170f40, 0afbb62, c07eca2.
+silhouettes) and `COPYING` (CC-BY 4.0 license); commits 6614f3b,
+3bbaed0, c9ddcd0, 26513bf.
 
 ---
 
@@ -280,7 +280,7 @@ background.
 **Current theme:** Shipped in v0.11 (PR #27). Every icon in
 `art/system-icons/*.png` carries a pre-burned drop shadow —
 4px-blur, 3px Y-offset, 35%-black — applied by
-`scripts/apply-shadow.py` (00124cf).
+`scripts/apply-shadow.py` (e34c27e).
 
 **Reference:** Subtle but visible in PSP screenshots 1, 2, 4 — note
 the slight darkening to the lower-right of each icon's silhouette.
@@ -308,7 +308,7 @@ shadowless icons.
 
 **Dependencies:** S1.
 
-**Evidence:** `scripts/apply-shadow.py`; commit 00124cf
+**Evidence:** `scripts/apply-shadow.py`; commit e34c27e
 (pre-burned shadow across `art/system-icons/`).
 
 ---
@@ -465,8 +465,8 @@ Renames landed in `_inc/system.xml`:
 - `selectedHalo` → `staticBackgroundHalo` (dropped `extra="true"`,
   dropped both `<storyboard>` blocks — see X1 update below). The
   sketch originally called for `<zIndex>` 10; the actual landed
-  value is **4** (b8649c8 corrected 10 → 4, re-confirmed in the
-  v0.11 restoration 3d4a602) — above all wave layers, below the
+  value is **4** (6bedc40 corrected 10 → 4, re-confirmed in the
+  v0.11 restoration 201aa0a) — above all wave layers, below the
   carousel.
 
 In `_inc/wave-motion.xml`, `<view name="system,detailed,gamecarousel">`
@@ -827,10 +827,10 @@ outstanding task.
 **Evidence:** `theme.xml` media-fallback includes (six, one per glyph,
 covering the same 75 systems that once had a file each — see
 `_inc/media-fallback/*.xml` headers for the per-glyph system lists);
-`art/system-media/` (7 glyphs, b616057);
+`art/system-media/` (7 glyphs, 4705d18);
 `_inc/gamelist-card.xml:123` (`cardFallback`) and `:436`
 (`tplPeekFallback`); absence of any halo element anywhere in the
-theme (verified by grep); 3d4a602 + 3396428 (system-halo restoration
+theme (verified by grep); 201aa0a + ed69276 (system-halo restoration
 + tuning, both since removed).
 
 ---
@@ -1120,8 +1120,8 @@ this entry hoped for doesn't exist on main. Any true PSP-style
 - `library.png` ← RA `database.png`
 - `odcommander.png` ← RA `file.png`
 
-These are in S1a's mapping TSV and shipped with it (d520928 /
-f170f40). They are consistent with the hardware icons, but — per
+These are in S1a's mapping TSV and shipped with it (6614f3b /
+3bbaed0). They are consistent with the hardware icons, but — per
 the note above — not visually *distinct* from them the way the
 old `automatic` plan promised.
 
@@ -1130,7 +1130,7 @@ by RA; only hand-crafted per-app art applies. The v0.11 art pass
 happened: 8 ports were hand-authored in the filled-silhouette
 style (`gzdoom`, `prboom`, `eduke32`, `devilutionx`,
 `fallout1-ce`, `fallout2-ce`, `mrboom`, `openjazz` —
-`scripts/gen-port-icons.py`, 0afbb62). Those are silhouettes, not
+`scripts/gen-port-icons.py`, c9ddcd0). Those are silhouettes, not
 branded colour icons; the remaining ~29 (`pico8`, `openbor`,
 `solarus`, `tyrian`, …) and any true branded treatment stay open.
 
@@ -1223,7 +1223,7 @@ true. The bindings work normally in the system and gamelist views.
 
 **Dependencies:** none remaining.
 
-**Evidence:** 8292b54 (widget removal); `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
+**Evidence:** 6685eda (widget removal); `BatteryTextComponent.{h,cpp}`; `ThemeData.cpp:34`
 (auto-extra registration), `:2147-2148` (createExtraComponent
 dispatch); `BindingManager.cpp:52-53` (battery binding
 registration).
@@ -1407,8 +1407,8 @@ two separate TextComponent properties (`<autoScroll>` to enable a
 direction, `<autoScrollSpeed>` for the rate), not a container. `cardDesc`
 (`_inc/gamelist-card.xml:285`) scrolls vertically inside a `clipRect`. The text *does* scroll on
 selection, but there's no visual cue that text is being cut at the
-container edge. This entry WAS implemented (4f003bc) and then
-deliberately reverted after on-device review (4fbc7ca): the
+container edge. This entry WAS implemented (f233b09) and then
+deliberately reverted after on-device review (1666257): the
 chevrons were "too small to read at typical viewing distance", and
 the decision is to deviate from PSP style on this element. The
 assets survive orphaned (`art/ui/chevron-{up,down}.png`,
@@ -1419,7 +1419,7 @@ mid-word at the right edge, suggesting more text exists; PSP's
 firmware would normally show a triangle.
 
 **Feasibility:** **Design-rejected on-device** (this note is the
-follow-up audit update promised in 4fbc7ca). Technically it works
+follow-up audit update promised in 1666257). Technically it works
 exactly as sketched below; it was rejected on legibility, not
 feasibility. Any re-attempt must use substantially larger chevrons
 than the ~12×8 px sketch. Not to be confused with branch
@@ -1444,8 +1444,8 @@ same description container.
 **Dependencies:** none.
 
 **Evidence:** `_inc/gamelist-card.xml:285` (`cardDesc`, which replaced
-the v0.11 description container); 4f003bc (implementation),
-4fbc7ca (design revert).
+the v0.11 description container); f233b09 (implementation),
+1666257 (design revert).
 
 ---
 
@@ -1894,7 +1894,7 @@ features. Listed so future audits don't re-discover them.
   - **Highest-impact / verified-ship-it cluster (was: target
     v0.10):** S6 (continuous wave) + X1 (halo storyboard cleanup)
     SHIPPED in v0.10; X2 (description chevrons) shipped then
-    design-rejected on-device (4fbc7ca); ST1 (battery %) SHIPPED
+    design-rejected on-device (1666257); ST1 (battery %) SHIPPED
     with #4, together with the battery glyph itself.
   - **`<itemTemplate>` adoption cluster (target v0.10 or v0.11 — one
     coordinated XML rework unlocks G4, G7, G8, and the gamecarousel

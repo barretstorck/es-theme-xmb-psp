@@ -905,7 +905,7 @@ ordering is a harness-only guarantee.
 Two `<helpsystem>` declarations exist and must stay in step:
 `_inc/common.xml` (`system,detailed,gamecarousel,menu`) and
 `_inc/gamelist-grid.xml`, which declares its own inside
-`<view name="grid">` deliberately (b5e2063). The subset therefore sets
+`<view name="grid">` deliberately (0ce3fb1). The subset therefore sets
 **variables** rather than overriding `<helpsystem>` directly: a
 theme-wide file naming the `grid` view would make `hasView("grid")`
 true for everyone and hand an unstyled built-in grid to any user who
