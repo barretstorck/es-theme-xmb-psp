@@ -66,14 +66,16 @@
     <soundSelect>./sounds/select.wav</soundSelect>
     <soundBack>./sounds/back.wav</soundBack>
 
-    <!-- XMB cross anchor. crossX/crossY = where the selected system icon is
-         centered in the system and both gamelist views. captionY = the top
-         of the system-name caption, just under the icon — it tracks crossY
-         (v0.6 moved both up together when the cross anchor was squared).
+    <!-- XMB cross anchor. crossX = where the selected system icon is
+         centred horizontally in the system and both gamelist views.
+         captionY = the top of the system-name caption, just under the icon;
          countY = the top of the optional game-count caption (Game Count:
-         Show variant only), stacked under captionY. -->
+         Show variant only), stacked under captionY.
+         There is no crossY: the icon's vertical placement is set directly on
+         the carousel, and captionY/countY are absolute rather than derived.
+         A crossY variable existed until v1.0 but nothing had consumed it
+         since v0.6 squared the cross anchor. -->
     <crossX>0.24</crossX>
-    <crossY>0.291</crossY>
     <captionY>0.401</captionY>
     <countY>0.456</countY>
 
@@ -86,7 +88,8 @@
          block below (around lines 122-123).
          See docs/screenshots/v0.11-mockups/proposed-v7-ondevice-tweaks.png for
          v0.11's design intent. These are gamelist-only and do NOT touch
-         crossY/captionY (which the system view uses). -->
+         captionY, or the carousel's own vertical anchor, which the system
+         view uses. -->
 
     <!-- v0.8: geometry variables that may differ per aspect ratio.
          Defaults are the 4:3 (1024x768) values used through v0.7.
@@ -103,13 +106,11 @@
     <sysCarouselSizeW>1.78</sysCarouselSizeW>
     <sysCarouselPosX>-0.65</sysCarouselPosX>    <!-- = crossX - sysCarouselSizeW/2 = 0.24 - 0.89 = -0.65 (K=1.62 × logoW × maxLogoCount) -->
 
-    <!-- Gamelist: shared geometry vars. Per-row variables for the v0.11
-         card layout are defined below in the v0.11 block; legacy gamecarousel
-         /info-panel/glIcon vars were removed in the v0.11 redesign. -->
-    <gameColX>0.08</gameColX>
-    <gameColW>0.32</gameColW>
-    <gameColTextY>0.50</gameColTextY>
-    <gameColH>0.42</gameColH>
+    <!-- Gamelist per-row variables live in the v0.11 card block below. The
+         legacy gamecarousel / info-panel / glIcon variables went with the
+         v0.11 redesign; the last four survivors (gameColX/W/TextY/H) went in
+         v1.0 — the <gamecarousel> component they positioned was deleted in
+         ae82df9, so nothing had read them since. -->
 
     <!-- v0.11 PR redesign: PSP-card row format variables.
          See docs/superpowers/specs/2026-05-27-v0.11-gamelist-redesign-design.md.

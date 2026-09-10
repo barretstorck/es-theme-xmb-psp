@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run every structural test suite, plus the two whole-tree gates.
+# Run every structural test suite, plus the whole-tree gates.
 #
 # The suites were only ever invoked one at a time, by hand, from whichever
 # ticket was in flight — so a change touching shared XML could break a suite
@@ -11,7 +11,7 @@
 #   scripts/tests/run-all.sh grid sound   # only suites matching these substrings
 #   VERBOSE=1 scripts/tests/run-all.sh    # stream each suite's own output
 #
-# Exit status is 0 only if every selected suite and both gates pass.
+# Exit status is 0 only if every selected suite and every gate passes.
 #
 # NOTE: deliberately NOT `set -e` — a failing suite must be recorded and
 # reported alongside the others, not abort the run at the first one.
@@ -92,6 +92,27 @@ PY
 #           strings and the lib/ files export variables to their sourcers,
 #           neither of which static analysis can see.
 # Everything else is a gate: SC1078/SC2154/SC2164 have all caught real bugs.
+# The mirror of the gate above, and the reason five variables sat dead in
+# common.xml and the aspect files until the v1.0 audit: a variable whose last
+# consumer was deleted leaves nothing behind that looks wrong. The
+# <gamecarousel> component went in ae82df9 and gameColX/W/TextY/H outlived it
+# by four releases, still being dutifully overridden per aspect ratio.
+run_one "no-dead-variables" python3 - <<'PY'
+import glob, re, sys
+decl, used = {}, set()
+for f in glob.glob('**/*.xml', recursive=True):
+    t = re.sub(r'<!--.*?-->', '', open(f, encoding='utf-8').read(), flags=re.S)
+    for blk in re.findall(r'<variables>(.*?)</variables>', t, re.S):
+        for name in re.findall(r'<(\w+)>', blk):
+            decl.setdefault(name, set()).add(f)
+    used |= set(re.findall(r'\$\{(\w+)\}', t))
+dead = sorted(set(decl) - used)
+if dead:
+    for d in dead:
+        print(f"declared but never consumed: {d}  ({', '.join(sorted(decl[d]))})")
+    sys.exit(1)
+PY
+
 if command -v shellcheck >/dev/null 2>&1; then
   run_one "shellcheck" shellcheck -x -S warning -e SC2319,SC2034 \
     scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh
