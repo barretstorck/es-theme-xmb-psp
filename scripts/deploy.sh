@@ -84,7 +84,10 @@ case "$cmd" in
       --exclude='.claude' \
       --exclude='docs' \
       --exclude='scripts' \
+      --exclude='docker' \
+      --exclude='tests' \
       --exclude='.dev' \
+      --exclude='.gitattributes' \
       --exclude='.env.local' \
       --exclude='.env.local.example' \
       --exclude='.gitignore' \
