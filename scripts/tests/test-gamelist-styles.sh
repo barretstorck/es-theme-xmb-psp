@@ -90,14 +90,61 @@ print(len(ET.parse(sys.argv[1]).getroot().findall('view')))" "${f}" 2>/dev/null)
   grep -q 'CC-BY-NC-SA' "${f}"
   check "gamelist-${name}.xml carries the licence header" $?
 
-  # Knulli quirk: animated wave layers must sit inside the view block.
-  # Count ELEMENTS, not lines containing the word — the header prose mentions
-  # "waveLayer" twice, so a line count of >=3 would still pass with two of the
-  # three real elements deleted, which is exactly the regression this guards.
-  w="$(grep -c '<image name="waveLayer' "${f}" || true)"
-  [[ "${w}" -eq 3 ]]
-  check "gamelist-${name}.xml has all 3 waveLayer elements (found ${w})" $?
 done
+
+# Every style's view must actually be reached by three animated wave layers.
+# This used to be a literal "each style file contains 3 waveLayer elements"
+# count, justified by a Knulli build quirk that the #44 spike disproved: what
+# really decides it is view-name scope. _inc/wave-motion.xml declares
+# <view name="detailed,gamecarousel">, so styles A and B inherit its layers
+# and need no copy; style D is <view name="grid"> and must carry its own, or
+# it renders a flat background. Resolving that per style — rather than
+# counting elements per file — is what catches BOTH regressions: deleting the
+# grid's copy, and re-adding a dead one to card/list.
+python3 - "${REPO_ROOT}" <<'INNER_PY'
+import sys, xml.etree.ElementTree as ET
+from pathlib import Path
+
+root = Path(sys.argv[1])
+LAYERS = {"waveLayer1", "waveLayer2", "waveLayer3"}
+
+
+def layer_views(path):
+    """Map view name -> set of waveLayer element names declared for it."""
+    out = {}
+    for view in ET.parse(path).getroot().findall("view"):
+        names = {img.get("name") for img in view.findall("image")} & LAYERS
+        for v in view.get("name", "").split(","):
+            out.setdefault(v.strip(), set()).update(names)
+    return out
+
+
+shared = layer_views(root / "_inc" / "wave-motion.xml")
+bad = []
+for style in ("card", "list", "grid"):
+    path = root / "_inc" / f"gamelist-{style}.xml"
+    own = layer_views(path)
+    for view, names in own.items():
+        covered = names | shared.get(view, set())
+        if covered != LAYERS:
+            bad.append(
+                f"gamelist-{style}.xml view '{view}' resolves to {sorted(covered)}, "
+                f"expected all of {sorted(LAYERS)}"
+            )
+        # A copy that duplicates a view wave-motion.xml already covers is dead
+        # weight: theme.xml includes wave-motion.xml last, so it always wins.
+        redundant = names & shared.get(view, set())
+        if redundant:
+            bad.append(
+                f"gamelist-{style}.xml view '{view}' re-declares {sorted(redundant)}, "
+                "which _inc/wave-motion.xml already covers and overwrites"
+            )
+
+if bad:
+    print("\n".join(bad), file=sys.stderr)
+    sys.exit(1)
+INNER_PY
+check "each gamelist style's view resolves to exactly 3 wave layers, none dead" $?
 
 echo
 echo "theme.xml wiring:"

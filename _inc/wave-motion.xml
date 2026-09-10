@@ -28,14 +28,18 @@
       <opacity>1.00</opacity>
     </image>
 
-    <!-- NOTE: waveLayer1/2/3 below are also declared verbatim in each of the
-         three v0.12 gamelist style files (_inc/gamelist-card.xml,
-         _inc/gamelist-list.xml, _inc/gamelist-grid.xml) inside their
-         <view> blocks. That duplication is intentional: on this Knulli ES
-         build, storyboard animations declared in this separate include do
-         not fire on the gamelist views, so those views each carry their
-         own copy. Keep all four copies in sync when tuning any wave
-         property. -->
+    <!-- NOTE: the <view> above covers gamelist styles A (PSP Card) and B
+         (List + Details), which both declare <view name="detailed,
+         gamecarousel">. Storyboards declared here DO animate on those views —
+         the "Knulli build quirk" that once justified copying waveLayer1/2/3
+         into every style file was disproved by the #44 spike, and those two
+         copies are gone.
+
+         Style D (Box Art Grid) is <view name="grid">, which this file does
+         not declare, so _inc/gamelist-grid.xml keeps its own copy. Keep the
+         two in sync when tuning any wave property. Do NOT add grid here:
+         this include is unconditional, so it would make hasView("grid") true
+         for every user (see the comment in _inc/gamelist-grid.xml). -->
     <!-- Wave layer 1: top crest, slowest scroll -->
     <image name="waveLayer1" extra="true">
       <path>./art/wave/wave-layer-1.png</path>
