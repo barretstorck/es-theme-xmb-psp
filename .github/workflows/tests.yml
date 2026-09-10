@@ -1,0 +1,72 @@
+# Runs the same suite CONTRIBUTING tells you to run before you commit, on every
+# pull request and on main. `main` is expected to be release-ready at all times,
+# so this is the gate that keeps it that way.
+#
+# The suite is deliberately tolerant of missing tools: `shellcheck` and Pillow
+# each guard themselves with `command -v` and announce a skip rather than fail,
+# because a contributor without them should still get the other twenty gates.
+# That tolerance is wrong for CI. A run that skips two gates still prints a
+# green "21 passed", which is precisely the silent-degradation failure mode the
+# gates in run-all.sh exist to prevent. So this workflow installs both, then
+# asserts they are importable BEFORE running anything.
+
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only: nothing here needs to write to the repo, and a fork PR should
+# never get a token that can.
+permissions:
+  contents: read
+
+# A second push to the same PR makes the first run irrelevant.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Both are normally present on the hosted image; installing only what is
+      # actually missing keeps the common case fast without making the workflow
+      # depend on the image's contents staying the same.
+      - name: Install anything the runner image is missing
+        run: |
+          set -euo pipefail
+          missing=()
+          command -v shellcheck >/dev/null || missing+=(shellcheck)
+          python3 -c 'import PIL' 2>/dev/null || missing+=(python3-pil)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "installing: ${missing[*]}"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq "${missing[@]}"
+          else
+            echo "nothing to install"
+          fi
+
+      # The point of the whole file. Without this, a missing tool downgrades a
+      # gate to a skip and the run still reports success.
+      - name: Verify no gate will silently skip
+        run: |
+          set -euo pipefail
+          shellcheck --version >/dev/null
+          python3 -c 'import PIL; print("Pillow", PIL.__version__)'
+          echo "shellcheck $(shellcheck --version | awk '/^version:/ {print $2}')"
+
+      # run-all.sh prints SKIP and still exits 0, so the exit status alone cannot
+      # tell us every gate actually ran. Capture the output once and check both.
+      - name: scripts/tests/run-all.sh
+        run: |
+          set -euo pipefail
+          scripts/tests/run-all.sh 2>&1 | tee "$RUNNER_TEMP/run-all.log"
+          if grep -q 'SKIP' "$RUNNER_TEMP/run-all.log"; then
+            echo "::error::a gate skipped in CI; every gate must run here"
+            exit 1
+          fi
