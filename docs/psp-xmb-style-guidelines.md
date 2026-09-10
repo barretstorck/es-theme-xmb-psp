@@ -1633,6 +1633,46 @@ elements route through `SystemView::mStaticBackgrounds`, loaded once
 at view construction and never reset on cursor change, so the wave
 now persists continuously across navigation.
 
+**Accepted limitation (#44): the wave restarts at `t=0` on every view
+change.** Entering a gamelist, backing out to the carousel, and moving
+between gamelists each restart it. Only movement *within* a view is
+continuous — the carousel's cursor (fixed by S6 above) and a gamelist's
+game cursor. This is not fixable from the theme; it needs an ES-side
+change. Read against the pinned ES source in
+`es-xmb-harness:knulli-9bbb16a`:
+
+- `GuiComponent::onShow` calls `mStoryboardAnimator->reset()` and
+  recurses into every child (`GuiComponent.cpp:937-944`).
+  `ViewController::setActiveView` calls `onHide()` then `onShow()` on
+  every transition (`ViewController.cpp:1372-1383`), and all three
+  gamelist views chain into it. There is no property that opts an
+  element out: `ThemeStoryboard` carries only `eventName`, `repeat`,
+  `repeatAt` and `animations`, and `repeatAt` feeds the loop-wrap
+  `reset()` only (`StoryboardAnimator.cpp:216`).
+- Continuity is impossible even without the reset, because the wave is
+  a different object in each view and `ViewController::update` ticks
+  only `mCurrentView` (`ViewController.cpp:928-935`), while `onHide()`
+  pauses the hidden one's animator.
+- `staticBackground*` does not help. The prefix is read at exactly two
+  places in ES, both hardcoded to the `system` view
+  (`SystemView.cpp:1047,1057`); gamelist extras are collected by
+  `extra="true"` alone (`ThemeData.cpp:2165-2209`), so a renamed element
+  renders and resets exactly as before. S6 exempts the system view's
+  wave from *cursor*-change resets only — `SystemView::onShow` still
+  resets it explicitly (`SystemView.cpp:1460-1472`).
+- `<view name="screen">` is the one lifecycle that survives view changes
+  (`Window::mScreenExtras`: loaded once at `Window.cpp:1258`, updated at
+  `:452` and rendered at `:770` regardless of the view stack), and it is
+  unusable twice over. It renders *after* the whole GUI stack, so a wave
+  there paints over the box art and text; and its storyboards never
+  start, because `StoryboardAnimator` constructs paused
+  (`StoryboardAnimator.cpp:145-147`) and the only `onShow()` path for
+  screen extras is `Window::reactivateGui()`, called solely on return
+  from launching a game (`FileData.cpp:790`).
+
+This is why `_inc/status-bar.xml`'s `screen` elements carry no
+storyboards, and it is the reason to leave the wave where it is.
+
 ### 7.2 Carousel transition style
 
 `theme.xml:12` declares `<theme defaultTransition="instant">`. This is
