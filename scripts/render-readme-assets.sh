@@ -4,8 +4,8 @@
 # One entry point on purpose. The README's screenshots are its documentation,
 # and a future contributor should not have to work out which of render.sh's
 # flag combinations produced which file. Running this reproduces the colorset
-# gallery, the aspect rows, the per-style shots, the boot-splash table and the
-# navigation GIF.
+# gallery, the aspect rows, the per-style shots, the row-toggle matrix, the
+# boot-splash table and the navigation GIF.
 #
 # The exception is docs/screenshots/v0.11/*, three toggle mockups kept as a
 # point-in-time record of that redesign. They are deliberately NOT regenerated:
@@ -37,11 +37,14 @@ THUMB_WIDTH=320
 # of the whole page budget for one image. 640px still gives a reader something
 # worth clicking through to.
 STYLE_WIDTH=640
+# The toggle matrix is a 2x2 table, so GitHub renders each cell about 440px
+# wide. 512 is the nearest size that still has detail left when clicked.
+TOGGLE_WIDTH=512
 
 usage() {
   cat <<EOF
 Usage: render-readme-assets.sh --library PATH [--out-dir DIR] [--skip-gif]
-                               [--only colorsets|aspects|styles|splash|gif]
+                               [--only colorsets|aspects|styles|toggles|splash|gif]
 
   --library PATH  Knulli userdata-shaped library with REAL scraped media.
                   Use the KNULLI slice, e.g. /tmp/library.
@@ -73,8 +76,8 @@ fi
 if [[ ! -d "${LIBRARY}" ]]; then
   echo "ERROR: --library '${LIBRARY}' is not a directory" >&2; exit 2
 fi
-if [[ -n "${ONLY}" && ! "${ONLY}" =~ ^(colorsets|aspects|styles|splash|gif)$ ]]; then
-  echo "ERROR: --only must be colorsets, aspects, styles, splash or gif" >&2; exit 2
+if [[ -n "${ONLY}" && ! "${ONLY}" =~ ^(colorsets|aspects|styles|toggles|splash|gif)$ ]]; then
+  echo "ERROR: --only must be colorsets, aspects, styles, toggles, splash or gif" >&2; exit 2
 fi
 
 want() { [[ -z "${ONLY}" || "${ONLY}" == "$1" ]]; }
@@ -116,6 +119,44 @@ if want colorsets; then
                 --library "${LIBRARY}" --out "${out}" >/dev/null
     downscale "${out}" "${THUMB_WIDTH}"
   done < <(subset_values colorset)
+
+  # The README shows ONE combined contact sheet rather than a twelve-cell table:
+  # the table needed an empty header row to render at all, and GitHub draws that
+  # as a blank strip above the gallery. The individual tiles stay on disk — they
+  # are this montage's source, and test-readme-assets.sh asserts one exists per
+  # colorset theme.xml declares.
+  echo "-- contact sheet -> colorsets.png"
+  montage_args=()
+  while IFS= read -r name; do
+    [[ -z "${name}" ]] && continue
+    montage_args+=(-label "${name}" "colorsets/$(slugify "${name}").png")
+  done < <(subset_values colorset)
+  docker run --rm -v "${OUT_DIR}:/w" -w /w "${IMAGE}" \
+    montage "${montage_args[@]}" -tile 4x3 -geometry +8+8 \
+    -background '#161b22' -fill '#e6edf3' -font DejaVu-Sans -pointsize 17 \
+    colorsets.png
+fi
+
+# --- 1b. the Icon Size x Title Visibility matrix -----------------------------
+# Both toggles only affect UNSELECTED rows, so a shot with the selection at the
+# top of the list shows one row below and nothing above — the previous README
+# used exactly that and the toggles were near-invisible. GAMELIST_DOWN=2 moves
+# the selection into the middle so a row is visible on either side, and all four
+# cells are rendered at the same position so the table compares like with like.
+if want toggles; then
+  echo "== gamelist row toggles (4:3, 1024x768 -> ${TOGGLE_WIDTH}px) =="
+  while IFS= read -r icon; do
+    [[ -z "${icon}" ]] && continue
+    while IFS= read -r title; do
+      [[ -z "${title}" ]] && continue
+      out="${OUT_DIR}/toggle-$(slugify "${icon}")-$(slugify "${title}").png"
+      echo "-- ${icon} / ${title} -> $(basename "${out}")"
+      GAMELIST_DOWN=2 ICON_SIZE="${icon}" TITLE_VISIBILITY="${title}" \
+        "${RENDER}" --view gamelist --resolution 1024x768 \
+                    --library "${LIBRARY}" --out "${out}" >/dev/null
+      downscale "${out}" "${TOGGLE_WIDTH}"
+    done < <(subset_values titleVisibility)
+  done < <(subset_values iconSize)
 fi
 
 # --- 2. aspect-ratio rows ----------------------------------------------------

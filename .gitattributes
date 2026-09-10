@@ -1,9 +1,10 @@
 # Keep `git archive` output — which is what GitHub serves as a release
 # tarball/zip — down to the theme payload ES actually loads.
 #
-# The documented install is a clone into /userdata/themes/, which puts the
-# full history plus ~18 MB of docs/ on the user's SD card. A release archive
-# built from this list is the theme itself and nothing else.
+# The documented install IS that archive — README.md tells the user to
+# download the ZIP/tar.gz and drop it in themes/ — so this list is what
+# lands on the SD card. Without it they would get the full history plus
+# ~18 MB of docs/; with it, the theme itself and nothing else.
 #
 # LICENSE and CREDITS.md deliberately stay IN: the theme is CC-BY-NC-SA 2.0
 # and derived from Ant's "XMB Menu ES-DE", so the attribution has to travel
