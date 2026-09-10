@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-05-21-es-docker-test-harness-design.md`
 
-**Branch:** `es-docker-harness` (already created off `main`; contains the spec commit `88c706c`).
+**Branch:** `es-docker-harness` (already created off `main`; contains the spec commit `9e9918b`).
 
 ---
 

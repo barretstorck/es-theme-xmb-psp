@@ -11,7 +11,7 @@ closes, is tracked in issue #47.
 
 ## [Unreleased] — v0.13, working toward v1.0
 
-Everything merged since v0.12 (`bd3c7cc`, 2026-09-08). The v1.0 milestone is
+Everything merged since v0.12 (`60ec465`, 2026-09-08). The v1.0 milestone is
 the public-release gate; closing it is the go/no-go.
 
 ### Added
@@ -60,7 +60,7 @@ the public-release gate; closing it is the go/no-go.
   variables, and doc `file:line` citations.
 - Device SSH transport built once, fixing `deploy.sh`'s ssh and scp silently
   omitting `StrictHostKeyChecking=accept-new`.
-- Five theme variables deleted that nothing had consumed since v0.6/ae82df9.
+- Five theme variables deleted that nothing had consumed since v0.6/511f750.
 
 ### Licensing and go-public readiness (#47)
 - `CREDITS.md` re-audited against the tree and rebuilt. Every directory under
@@ -69,7 +69,7 @@ the public-release gate; closing it is the go/no-go.
   filed `art/system-media/` under "Not yet used" after #41 wired all seven
   glyphs into the gamelist.
 - Corrected the RetroArch attribution: 150 icons, not 134. The manifest has
-  mapped 150 since d520928, so the figure was wrong in all seven places four
+  mapped 150 since 6614f3b, so the figure was wrong in all seven places four
   documents repeated it — and CC-BY 4.0 makes an inaccurate count a false
   attribution rather than a typo.
 - Documented the licence chain, including *why* CC-BY-NC-SA 2.0 is not a
@@ -83,7 +83,7 @@ the public-release gate; closing it is the go/no-go.
   is not one of them.
 - `CONTRIBUTING.md` and GitHub issue templates.
 
-## [v0.12] — 2026-09-08 (`bd3c7cc`, untagged)
+## [v0.12] — 2026-09-08 (`60ec465`, untagged)
 
 ### Added
 - **Three selectable gamelist styles** behind a `gamelistStyle` subset: PSP
@@ -101,7 +101,7 @@ the public-release gate; closing it is the go/no-go.
   theme registers `detailed,gamecarousel` unconditionally, so a pinned view
   style wins over the theme's `defaultView`.
 
-## [v0.11] — 2026-07-30 (`2eff989`, untagged)
+## [v0.11] — 2026-07-30 (`6672299`, untagged)
 
 ### Added
 - Monochrome system icons adopted from the RetroArch `monochrome` XMB set:
@@ -120,7 +120,7 @@ the public-release gate; closing it is the go/no-go.
   every per-ratio card override — theme variables resolve at element-parse
   time, so the last write wins.
 
-## [v0.10] — 2026-05-26 (`7da1986`, untagged)
+## [v0.10] — 2026-05-26 (`6c78661`, untagged)
 
 ### Changed
 - `horizontalAlignment` → `alignment`, clearing ~80 parse warnings.
