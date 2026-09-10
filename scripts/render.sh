@@ -214,10 +214,7 @@ check_bool SHOW_HELP
 check_bool INVERT_BUTTONS
 
 # Build the image on first use.
-if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
-  echo "Building ${IMAGE} (one-time, ~5-10 min)..."
-  docker build -t "${IMAGE}" --build-arg ES_PIN="${ES_PIN}" "${REPO_ROOT}/docker"
-fi
+ensure_harness_image
 
 mkdir -p "$(dirname "${OUT}")"
 OUTDIR="$(cd "$(dirname "${OUT}")" && pwd)"

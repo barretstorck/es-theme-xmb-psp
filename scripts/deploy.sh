@@ -34,23 +34,9 @@ THEME_NAME="${THEME_NAME:-es-theme-xmb-psp}"
 DEVICE="${DEVICE_USER}@${DEVICE_IP}"
 THEME_PATH="/userdata/themes/${THEME_NAME}/"
 
-# Knulli runs dropbear over an exFAT /userdata partition. Permissions can't be
-# tightened on fuseblk mounts, so dropbear rejects public-key auth. If SSHPASS
-# is set, route ssh/scp/rsync through sshpass for password auth.
-if [[ -n "${SSHPASS:-}" ]]; then
-  if ! command -v sshpass >/dev/null 2>&1; then
-    echo "SSHPASS is set but 'sshpass' is not installed." >&2
-    echo "Install with: brew install hudochenkov/sshpass/sshpass" >&2
-    exit 1
-  fi
-  export SSHPASS
-  SSH="sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no"
-  SCP="sshpass -e scp -o PreferredAuthentications=password -o PubkeyAuthentication=no"
-  export RSYNC_RSH="sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new"
-else
-  SSH="ssh"
-  SCP="scp"
-fi
+# shellcheck source=scripts/lib/device-ssh.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)/device-ssh.sh"
+device_ssh_setup
 
 usage() {
   cat <<EOF
@@ -113,13 +99,13 @@ case "$cmd" in
     ;;
   logs)
     # Knulli stores ES log under configs/, not system/logs/.
-    $SSH "${DEVICE}" 'tail -f /userdata/system/configs/emulationstation/es_log.txt 2>/dev/null || tail -f /userdata/system/logs/es_log.txt'
+    "${SSH[@]}" "${DEVICE}" 'tail -f /userdata/system/configs/emulationstation/es_log.txt 2>/dev/null || tail -f /userdata/system/logs/es_log.txt'
     ;;
   shot)
     mkdir -p .dev
     # Knulli ships knulli-screenshot; Batocera ships batocera-screenshot;
     # fbgrab is the universal fallback. Prefer whichever exists.
-    $SSH "${DEVICE}" '
+    "${SSH[@]}" "${DEVICE}" '
       if command -v knulli-screenshot >/dev/null 2>&1; then
         knulli-screenshot
       elif command -v batocera-screenshot >/dev/null 2>&1; then
@@ -129,20 +115,20 @@ case "$cmd" in
       fi
     '
     sleep 1
-    latest=$($SSH "${DEVICE}" 'ls -t /userdata/screenshots/ 2>/dev/null | grep -iE "\.(png|jpg)$" | head -1')
+    latest=$("${SSH[@]}" "${DEVICE}" 'ls -t /userdata/screenshots/ 2>/dev/null | grep -iE "\.(png|jpg)$" | head -1')
     if [[ -z "$latest" ]]; then
       echo "No screenshots found on device" >&2
       exit 1
     fi
-    $SCP "${DEVICE}:/userdata/screenshots/${latest}" .dev/last-shot.png
+    "${SCP[@]}" "${DEVICE}:/userdata/screenshots/${latest}" .dev/last-shot.png
     echo "Saved .dev/last-shot.png (was ${latest} on device)"
     ;;
   shell)
-    $SSH "${DEVICE}"
+    "${SSH[@]}" "${DEVICE}"
     ;;
   fallback)
     # Atomic sync of theme.set and ThemeSet to the default 'carbon' theme.
-    $SSH "${DEVICE}" "
+    "${SSH[@]}" "${DEVICE}" "
       if command -v knulli-settings-set >/dev/null 2>&1; then
         knulli-settings-set theme.set carbon
       else
