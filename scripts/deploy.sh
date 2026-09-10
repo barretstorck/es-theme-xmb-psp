@@ -78,6 +78,7 @@ case "$cmd" in
       --exclude='.env.local.example' \
       --exclude='.gitignore' \
       --exclude='README.md' \
+      --exclude='CHANGELOG.md' \
       --exclude='CREDITS.md' \
       --exclude='LICENSE' \
       ./ "${DEVICE}:${THEME_PATH}"
