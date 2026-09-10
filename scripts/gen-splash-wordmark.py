@@ -89,9 +89,28 @@ def scale_alpha(mask: Image.Image, factor: float) -> Image.Image:
     return mask.point(lambda v: int(v * factor))
 
 
+# Pillow picks its text layout engine from what it was BUILT with: Raqm if the
+# wheel bundles it, basic layout if not. The two rasterize the same glyphs at
+# the same size to different pixels, so "regenerate and diff" -- which
+# test-splash.sh asserts byte-for-byte -- silently depended on which Pillow the
+# person running it happened to have. Raqm-enabled builds (the pip manylinux
+# wheels, and Debian/Ubuntu's python3-pil) emit 18573 bytes; builds without it
+# emit the committed 18585, and CI found this the first time it ran.
+#
+# Pinning to BASIC costs nothing here. Raqm exists for complex-script shaping --
+# ligatures, bidi, cursive joining -- and tracked_mask() below draws ONE
+# CHARACTER AT A TIME so it can apply letter tracking, which defeats shaping by
+# construction. There is no shaping to lose.
+LAYOUT = ImageFont.Layout.BASIC
+
+
 def main() -> None:
-    light = ImageFont.truetype(str(FONT_DIR / "RobotoCondensed-Light.ttf"), WORDMARK_PX)
-    regular = ImageFont.truetype(str(FONT_DIR / "RobotoCondensed-Regular.ttf"), DESCRIPTOR_PX)
+    light = ImageFont.truetype(
+        str(FONT_DIR / "RobotoCondensed-Light.ttf"), WORDMARK_PX, layout_engine=LAYOUT
+    )
+    regular = ImageFont.truetype(
+        str(FONT_DIR / "RobotoCondensed-Regular.ttf"), DESCRIPTOR_PX, layout_engine=LAYOUT
+    )
 
     word = scale_alpha(tracked_mask(WORDMARK, light, WORDMARK_TRACKING), WORDMARK_ALPHA)
     desc = scale_alpha(tracked_mask(DESCRIPTOR, regular, DESCRIPTOR_TRACKING), DESCRIPTOR_ALPHA)

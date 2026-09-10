@@ -34,22 +34,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Both are normally present on the hosted image; installing only what is
-      # actually missing keeps the common case fast without making the workflow
-      # depend on the image's contents staying the same.
-      - name: Install anything the runner image is missing
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      # Pillow comes from pip rather than apt purely to stay off the
+      # externally-managed system interpreter; either source works now.
+      # It did not always: test-splash asserts gen-splash-wordmark.py
+      # reproduces the committed PNG byte-for-byte, and that used to depend on
+      # whether the local Pillow was built with Raqm (pip wheels and Ubuntu's
+      # python3-pil are; this repo's committed asset was not). The generator
+      # now pins its layout engine, so every build agrees. Left unpinned
+      # deliberately -- the version was never the variable.
+      - name: Install the tools the gates skip without
         run: |
           set -euo pipefail
-          missing=()
-          command -v shellcheck >/dev/null || missing+=(shellcheck)
-          python3 -c 'import PIL' 2>/dev/null || missing+=(python3-pil)
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "installing: ${missing[*]}"
+          python3 -m pip install --quiet --upgrade Pillow
+          command -v shellcheck >/dev/null || {
+            echo "shellcheck absent from the runner image; installing"
             sudo apt-get update -qq
-            sudo apt-get install -y -qq "${missing[@]}"
-          else
-            echo "nothing to install"
-          fi
+            sudo apt-get install -y -qq shellcheck
+          }
 
       # The point of the whole file. Without this, a missing tool downgrades a
       # gate to a skip and the run still reports success.
