@@ -1,0 +1,77 @@
+# Runs the same suite CONTRIBUTING tells you to run before you commit, on every
+# pull request and on main. `main` is expected to be release-ready at all times,
+# so this is the gate that keeps it that way.
+#
+# The suite is deliberately tolerant of missing tools: `shellcheck` and Pillow
+# each guard themselves with `command -v` and announce a skip rather than fail,
+# because a contributor without them should still get the other twenty gates.
+# That tolerance is wrong for CI. A run that skips two gates still prints a
+# green "21 passed", which is precisely the silent-degradation failure mode the
+# gates in run-all.sh exist to prevent. So this workflow installs both, then
+# asserts they are importable BEFORE running anything.
+
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only: nothing here needs to write to the repo, and a fork PR should
+# never get a token that can.
+permissions:
+  contents: read
+
+# A second push to the same PR makes the first run irrelevant.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      # Pillow comes from pip rather than apt purely to stay off the
+      # externally-managed system interpreter; either source works now.
+      # It did not always: test-splash asserts gen-splash-wordmark.py
+      # reproduces the committed PNG byte-for-byte, and that used to depend on
+      # whether the local Pillow was built with Raqm (pip wheels and Ubuntu's
+      # python3-pil are; this repo's committed asset was not). The generator
+      # now pins its layout engine, so every build agrees. Left unpinned
+      # deliberately -- the version was never the variable.
+      - name: Install the tools the gates skip without
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --upgrade Pillow
+          command -v shellcheck >/dev/null || {
+            echo "shellcheck absent from the runner image; installing"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq shellcheck
+          }
+
+      # The point of the whole file. Without this, a missing tool downgrades a
+      # gate to a skip and the run still reports success.
+      - name: Verify no gate will silently skip
+        run: |
+          set -euo pipefail
+          shellcheck --version >/dev/null
+          python3 -c 'import PIL; print("Pillow", PIL.__version__)'
+          echo "shellcheck $(shellcheck --version | awk '/^version:/ {print $2}')"
+
+      # run-all.sh prints SKIP and still exits 0, so the exit status alone cannot
+      # tell us every gate actually ran. Capture the output once and check both.
+      - name: scripts/tests/run-all.sh
+        run: |
+          set -euo pipefail
+          scripts/tests/run-all.sh 2>&1 | tee "$RUNNER_TEMP/run-all.log"
+          if grep -q 'SKIP' "$RUNNER_TEMP/run-all.log"; then
+            echo "::error::a gate skipped in CI; every gate must run here"
+            exit 1
+          fi

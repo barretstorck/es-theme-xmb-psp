@@ -21,7 +21,8 @@ fallback, not the routine workflow.
 
 Run `scripts/tests/run-all.sh` before you commit. It is fast, it has no
 dependencies beyond `python3` and `bash`, and every gate in it is there because
-something shipped broken.
+something shipped broken. CI runs the same suite on every pull request, so
+running it first only saves you a round trip.
 
 ## Design intent comes first
 
@@ -89,9 +90,30 @@ example address; if you need another, the gate is telling you to use
 
 ## Pull requests
 
-Small and self-describing. Say what changed and why it was wrong before —
-the commit log here is written to be read later, and it is frequently the only
-record of why a value is what it is.
+**`main` is always release-ready.** Whatever is on `main` is what people are
+running, so nothing lands there directly — every change arrives as a pull
+request from a branch, and `main` is protected to enforce that.
+
+The loop:
+
+1. Branch from `main`. Name it for the change (`fix/`, `feat/`, `docs/`).
+2. Commit, push, open a pull request.
+3. CI runs `scripts/tests/run-all.sh` on every push to the PR. It must be green.
+4. The PR is reviewed, then squash-merged. The branch is deleted automatically.
+
+There are no version tags and no releases. The theme is installed from `main`,
+so "which version am I on" is answered by the commit, and
+[`CHANGELOG.md`](CHANGELOG.md) is a rolling record rather than a list of tagged
+cuts. Do not add tags.
+
+CI installs `shellcheck` and Pillow before running the suite. Locally those two
+are optional — the gates that use them announce a skip and let the rest run —
+but in CI every gate runs, and a skipped gate fails the build. If you have them
+installed locally you will see the same 21 checks CI does.
+
+Content-wise: small and self-describing. Say what changed and why it was wrong
+before — the commit log here is written to be read later, and it is frequently
+the only record of why a value is what it is.
 
 Include a render for anything visual. A claim that something looks right is not
 verification; the screenshot is.
