@@ -113,6 +113,39 @@ if dead:
     sys.exit(1)
 PY
 
+# Doc citations of the form `_inc/foo.xml:123`. These break SILENTLY and
+# repeatedly: a seven-line insert in a style file shifted five citations in
+# the style guide, one of them into an unrelated element, and a 26-line
+# deletion for #34 broke five more. Nothing surfaces it, because the docs are
+# never executed. Only path:line forms are checked — a bare filename in prose
+# ("art/halo.png was deleted in v1.0") is deliberate and must stay legal.
+#
+# Scoped to the LIVE reference docs. Dated files under docs/superpowers/ are
+# point-in-time plans and specs, correct for the release they describe, and
+# are not maintained against the current tree.
+run_one "doc-citations-resolve" python3 - <<'PY'
+import os, re, sys
+LIVE = ['README.md', 'CREDITS.md', 'docker/README.md',
+        'docs/psp-authenticity-audit.md', 'docs/psp-xmb-style-guidelines.md']
+PAT = re.compile(r'((?:_inc|scripts|colors|docker|art|sounds|fonts)/'
+                 r'[\w./-]+\.(?:xml|sh|py)):(\d+)')
+bad = []
+for doc in LIVE:
+    if not os.path.exists(doc):
+        continue
+    for i, line in enumerate(open(doc, encoding='utf-8'), 1):
+        for path, num in PAT.findall(line):
+            num = int(num)
+            if not os.path.exists(path):
+                bad.append(f"{doc}:{i} cites {path}:{num} — no such file")
+            else:
+                n = sum(1 for _ in open(path, encoding='utf-8', errors='ignore'))
+                if num > n:
+                    bad.append(f"{doc}:{i} cites {path}:{num} — file has {n} lines")
+if bad:
+    print("\n".join(bad)); sys.exit(1)
+PY
+
 if command -v shellcheck >/dev/null 2>&1; then
   run_one "shellcheck" shellcheck -x -S warning -e SC2319,SC2034 \
     scripts/*.sh scripts/lib/*.sh scripts/tests/*.sh
