@@ -184,8 +184,8 @@ Locked with the user before implementation.
 ## Architecture
 
 One file changes behaviour: `_inc/gamelist-card.xml`. Three variable files
-gain a declaration: both icon-size subsets (`cardPeekScale`) and
-`common.xml` (`cardPeekShift`).
+gain declarations: both icon-size subsets (`cardPeekScale`) and `common.xml`
+(`cardPeekShift` and `cardPeekScale`).
 
 ### 1. New variable: `cardPeekScale`
 
@@ -196,17 +196,38 @@ function of that subset's own `peekIconW/H` and `cardBoxartW/H`:
 |---|---|---|
 | `_inc/icon-size-boxart.xml` | `0.42` | midpoint of 0.4000 (landscape) and 0.4397 (portrait) |
 | `_inc/icon-size-compact.xml` | `0.495` | midpoint of 0.4710 and 0.5183 |
+| `_inc/common.xml` | `0.42` | must equal the boxart value; see below |
 
 Midpoint rather than exact-for-portrait because the ±5% residual is masked
 by the opacity ramp, and a midpoint bounds the error for *every* aspect
 rather than minimising it for one.
 
-A `common.xml` default is deliberately **not** added. The icon-size subsets
-always override it, so a value there would be dead in exactly the way
-`cardBoxartW/H` are dead — and a second misleading dead default in the file
-that already caused fact 9 is a cost with no benefit. This does not make an
-unset `iconSize` subset any worse: that case already leaves `cardBoxartW/H`
-unresolved, so the card is broken before `cardPeekScale` is reached.
+**`common.xml` must also declare it, at the same 0.42.** An earlier draft of
+this spec argued the opposite — that a `common.xml` value would be dead the
+way `cardBoxartW/H` are dead. That reasoning rested on a false premise and is
+reversed here.
+
+`test-body-legibility.sh:150-157` records the actual behaviour: *"In the
+harness the subset's first include applies and boxart wins; on the device no
+include applies and common.xml wins."* That is why `cardBoxartW/H` diverge,
+and why a fresh device shows a box art ~7% larger than every render ever
+taken. So on a fresh device the card renders **fine** from `common.xml` — it
+is not broken, and `${cardPeekScale}` would resolve to the empty string.
+`toFloat("")` is 0, so `scale` would animate to **0**: the box art shrinks to
+nothing and vanishes on every cursor move. Device-only, and invisible to the
+harness.
+
+The value is 0.42 (matching `icon-size-boxart.xml`) rather than 0.392
+(`common.xml`'s own midpoint, from its own dead `cardBoxartW/H`). The existing
+guard's entire purpose is that these two files agree on every shared `card*`
+variable; the `cardBoxartW/H` divergence is recorded there as a **bug**, not a
+pattern to copy. Agreeing also means that existing guard enforces the pairing
+for free, with no new check.
+
+This claim about fresh-device include behaviour is inherited from that suite's
+comment and from prior device sessions. It has not been re-verified on
+hardware for this change, and it is the one thing device verification should
+confirm first.
 
 While editing these two files, correct their header comments, which still
 derive the peek sizes from `glListH=0.69`. `common.xml` has held `0.75`
@@ -280,7 +301,7 @@ milliseconds are an implementation detail.
 |---|---|---|
 | `md_video` is rebuilt on every cursor move, because a whole new `DetailedContainer` is constructed | **High — the main one** | Cannot be measured in the harness: it renders desktop GL21, the device GLES2. **Device verification on the Brick is a merge gate**, not a nice-to-have. |
 | Held d-pad stacks containers | Low | Measured safe at 1500 ms, which is 10× the shipping duration. Re-check on device. |
-| `cardPeekScale` missing from one subset | Low | A subset variable that fails to resolve drops sibling properties silently (the #8 / PR #51 failure). Guarded by test. |
+| `cardPeekScale` missing from any of the three files | **High on device, invisible in harness** | An unresolved `${cardPeekScale}` becomes `toFloat("") = 0`, animating the card to nothing. The `common.xml` copy is what covers a fresh device with no icon-size subset selected. Guarded by test in all three files. |
 | The 8 doc citations into `gamelist-card.xml` all shift | Certain | Every citation in `psp-authenticity-audit.md` is at line ≥ 123 and the insert is at ~line 112. Re-point them all; this class of breakage has cost time twice. |
 
 ## Verification
