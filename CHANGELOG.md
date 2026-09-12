@@ -58,7 +58,8 @@ the public-release gate; closing it is the go/no-go.
   generator was never committed despite the README claiming otherwise, so the
   wave's maths was unrecoverable from the tree; the parameters were recovered by
   FFT from the committed art and match it to 0.53px. Excluded from the release
-  archive by the existing `scripts/` rule.
+  archive by the existing `scripts/` rule, and guarded by `test-wave-layers.sh`
+  so the art and its generator cannot drift apart the way they did before.
 - Theme payload 9.0 MB → 2.9 MB: `art/wave/wave.gif` and `wave.mp4` were the
   *rejected* wave approaches and were referenced by nothing.
 - `.gitattributes` bounds `git archive` — and so GitHub's release tarballs —
