@@ -16,7 +16,7 @@
 - **Duration is 150 ms, easing `easeOut`** for `offsetY` and `scale`.
 - **Never declare plain `activate` or `deactivate`** on `cardBoxart` or `cardFallback`. `handleStoryBoard` falls back to them only when no direction variant exists, and a direction-blind version of this animation is wrong half the time.
 - **Never add `scaleOrigin`.** It defaults to `(0.5, 0.5)` (`GuiComponent.cpp:21`), which is what this design needs.
-- **Never add a `cardPeekScale` default to `common.xml`.** The icon-size subsets always override it; a value there would be dead exactly the way `cardBoxartW/H` are dead.
+- **`cardPeekScale` must be declared in all THREE files** — `common.xml`, `icon-size-boxart.xml`, `icon-size-compact.xml` — and the `common.xml` value must **equal the boxart value exactly** (`0.42`). On a fresh device no icon-size include applies and `common.xml` wins (`test-body-legibility.sh:150-157`); an unresolved `${cardPeekScale}` becomes `toFloat("") = 0`, animating the box art to nothing on every cursor move. `test-body-legibility.sh` already fails if the two values disagree.
 - **`run-all.sh` has two whole-tree variable gates.** `no-undeclared-variables` fails if a `${var}` is never declared; `no-dead-variables` fails if a declared variable is never consumed. A commit that declares a variable without consuming it **will fail CI**. Declaration and consumption must land in the same commit.
 - **Commit before mutation testing.** This has destroyed uncommitted work in this repo twice.
 - **Verify a mutation actually applied** before believing it escaped. A no-op mutation reports a false escape; this has produced false results three times here.
@@ -28,7 +28,7 @@
 
 | File | Change | Responsibility |
 |---|---|---|
-| `_inc/common.xml` | Modify (~line 182) | Declares `cardPeekShift`, the one-slot travel |
+| `_inc/common.xml` | Modify (~line 182) | Declares `cardPeekShift` and the fresh-device `cardPeekScale` default |
 | `_inc/icon-size-boxart.xml` | Modify | Declares `cardPeekScale` 0.42; header comment corrected |
 | `_inc/icon-size-compact.xml` | Modify | Declares `cardPeekScale` 0.495; header comment corrected |
 | `_inc/gamelist-card.xml` | Modify (lines 114-131) | The four storyboards, on `cardBoxart` and `cardFallback` |
@@ -51,12 +51,12 @@ The variables and their consumers must land together — see Global Constraints.
 - Test: `scripts/tests/test-card-transition.sh` (created in Task 2; this task is verified by `run-all.sh` plus a render)
 
 **Interfaces:**
-- Produces: theme variables `cardPeekShift` (float, `0.25`, declared in `common.xml`) and `cardPeekScale` (float, declared in **both** icon-size subsets: `0.42` boxart, `0.495` compact). Task 2's guards assert both by name.
+- Produces: theme variables `cardPeekShift` (float, `0.25`, declared in `common.xml` only) and `cardPeekScale` (float, declared in **all three** variable files: `0.42` in `common.xml`, `0.42` in icon-size-boxart, `0.495` in icon-size-compact). Task 2's guards assert all of them by name.
 - Produces: storyboard event names `deactivateNext`, `deactivatePrev`, `activateNext`, `activatePrev` on elements `cardBoxart` and `cardFallback`.
 
 - [ ] **Step 1: Add `cardPeekShift` to `_inc/common.xml`**
 
-Insert immediately after the `cardBoxartH` line (currently line 183). Note the existing comment above `cardBoxartW` claims "240px square … 0.234 x 0.3125" — those values are overridden by both icon-size subsets and never render. Leave that comment alone in this step; Task 4 owns doc corrections, and `common.xml` comments are not doc-citation targets.
+Insert immediately after the `cardBoxartH` line (currently line 183). Note the existing comment above `cardBoxartW` claims "240px square … 0.234 x 0.3125" — those values are overridden by both icon-size subsets and never render. Leave that comment alone in this step; Step 5 corrects it, together with the matching stale figures in the icon-size files.
 
 ```xml
     <!-- Scroll-transition travel: one peek slot, = glListH / 3 = 0.25. The
@@ -69,7 +69,28 @@ Insert immediately after the `cardBoxartH` line (currently line 183). Note the e
     <cardPeekShift>0.25</cardPeekShift>
 ```
 
-- [ ] **Step 2: Add `cardPeekScale` to `_inc/icon-size-boxart.xml`**
+- [ ] **Step 2: Add the fresh-device `cardPeekScale` default to `_inc/common.xml`**
+
+Immediately after `cardPeekShift`:
+
+```xml
+    <!-- Fresh-device default for the transition's target scale. Both icon-size
+         subsets override this, so in the harness it never renders - but on the
+         device no include applies unless the user has opened the Icon Size
+         setting, and then common.xml wins (see test-body-legibility.sh:150).
+         Without a value here ${cardPeekScale} resolves to the empty string,
+         toFloat("") is 0, and the box art animates to nothing on every cursor
+         move. MUST equal icon-size-boxart.xml's value: Boxart is the default a
+         user is meant to see, and test-body-legibility.sh fails if any shared
+         card* variable disagrees between the two files. -->
+    <cardPeekScale>0.42</cardPeekScale>
+```
+
+This deliberately does **not** match `common.xml`'s own bounds (0.3761-0.408,
+computed from its own `cardBoxartW/H`, which are themselves a recorded
+divergence). Matching boxart is the point; copying the divergence would not be.
+
+- [ ] **Step 3: Add `cardPeekScale` to `_inc/icon-size-boxart.xml`**
 
 Insert after the `peekIconH` line, inside `<variables>`:
 
@@ -88,7 +109,7 @@ Insert after the `peekIconH` line, inside `<variables>`:
     <cardPeekScale>0.42</cardPeekScale>
 ```
 
-- [ ] **Step 3: Add `cardPeekScale` to `_inc/icon-size-compact.xml`**
+- [ ] **Step 4: Add `cardPeekScale` to `_inc/icon-size-compact.xml`**
 
 Same position, different value and figures:
 
@@ -102,7 +123,7 @@ Same position, different value and figures:
     <cardPeekScale>0.495</cardPeekScale>
 ```
 
-- [ ] **Step 4: Correct the stale header comments in both icon-size files**
+- [ ] **Step 5: Correct the stale header comments in both icon-size files**
 
 Both headers derive the peek sizes from `glListH=0.69`; `common.xml` has held
 `0.75` since v0.12. Both also quote card sizes that no longer match their own
@@ -118,7 +139,7 @@ figures from the variables rather than copying any number out of this plan.
 `glListH=0.69` and the same dead "240px square" claim - correct them too, in
 the same commit, for the same reason.
 
-- [ ] **Step 5: Add the storyboards to `cardBoxart`**
+- [ ] **Step 6: Add the storyboards to `cardBoxart`**
 
 Replace the whole `cardBoxart` element (currently `_inc/gamelist-card.xml:114-121`) with:
 
@@ -183,9 +204,9 @@ Replace the whole `cardBoxart` element (currently `_inc/gamelist-card.xml:114-12
 
 The signs: `Next` means the cursor moved *down* the list, so the outgoing card leaves *upward* (negative `offsetY`) and the incoming one arrives from *below* (positive start). `Prev` mirrors it. `ThemeVariables::resolvePlaceholders` is prefix-preserving string substitution, so `-${cardPeekShift}` resolves to the literal `-0.25`.
 
-- [ ] **Step 6: Add the same storyboards to `cardFallback`**
+- [ ] **Step 7: Add the same storyboards to `cardFallback`**
 
-`cardFallback` is the media-fallback icon shown when the selected game has no thumbnail. Without this an unscraped game gets no transition at all. Keep its existing `<visible>` guard. Append the identical four `<storyboard>` blocks from Step 5 before `</image>`, with this shorter comment instead of the long one:
+`cardFallback` is the media-fallback icon shown when the selected game has no thumbnail. Without this an unscraped game gets no transition at all. Keep its existing `<visible>` guard. Append the identical four `<storyboard>` blocks from Step 6 before `</image>`, with this shorter comment instead of the long one:
 
 ```xml
       <!-- Same four transitions as cardBoxart, so an unscraped game animates
@@ -194,19 +215,19 @@ The signs: `Next` means the cursor moved *down* the list, so the outgoing card l
            rebound at DetailedContainer.cpp:1025. -->
 ```
 
-- [ ] **Step 7: Verify the XML parses strictly**
+- [ ] **Step 8: Verify the XML parses strictly**
 
 pugixml (what ES uses) accepts constructs that are illegal XML, so a malformed file renders fine on device and breaks only the tooling.
 
 Run: `python3 -c "import glob,xml.etree.ElementTree as ET; [ET.parse(f) for f in glob.glob('_inc/*.xml')]; print('ok')"`
 Expected: `ok`
 
-- [ ] **Step 8: Verify the whole-tree gates still pass**
+- [ ] **Step 9: Verify the whole-tree gates still pass**
 
 Run: `scripts/tests/run-all.sh`
-Expected: all suites pass. Specifically `no-undeclared-variables` and `no-dead-variables` must both pass — they are the reason Steps 1-6 are one commit.
+Expected: all suites pass. Specifically `no-undeclared-variables` and `no-dead-variables` must both pass — they are the reason Steps 1-7 are one commit.
 
-- [ ] **Step 9: Verify it actually animates, on pixels**
+- [ ] **Step 10: Verify it actually animates, on pixels**
 
 Run from the repo root:
 
@@ -222,7 +243,7 @@ Note `/tmp/library` is ephemeral (it does not survive a container restart). If i
 
 Expected: the run completes and `.dev/verify/frames/` holds ~60 PNGs. Frames written by the container are root-owned, so always write to a **fresh** output directory rather than `rm -rf`-ing an old one.
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
 git add _inc/common.xml _inc/icon-size-boxart.xml _inc/icon-size-compact.xml _inc/gamelist-card.xml
@@ -402,13 +423,29 @@ for f in "${BOXART}" "${COMPACT}"; do
   check "$(basename "${f}") declares cardPeekScale" "${rc}"
 done
 
-# Deliberately absent from common.xml: the icon-size subsets always override
-# it, so a value there would be dead the way cardBoxartW/H are dead -- and a
-# second misleading dead default in that file is what caused this design to
-# compute the wrong scale in its first draft.
-! grep -q '<cardPeekScale>' "${COMMON}"
+# common.xml MUST carry it too, and must agree with Boxart. On the device no
+# icon-size include applies until the user opens the setting, and then
+# common.xml wins (test-body-legibility.sh:150). Without a value here
+# ${cardPeekScale} resolves empty, toFloat("") is 0, and the card animates to
+# nothing -- a device-only regression the harness cannot see.
+grep -q '<cardPeekScale>' "${COMMON}"
 rc=$?
-check "common.xml carries no dead cardPeekScale default" "${rc}"
+check "common.xml declares the fresh-device cardPeekScale default" "${rc}"
+
+python3 - "${COMMON}" "${BOXART}" <<'PY'
+import re, sys
+def val(p):
+    t = re.sub(r'<!--.*?-->', '', open(p, encoding='utf-8').read(), flags=re.S)
+    m = re.search(r'<cardPeekScale>([\d.]+)</cardPeekScale>', t)
+    return float(m.group(1)) if m else None
+c, b = val(sys.argv[1]), val(sys.argv[2])
+if c is None or b is None:
+    print("cardPeekScale missing from common.xml or icon-size-boxart.xml"); sys.exit(1)
+if abs(c - b) > 1e-9:
+    print("common.xml %s != icon-size-boxart.xml %s" % (c, b)); sys.exit(1)
+PY
+rc=$?
+check "common.xml cardPeekScale equals icon-size-boxart.xml's" "${rc}"
 
 # Each subset's value must sit inside ITS OWN bounds, recomputed from its own
 # variables. A literal comparison would pass a value copied from the other file.
@@ -527,28 +564,46 @@ For each row: apply the mutation, **assert it applied**, run `bash scripts/tests
 | 7 | `icon-size-compact.xml` | Change `cardPeekScale` to `0.42` (boxart's value) | "lies within its own peek/card bounds" |
 | 8 | `icon-size-boxart.xml` | Delete the `cardPeekScale` line | "icon-size-boxart.xml declares cardPeekScale" |
 | 9 | `common.xml` | Change `cardPeekShift` to `0.30` | "cardPeekShift equals glListH / 3" |
-| 10 | `common.xml` | Add `<cardPeekScale>0.42</cardPeekScale>` | "common.xml carries no dead cardPeekScale default" |
+| 10 | `common.xml` | Delete the `cardPeekScale` line | "common.xml declares the fresh-device cardPeekScale default" |
+| 11 | `common.xml` | Change `cardPeekScale` to `0.39` | "common.xml cardPeekScale equals icon-size-boxart.xml's" (and `test-body-legibility.sh`) |
 
 Use a helper that refuses to proceed on a no-op:
 
 ```bash
-mutate() { # mutate <file> <python-expression-file> — asserts the edit changed the file
+# Reads the mutating Python on stdin; that script gets the target path as
+# argv[1] and must rewrite the file in place. Refuses to let a no-op pass as
+# a result.
+mutate() { # mutate <file>   (mutating python script on stdin)
   local f="$1" before after
   before="$(md5sum "${f}" | cut -d' ' -f1)"
-  python3 - "${f}" "$2"
+  python3 - "${f}" || return 1
   after="$(md5sum "${f}" | cut -d' ' -f1)"
   if [[ "${before}" == "${after}" ]]; then
-    echo "MUTATION DID NOT APPLY to ${f} — result is meaningless" >&2
+    echo "MUTATION DID NOT APPLY to ${f} - result is meaningless" >&2
     return 1
   fi
 }
+
+# Example - mutation 4, flipping a sign:
+mutate _inc/gamelist-card.xml <<'MUT'
+import re, sys
+path = sys.argv[1]
+s = open(path).read()
+i = s.index('<theme')                      # never anchor from 0: the header
+body = s[i:]                               # comment contains the same strings
+blk = re.search(r'<storyboard event="deactivateNext">.*?</storyboard>', body, re.S)
+assert blk, "anchor not found"
+new = blk.group(0).replace('to="-${cardPeekShift}"', 'to="${cardPeekShift}"')
+assert new != blk.group(0), "replacement was a no-op"
+open(path, 'w').write(s[:i] + body.replace(blk.group(0), new, 1))
+MUT
 ```
 
 Anchor every string replacement from `s.index('<theme')` forward. Both `s.index('<view name="...">')` and `sed '0,/pattern/'` hit the string inside the **header comment** first, landing the mutation in a comment where it changes nothing and the guard "passes".
 
 - [ ] **Step 3: Record the results and fix any escapes**
 
-Expected: 10 of 10 caught. Any escape means the guard is wrong — fix the guard, re-run the whole table, and say so plainly in the commit. Do not adjust the mutation to suit the guard.
+Expected: 11 of 11 caught. Any escape means the guard is wrong — fix the guard, re-run the whole table, and say so plainly in the commit. Do not adjust the mutation to suit the guard.
 
 - [ ] **Step 4: Confirm the tree is restored**
 
