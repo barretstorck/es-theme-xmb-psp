@@ -43,6 +43,21 @@ print(re.sub(r'<!--.*?-->', '', open(sys.argv[1], encoding='utf-8').read(), flag
 PY
 }
 
+# Print one <storyboard event="..."> block's animation lines, from an
+# already-extracted, already-uncommented element body on stdin. Scoped to a
+# SINGLE element and a SINGLE event, so a property moved between events or
+# between elements (while an element-wide or file-wide total stays the same)
+# cannot hide from the count below. Empty output is a legitimate result: it
+# means this element has no such event block, and callers must treat that as
+# a failure, never as "nothing to check".
+event_block() { # event_block <event-name>   (body on stdin)
+  awk -v want="event=\"$1\"" '
+    !inblk && index($0, want) && /<storyboard/ { inblk = 1; next }
+    inblk && /<\/storyboard>/ { inblk = 0; next }
+    inblk { print }
+  '
+}
+
 echo "both media elements carry all four direction-aware events:"
 
 for el in "${ANIMATED[@]}"; do
@@ -71,12 +86,18 @@ for el in "${ANIMATED[@]}"; do
   rc=$?
   check "${el} does not override scaleOrigin" "${rc}"
 
-  # Guard the PROPERTIES, not the word "storyboard".
-  for prop in offsetY scale opacity; do
-    n="$(grep -c "property=\"${prop}\"" <<<"${body}")"
-    [[ "${n}" -eq 4 ]]
-    rc=$?
-    check "${el} animates ${prop} in all 4 events (found ${n})" "${rc}"
+  # Guard the PROPERTIES, not the word "storyboard" -- and guard them PER
+  # EVENT, not as an element-wide total. A total of 4 across the element's
+  # four storyboards is satisfied just as well by 1+1+1+1 as by 2+0+1+1, so a
+  # property moved out of one event and duplicated into another leaves the
+  # total unchanged while one event silently animates nothing.
+  for ev in deactivateNext deactivatePrev activateNext activatePrev; do
+    ev_block="$(event_block "${ev}" <<<"${body}")"
+    for prop in offsetY scale opacity; do
+      grep -q "property=\"${prop}\"" <<<"${ev_block}"
+      rc=$?
+      check "${el} ${ev} animates ${prop}" "${rc}"
+    done
   done
 done
 
@@ -92,21 +113,35 @@ grep -q 'event="deactivateNext">' <<<"${card_body}"
 rc=$?
 check "deactivateNext exists to check signs against" "${rc}"
 
-for pair in 'deactivateNext:to="-${cardPeekShift}"' \
-            'deactivatePrev:to="${cardPeekShift}"' \
-            'activateNext:from="${cardPeekShift}"' \
-            'activatePrev:from="-${cardPeekShift}"'; do
-  ev="${pair%%:*}"; want="${pair#*:}"
-  python3 - "${CARD}" "${ev}" "${want}" <<'PY'
-import re, sys
-path, ev, want = sys.argv[1], sys.argv[2], sys.argv[3]
-t = re.sub(r'<!--.*?-->', '', open(path, encoding='utf-8').read(), flags=re.S)
-blocks = re.findall(r'<storyboard event="%s">(.*?)</storyboard>' % ev, t, re.S)
-offs = [b for b in blocks if 'property="offsetY"' in b]
-sys.exit(0 if offs and all(want in b for b in offs) else 1)
-PY
-  rc=$?
-  check "${ev} offsetY carries ${want}" "${rc}"
+# Per element AND per event -- never "does some block, somewhere, agree".
+# Filtering a list of blocks down to "the ones that have offsetY" and then
+# checking `all()` over what's left makes a MISSING offsetY block vanish
+# from the sample instead of failing it: with cardBoxart's offsetY silently
+# dropped, cardFallback's intact block alone satisfied `all(...)`. Here each
+# element/event pair is graded on its own: the offsetY animation must be
+# PRESENT in that exact block, and it must carry the right from/to. A block
+# with no offsetY at all is a hard failure, never a skip.
+declare -A WANT_OFFSETY=(
+  [deactivateNext]='to="-${cardPeekShift}"'
+  [deactivatePrev]='to="${cardPeekShift}"'
+  [activateNext]='from="${cardPeekShift}"'
+  [activatePrev]='from="-${cardPeekShift}"'
+)
+
+for el in "${ANIMATED[@]}"; do
+  tmp="$(mktemp)"
+  image_block "${CARD}" "${el}" > "${tmp}"
+  body="$(uncommented "${tmp}")"
+  rm -f "${tmp}"
+
+  for ev in deactivateNext deactivatePrev activateNext activatePrev; do
+    want="${WANT_OFFSETY[${ev}]}"
+    ev_block="$(event_block "${ev}" <<<"${body}")"
+    offsety_line="$(grep 'property="offsetY"' <<<"${ev_block}")"
+    [[ -n "${offsety_line}" ]] && [[ "${offsety_line}" == *"${want}"* ]]
+    rc=$?
+    check "${el} ${ev} offsetY carries ${want}" "${rc}"
+  done
 done
 
 echo
