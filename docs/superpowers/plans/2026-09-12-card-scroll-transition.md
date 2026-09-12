@@ -566,6 +566,12 @@ For each row: apply the mutation, **assert it applied**, run `bash scripts/tests
 | 9 | `common.xml` | Change `cardPeekShift` to `0.30` | "cardPeekShift equals glListH / 3" |
 | 10 | `common.xml` | Delete the `cardPeekScale` line | "common.xml declares the fresh-device cardPeekScale default" |
 | 11 | `common.xml` | Change `cardPeekScale` to `0.39` | "common.xml cardPeekScale equals icon-size-boxart.xml's" (and `test-body-legibility.sh`) |
+| 12 | `gamelist-card.xml` | Move the `offsetY` animation out of `cardBoxart`'s `deactivatePrev` and duplicate it into `activatePrev`, keeping the element's total at 4 | the per-event property guard **and** the `deactivatePrev` sign guard |
+
+Mutation 12 is the one that matters most: it is a real escape the Task 2
+review found by doing exactly this, and it passed the suite's first version.
+A total-count guard cannot see it. If 12 escapes, the per-event fix did not
+take.
 
 Use a helper that refuses to proceed on a no-op:
 
@@ -603,7 +609,7 @@ Anchor every string replacement from `s.index('<theme')` forward. Both `s.index(
 
 - [ ] **Step 3: Record the results and fix any escapes**
 
-Expected: 11 of 11 caught. Any escape means the guard is wrong — fix the guard, re-run the whole table, and say so plainly in the commit. Do not adjust the mutation to suit the guard.
+Expected: 12 of 12 caught. Any escape means the guard is wrong — fix the guard, re-run the whole table, and say so plainly in the commit. Do not adjust the mutation to suit the guard.
 
 - [ ] **Step 4: Confirm the tree is restored**
 
