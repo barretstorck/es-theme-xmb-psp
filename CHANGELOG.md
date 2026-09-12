@@ -45,11 +45,20 @@ the public-release gate; closing it is the go/no-go.
   as out of place. Both axes share one tick (#21).
 
 ### Fixed
+- The wave's crest no longer stair-steps. The layer art drew its white rim with
+  a binary test, so the grey/white transition held exactly two values and the
+  rim snapped to whole pixel rows — pronounced on an edge this close to
+  horizontal. The rim edge is now anti-aliased.
 - The wave no longer duplicates its layers in the card and list styles; the
   grid's copy is load-bearing and stays. Its restart on view change is an
   accepted limitation (#44).
 
 ### Maintenance (v1.0 audit)
+- `scripts/gen-wave-layers.py` reconstructs the wave layers. The original
+  generator was never committed despite the README claiming otherwise, so the
+  wave's maths was unrecoverable from the tree; the parameters were recovered by
+  FFT from the committed art and match it to 0.53px. Excluded from the release
+  archive by the existing `scripts/` rule.
 - Theme payload 9.0 MB → 2.9 MB: `art/wave/wave.gif` and `wave.mp4` were the
   *rejected* wave approaches and were referenced by nothing.
 - `.gitattributes` bounds `git archive` — and so GitHub's release tarballs —
