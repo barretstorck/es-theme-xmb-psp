@@ -5,11 +5,12 @@
   card. Keeps the v6 selected-dominates layout but scaled down.
   Selected via UI Settings > Theme Configuration > Icon Size > Compact.
 
-  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 165px (0.161 x
-  0.215), peek icons bumped proportionally 46px -> 75px (0.073 width-cap /
-  0.425 slot-height at glListH=0.69). Description font shrunk to ~16px (0.021);
-  the description now wraps full-width under cardTextW (v0.12 metadata
-  split), no longer marquees in a narrower column.
+  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 159x157px (0.155
+  x 0.205), peek icons bumped proportionally 46px -> 75x82px (0.073
+  width-cap / 0.425 slot-height, slot 192px tall at 4:3 = glListH*768/3 with
+  glListH=0.75). Description font shrunk to ~16px (0.021); the description
+  now wraps full-width under cardTextW (v0.12 metadata split), no longer
+  marquees in a narrower column.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
@@ -27,6 +28,13 @@
     <cardDescFontSize>0.023</cardDescFontSize>
     <peekIconW>0.073</peekIconW>
     <peekIconH>0.425</peekIconH>
+    <!-- Scroll-transition target scale; see the note in icon-size-boxart.xml.
+         Compact's own bounds:
+           both width-limited  -> peekIconW / cardBoxartW              = 0.4710
+           both height-limited -> (peekIconH * glListH/3) / cardBoxartH = 0.5183
+         Measured 0.522 for 450x600 art, 0.477 for square. 0.495 is the
+         midpoint. -->
+    <cardPeekScale>0.495</cardPeekScale>
     <peekTitleFontSize>0.026</peekTitleFontSize>
   </variables>
 </theme>
