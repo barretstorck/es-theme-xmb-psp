@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+# Structural test for the PSP Card scroll transition.
+#
+# Everything here fails SILENTLY on device if it regresses. ES logs nothing
+# when a storyboard names an event no call site raises, nothing when a
+# ${variable} fails to resolve (it becomes the empty string, and toFloat("")
+# is 0 — so a typo'd shift is a transition that travels nowhere), and nothing
+# when a theme property lands on no element. Hence structural guards; the
+# pixel behaviour is verified separately by a render.
+#
+# NOTE: deliberately NOT `set -e` — every failure must be reported, not just
+# the first.
+set -uo pipefail
+
+# shellcheck source=scripts/lib/test-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/test-lib.sh"
+
+CARD="${REPO_ROOT}/_inc/gamelist-card.xml"
+COMMON="${REPO_ROOT}/_inc/common.xml"
+BOXART="${REPO_ROOT}/_inc/icon-size-boxart.xml"
+COMPACT="${REPO_ROOT}/_inc/icon-size-compact.xml"
+ANIMATED=(cardBoxart cardFallback)
+
+# Print one named <image> element's block. The close has to be a line that is
+# ONLY a closing tag, so a nested property tag cannot end the block early.
+image_block() { # image_block <file> <element-name>
+  awk -v want="name=\"$2\"" '
+    !inblk && index($0, want) && /<image/ {
+      inblk = 1; print
+      if ($0 ~ /<\/image>/) inblk = 0
+      next
+    }
+    inblk { print; if ($0 ~ /^[[:space:]]*<\/image>[[:space:]]*$/) inblk = 0 }
+  ' "$1"
+}
+
+# Strip comments before matching, so a guard can never be satisfied by prose.
+# This is the failure that let a live <image> through the first no-halo guard.
+uncommented() { # uncommented <file>
+  python3 - "$1" <<'PY'
+import re, sys
+print(re.sub(r'<!--.*?-->', '', open(sys.argv[1], encoding='utf-8').read(), flags=re.S))
+PY
+}
+
+echo "both media elements carry all four direction-aware events:"
+
+for el in "${ANIMATED[@]}"; do
+  # Via a temp file, NOT by interpolating the block into a Python string:
+  # the XML contains quotes of every kind and would break the literal.
+  tmp="$(mktemp)"
+  image_block "${CARD}" "${el}" > "${tmp}"
+  body="$(uncommented "${tmp}")"
+  rm -f "${tmp}"
+  for ev in deactivateNext deactivatePrev activateNext activatePrev; do
+    grep -q "<storyboard event=\"${ev}\">" <<<"${body}"
+    rc=$?
+    check "${el} declares event=\"${ev}\"" "${rc}"
+  done
+
+  # The direction-blind fallback. handleStoryBoard reaches plain
+  # activate/deactivate only when no direction variant exists; declaring one
+  # here would silently take over and travel the wrong way half the time.
+  ! grep -qE '<storyboard event="(activate|deactivate)">' <<<"${body}"
+  rc=$?
+  check "${el} declares no direction-blind activate/deactivate" "${rc}"
+
+  # scaleOrigin defaults to the element centre, which is what the design
+  # needs. An override is always a mistake here.
+  ! grep -q '<scaleOrigin>' <<<"${body}"
+  rc=$?
+  check "${el} does not override scaleOrigin" "${rc}"
+
+  # Guard the PROPERTIES, not the word "storyboard".
+  for prop in offsetY scale opacity; do
+    n="$(grep -c "property=\"${prop}\"" <<<"${body}")"
+    [[ "${n}" -eq 4 ]]
+    rc=$?
+    check "${el} animates ${prop} in all 4 events (found ${n})" "${rc}"
+  done
+done
+
+echo
+echo "the travel is one slot, in the right direction:"
+
+# Next = cursor moved down the list, so the outgoing card leaves UPWARD.
+# Getting a sign wrong is invisible to every other guard and produces a
+# transition that travels into the slot it came from.
+card_body="$(uncommented "${CARD}")"
+
+grep -q 'event="deactivateNext">' <<<"${card_body}"
+rc=$?
+check "deactivateNext exists to check signs against" "${rc}"
+
+for pair in 'deactivateNext:to="-${cardPeekShift}"' \
+            'deactivatePrev:to="${cardPeekShift}"' \
+            'activateNext:from="${cardPeekShift}"' \
+            'activatePrev:from="-${cardPeekShift}"'; do
+  ev="${pair%%:*}"; want="${pair#*:}"
+  python3 - "${CARD}" "${ev}" "${want}" <<'PY'
+import re, sys
+path, ev, want = sys.argv[1], sys.argv[2], sys.argv[3]
+t = re.sub(r'<!--.*?-->', '', open(path, encoding='utf-8').read(), flags=re.S)
+blocks = re.findall(r'<storyboard event="%s">(.*?)</storyboard>' % ev, t, re.S)
+offs = [b for b in blocks if 'property="offsetY"' in b]
+sys.exit(0 if offs and all(want in b for b in offs) else 1)
+PY
+  rc=$?
+  check "${ev} offsetY carries ${want}" "${rc}"
+done
+
+echo
+echo "the variables exist, in the right files, with the right values:"
+
+# cardPeekShift is glListH / 3. Recomputed rather than compared to a literal,
+# so the two cannot drift apart -- the #43 lesson.
+python3 - "${COMMON}" <<'PY'
+import re, sys
+t = open(sys.argv[1], encoding='utf-8').read()
+t = re.sub(r'<!--.*?-->', '', t, flags=re.S)
+def val(name):
+    m = re.search(r'<%s>([\d.]+)</%s>' % (name, name), t)
+    return float(m.group(1)) if m else None
+h, shift = val('glListH'), val('cardPeekShift')
+if h is None or shift is None:
+    print("glListH or cardPeekShift missing from common.xml"); sys.exit(1)
+if abs(shift - h / 3) > 1e-9:
+    print("cardPeekShift %s != glListH/3 %s" % (shift, h / 3)); sys.exit(1)
+PY
+rc=$?
+check "cardPeekShift equals glListH / 3" "${rc}"
+
+# A subset variable that fails to resolve does not just blank one property:
+# ES drops sibling properties on the element (the buttonGlyphs failure found
+# on hardware). Both subsets must carry it or one Icon Size setting breaks.
+for f in "${BOXART}" "${COMPACT}"; do
+  grep -q '<cardPeekScale>' "${f}"
+  rc=$?
+  check "$(basename "${f}") declares cardPeekScale" "${rc}"
+done
+
+# common.xml MUST carry it too, and must agree with Boxart. On the device no
+# icon-size include applies until the user opens the setting, and then
+# common.xml wins (test-body-legibility.sh:150). Without a value here
+# ${cardPeekScale} resolves empty, toFloat("") is 0, and the card animates to
+# nothing -- a device-only regression the harness cannot see.
+grep -q '<cardPeekScale>' "${COMMON}"
+rc=$?
+check "common.xml declares the fresh-device cardPeekScale default" "${rc}"
+
+python3 - "${COMMON}" "${BOXART}" <<'PY'
+import re, sys
+def val(p):
+    t = re.sub(r'<!--.*?-->', '', open(p, encoding='utf-8').read(), flags=re.S)
+    m = re.search(r'<cardPeekScale>([\d.]+)</cardPeekScale>', t)
+    return float(m.group(1)) if m else None
+c, b = val(sys.argv[1]), val(sys.argv[2])
+if c is None or b is None:
+    print("cardPeekScale missing from common.xml or icon-size-boxart.xml"); sys.exit(1)
+if abs(c - b) > 1e-9:
+    print("common.xml %s != icon-size-boxart.xml %s" % (c, b)); sys.exit(1)
+PY
+rc=$?
+check "common.xml cardPeekScale equals icon-size-boxart.xml's" "${rc}"
+
+# Each subset's value must sit inside ITS OWN bounds, recomputed from its own
+# variables. A literal comparison would pass a value copied from the other file.
+for f in "${BOXART}" "${COMPACT}"; do
+  python3 - "${f}" "${COMMON}" <<'PY'
+import re, sys
+def load(p):
+    t = re.sub(r'<!--.*?-->', '', open(p, encoding='utf-8').read(), flags=re.S)
+    return {k: float(v) for k, v in re.findall(r'<(\w+)>([\d.]+)</\1>', t)}
+sub, common = load(sys.argv[1]), load(sys.argv[2])
+g = {**common, **sub}
+need = ('peekIconW', 'cardBoxartW', 'peekIconH', 'cardBoxartH', 'glListH', 'cardPeekScale')
+missing = [n for n in need if n not in g]
+if missing:
+    print("missing: " + ", ".join(missing)); sys.exit(1)
+lo = g['peekIconW'] / g['cardBoxartW']                      # both width-limited
+hi = (g['peekIconH'] * g['glListH'] / 3) / g['cardBoxartH']  # both height-limited
+if not (min(lo, hi) - 1e-9 <= g['cardPeekScale'] <= max(lo, hi) + 1e-9):
+    print("cardPeekScale %.4f outside [%.4f, %.4f] for %s"
+          % (g['cardPeekScale'], min(lo, hi), max(lo, hi), sys.argv[1]))
+    sys.exit(1)
+PY
+  rc=$?
+  check "$(basename "${f}") cardPeekScale lies within its own peek/card bounds" "${rc}"
+done
+
+echo
+echo "the transition is scoped to Style A:"
+
+for other in gamelist-list gamelist-grid; do
+  ! grep -qE 'event="(activate|deactivate)(Next|Prev)"' "${REPO_ROOT}/_inc/${other}.xml"
+  rc=$?
+  check "${other}.xml declares no direction-aware events" "${rc}"
+done
+
+! grep -l 'cardPeekScale\|cardPeekShift' "${REPO_ROOT}"/_inc/aspect-*.xml >/dev/null 2>&1
+rc=$?
+check "no aspect-*.xml overrides the transition variables" "${rc}"
+
+echo
+echo "docs describe the shipped behaviour:"
+
+GUIDE="${REPO_ROOT}/docs/psp-xmb-style-guidelines.md"
+grep -q 'deactivateNext' "${GUIDE}"
+rc=$?
+check "style guide names the direction-aware events" "${rc}"
+
+grep -qi 'cardPeekScale' "${GUIDE}"
+rc=$?
+check "style guide documents cardPeekScale" "${rc}"
+
+echo
+if [[ "${fail}" -eq 0 ]]; then echo "all checks passed"; else echo "FAILURES"; fi
+exit "${fail}"
