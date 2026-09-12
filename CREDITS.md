@@ -37,7 +37,8 @@ repository and covered by its CC-BY-NC-SA 2.0 licence.
 
 | Asset | Path | Source | Origin author / licence |
 |---|---|---|---|
-| Wave background (3 parallax layers + composite) | `art/wave/` | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 |
+| Wave background — 3 parallax layers | `art/wave/wave-layer-{1,2,3}.png` | This port (`scripts/gen-wave-layers.py`) | Barret Storck — CC-BY-NC-SA 2.0 |
+| Wave background — tinted canvas | `art/wave/wave.png` | This port | Barret Storck — CC-BY-NC-SA 2.0 |
 | System icons — majority (v0.11+) | `art/system-icons/` | RetroArch `monochrome` XMB set | RetroArch/libretro contributors — CC-BY 4.0 (modified; see "RetroArch `monochrome` icon set" below) |
 | System icons — remainder and `_default.png` | `art/system-icons/` | XMB Menu ES-DE | Ant — CC-BY-NC-SA 2.0 (see "Icon attribution (v0.4)" below) |
 | System icons — 8 port icons | `art/system-icons/` | This port (`scripts/gen-port-icons.py`) | Barret Storck — CC-BY-NC-SA 2.0; drawn against the RA `monochrome` set as a style reference |
