@@ -639,8 +639,8 @@ issue #12), partially delivered.** The right info panel this entry
 wanted to extend no longer exists, so a "sidebar" of key-value rows
 is moot. What the redesign actually ships is a single metadata line
 on the expanded card. As of v0.12 that is three fixed columns —
-`cardGenre` / `cardStars` / `cardPlayers` (`_inc/gamelist-card.xml:190`,
-`:222`, `:236`), plus `cardMeta2` (`:250`) — not the single
+`cardGenre` / `cardStars` / `cardPlayers` (`_inc/gamelist-card.xml:263`,
+`:295`, `:309`), plus `cardMeta2` (`:323`) — not the single
 `{game:genre} · {game:stars}` line named `cardMetadata` that v0.11
 shipped and that this entry was originally written against. Fixed
 columns were the point: they are what stops a long genre wrapping and
@@ -672,7 +672,7 @@ entry.
 **Dependencies:** none remaining (the old G6 coupling dissolved with
 the panel).
 
-**Evidence:** `_inc/gamelist-card.xml:190, 222, 236, 250` (the metadata
+**Evidence:** `_inc/gamelist-card.xml:263, 295, 309, 323` (the metadata
 columns that replaced v0.11's `cardMetadata`);
 `THEMES_BINDINGS.md` `{game:*}` bindings list; PR #32.
 
@@ -725,7 +725,7 @@ no `reflexion` usage post-PR #32.
 **Status: SHIPPED in the v0.11 gamelist redesign (PR #32,
 issue #14), gated behind a subset.** The card list's peek rows carry
 a per-row title element (`tplPeekTitle`, bound to `{game:name}`,
-now `_inc/gamelist-card.xml:455`) rendered beside every row's icon via
+now `_inc/gamelist-card.xml:528`) rendered beside every row's icon via
 the textlist `<itemTemplate>`. Its opacity is
 `${titleUnselectedOpacity}`: **1** under Title Visibility = "With
 Titles" (Friendly) — every visible row shows icon + title, the PSP
@@ -756,7 +756,7 @@ double up with the card title.
 
 **Dependencies:** none remaining.
 
-**Evidence:** `_inc/gamelist-card.xml:455` (`tplPeekTitle` +
+**Evidence:** `_inc/gamelist-card.xml:528` (`tplPeekTitle` +
 activate/deactivate storyboards);
 `_inc/title-visibility-{strict,friendly}.xml`
 (`titleUnselectedOpacity` 0/1); `theme.xml:140-143` (subset
@@ -828,7 +828,7 @@ outstanding task.
 covering the same 75 systems that once had a file each — see
 `_inc/media-fallback/*.xml` headers for the per-glyph system lists);
 `art/system-media/` (7 glyphs, 4705d18);
-`_inc/gamelist-card.xml:123` (`cardFallback`) and `:436`
+`_inc/gamelist-card.xml:172` (`cardFallback`) and `:509`
 (`tplPeekFallback`); absence of any halo element anywhere in the
 theme (verified by grep); 201aa0a + ed69276 (system-halo restoration
 + tuning, both since removed).
@@ -877,8 +877,8 @@ on `cardMetadata` to suppress the bare-dot case.
 
 **Dependencies:** none remaining.
 
-**Evidence:** `_inc/gamelist-card.xml:128, 151, 441` (the three
-`exists()` guards — `:151` is now the two-term
+**Evidence:** `_inc/gamelist-card.xml:177, 224, 514` (the three
+`exists()` guards — `:224` is now the two-term
 `!exists({game:image}) && !exists({game:thumbnail})` added in #41,
 because ES resolves a video's snapshot as image-or-thumbnail and a
 box-art-only scrape otherwise leaked the fallback icon around it);
@@ -1405,7 +1405,7 @@ shows a small triangle at the cut edge indicating "more text below"
 `<container>true</container>` is gone, and auto-scroll turned out to be
 two separate TextComponent properties (`<autoScroll>` to enable a
 direction, `<autoScrollSpeed>` for the rate), not a container. `cardDesc`
-(`_inc/gamelist-card.xml:285`) scrolls vertically inside a `clipRect`. The text *does* scroll on
+(`_inc/gamelist-card.xml:358`) scrolls vertically inside a `clipRect`. The text *does* scroll on
 selection, but there's no visual cue that text is being cut at the
 container edge. This entry WAS implemented (f233b09) and then
 deliberately reverted after on-device review (1666257): the
@@ -1443,7 +1443,7 @@ same description container.
 
 **Dependencies:** none.
 
-**Evidence:** `_inc/gamelist-card.xml:285` (`cardDesc`, which replaced
+**Evidence:** `_inc/gamelist-card.xml:358` (`cardDesc`, which replaced
 the v0.11 description container); f233b09 (implementation),
 1666257 (design revert).
 
