@@ -4,11 +4,12 @@
   Larger selected boxart + peek icons for users with scraped boxart they want
   to see. Selected via UI Settings > Theme Configuration > Icon Size > Boxart.
 
-  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 240px (0.234 x
-  0.3125), peek icons bumped 65px -> 90px (0.088 width-cap / 0.51 slot-height
-  at glListH=0.69). Selected-to-peek ratio ~2.7x. Description font shrunk to
-  ~18px (0.023); the description now wraps full-width under cardTextW (v0.12
-  metadata split), no longer marquees in a narrower column.
+  v0.11 v7 (PR #32 on-device tweaks): selected card boxart 225x223px (0.22 x
+  0.29), peek icons bumped 65px -> 90x98px (0.088 width-cap / 0.51
+  slot-height, slot 192px tall at 4:3 = glListH*768/3 with glListH=0.75).
+  Selected-to-peek ratio ~2.5x. Description font shrunk to ~18px (0.023); the
+  description now wraps full-width under cardTextW (v0.12 metadata split),
+  no longer marquees in a narrower column.
   CC-BY-NC-SA 2.0. See CREDITS.md.
 -->
 <theme>
@@ -26,6 +27,18 @@
     <cardDescFontSize>0.025</cardDescFontSize>
     <peekIconW>0.088</peekIconW>
     <peekIconH>0.51</peekIconH>
+    <!-- Scroll-transition target scale: what the card shrinks to so it lands
+         at peek size. Not derivable at runtime — the peek and card boxes have
+         different aspect ratios, so which maxSize cap each hits depends on the
+         art:
+           both width-limited  -> peekIconW / cardBoxartW              = 0.4000
+           both height-limited -> (peekIconH * glListH/3) / cardBoxartH = 0.4397
+         Measured 0.439 for 450x600 art, 0.404 for square. 0.42 is the midpoint,
+         which bounds the error for every aspect rather than minimising it for
+         one; the ~5% residual is covered by the opacity ramp, which reaches 0
+         before the card arrives. Both bounds are pure ratios of these
+         variables, so this value is independent of screen aspect ratio. -->
+    <cardPeekScale>0.42</cardPeekScale>
     <peekTitleFontSize>0.030</peekTitleFontSize>
   </variables>
 </theme>

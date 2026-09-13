@@ -117,6 +117,55 @@
       <maxSize>${cardBoxartW} ${cardBoxartH}</maxSize>
       <origin>0.5 0.5</origin>
       <zIndex>8</zIndex>
+      <!-- Scroll transition. ES picks one of four direction-aware events from
+           moveBy = cursorIndex - lastCursor (DetailedGameListView.cpp:46 into
+           DetailedContainer.cpp:1106-1160). When any extra carries an
+           activation storyboard, DetailedContainerHost keeps the OUTGOING
+           game's container alive and runs deactivate* on it (:1358-1395) —
+           that is what puts the previous box art on screen to animate away,
+           and it is why this effect needs no duplicate "ghost" element.
+
+           Declaring these MOVES this element out of the view's extras and into
+           DetailedContainer's own: ThemeData::makeExtras partitions on exactly
+           "has an activation storyboard", and DetailedGameListView asks for
+           WITHOUT_ACTIVATESTORYBOARD (DetailedGameListView.cpp:14). So
+           {game:thumbnail} is now refreshed at DetailedContainer.cpp:1025
+           rather than by ISimpleGameListView::updateThemeExtrasBindings().
+
+           Plain activate/deactivate are deliberately absent: handleStoryBoard
+           falls back to them only when no direction variant exists, and a
+           direction-blind version of this travel is wrong half the time.
+           moveBy == 0 (entering the gamelist) reaches neither branch, so entry
+           stays a hard cut, which is intended.
+
+           scale needs no scaleOrigin — it defaults to (0.5, 0.5), the
+           element's own centre (GuiComponent.cpp:21). offsetY writes
+           mScreenOffset, a screen-space translate applied at
+           GuiComponent.cpp:434 BEFORE the scale block at :437, so it moves the
+           card without disturbing <pos>.
+
+           The opacity ramps are asymmetric on purpose and are load-bearing,
+           not decoration: see the style guide's motion section. -->
+      <storyboard event="deactivateNext">
+        <animation property="offsetY" from="0" to="-${cardPeekShift}" duration="150" mode="easeOut"/>
+        <animation property="scale" from="1" to="${cardPeekScale}" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="1" to="0" begin="30" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard event="deactivatePrev">
+        <animation property="offsetY" from="0" to="${cardPeekShift}" duration="150" mode="easeOut"/>
+        <animation property="scale" from="1" to="${cardPeekScale}" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="1" to="0" begin="30" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard event="activateNext">
+        <animation property="offsetY" from="${cardPeekShift}" to="0" duration="150" mode="easeOut"/>
+        <animation property="scale" from="${cardPeekScale}" to="1" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="0" to="1" begin="0" duration="110" mode="linear"/>
+      </storyboard>
+      <storyboard event="activatePrev">
+        <animation property="offsetY" from="-${cardPeekShift}" to="0" duration="150" mode="easeOut"/>
+        <animation property="scale" from="${cardPeekScale}" to="1" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="0" to="1" begin="0" duration="110" mode="linear"/>
+      </storyboard>
     </image>
 
     <!-- Media fallback when the selected game has no thumbnail. -->
@@ -127,6 +176,30 @@
       <origin>0.5 0.5</origin>
       <visible>!exists({game:thumbnail})</visible>
       <zIndex>8</zIndex>
+      <!-- Same four transitions as cardBoxart, so an unscraped game animates
+           identically to a scraped one. See the comment there for the
+           mechanism. The <visible> guard still resolves: container extras are
+           rebound at DetailedContainer.cpp:1025. -->
+      <storyboard event="deactivateNext">
+        <animation property="offsetY" from="0" to="-${cardPeekShift}" duration="150" mode="easeOut"/>
+        <animation property="scale" from="1" to="${cardPeekScale}" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="1" to="0" begin="30" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard event="deactivatePrev">
+        <animation property="offsetY" from="0" to="${cardPeekShift}" duration="150" mode="easeOut"/>
+        <animation property="scale" from="1" to="${cardPeekScale}" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="1" to="0" begin="30" duration="120" mode="linear"/>
+      </storyboard>
+      <storyboard event="activateNext">
+        <animation property="offsetY" from="${cardPeekShift}" to="0" duration="150" mode="easeOut"/>
+        <animation property="scale" from="${cardPeekScale}" to="1" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="0" to="1" begin="0" duration="110" mode="linear"/>
+      </storyboard>
+      <storyboard event="activatePrev">
+        <animation property="offsetY" from="-${cardPeekShift}" to="0" duration="150" mode="easeOut"/>
+        <animation property="scale" from="${cardPeekScale}" to="1" duration="150" mode="easeOut"/>
+        <animation property="opacity" from="0" to="1" begin="0" duration="110" mode="linear"/>
+      </storyboard>
     </image>
 
     <!-- Media fallback when the selected game has no art for the upper-right

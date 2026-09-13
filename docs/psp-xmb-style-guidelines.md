@@ -67,6 +67,7 @@ yourself — those derivations are recorded here.
    - 7.4 [Description auto-scroll](#74-description-auto-scroll)
    - 7.5 [Video preview delay](#75-video-preview-delay)
    - 7.6 [What we cannot animate](#76-what-we-cannot-animate)
+   - 7.7 [Card scroll transition (Style A only)](#77-card-scroll-transition-style-a-only)
 8. [Subsets and user knobs](#8-subsets-and-user-knobs)
 9. [Sound](#9-sound)
    - 9.1 [How ES binds sounds — two different mechanisms](#91-how-es-binds-sounds--two-different-mechanisms)
@@ -1342,7 +1343,10 @@ impossible**, not merely tuned away.
   description sit below the rule (from `cardMetaY=0.602`).
   `event="deactivate"` reverses the fade. There is **no selection
   halo** on the card — size dominance is the selection signal (see
-  §10 and audit G5).
+  §10 and audit G5). Moving the cursor also animates `cardBoxart`/
+  `cardFallback` between the card position and the peek slot being
+  promoted from or demoted into — a direction-aware scroll transition,
+  not a hard cut. See §7.7.
 - *Description* (`cardDesc`) is a bounded 5-line block at the full
   text-column width, not a marquee strip. v0.11's `<size>` alone did
   not clip on-device (its height ran under the help strip in use), so
@@ -1685,7 +1689,9 @@ under Main Menu → UI Settings) overrides this.
 (~500-700ms) and reads as molasses. `instant` plus the carousel's
 own internal `fade` (`<defaultTransition>fade</defaultTransition>` in
 `_inc/system.xml:77`) gives a feel closer to PSP than either
-extreme.
+extreme. The same ~150ms figure — not `defaultTransition`, which this
+setting does not touch — reappears as the duration of the Style A
+card's own scroll transition; see §7.7.
 
 ### 7.3 Halo scroll fade
 
@@ -1798,6 +1804,118 @@ relevant summary:
 
 These are all audit U-entries (technically unsupportable). Don't
 propose them as theme features.
+
+### 7.7 Card scroll transition (Style A only)
+
+**Harness-verified only.** Everything below was measured against
+render captures; nothing here has been confirmed on the Brick. See
+the design spec
+(`docs/superpowers/specs/2026-09-12-card-scroll-transition-design.md`)
+for the full derivation and the device-verification gate this still
+owes.
+
+`cardBoxart` and `cardFallback` (`_inc/gamelist-card.xml`) each carry
+four direction-aware storyboards so a cursor move reads as the
+selected box art travelling to (or from) the peek slot it is being
+promoted from or demoted into, instead of a hard cut. Duration is
+`150ms`, `easeOut`, matching the peek icons' own fade and the PSP's
+own ~150ms intercategory transition (§7.2).
+
+**a. Four events, chosen by direction.** ES computes
+`moveBy = mList.getCursorIndex() - mList.getLastCursor()` in
+`DetailedGameListView::updateInfoPanel` (`DetailedGameListView.cpp:46`)
+and passes it into `DetailedContainer::updateControls`.
+`handleStoryBoard` (`DetailedContainer.cpp:1106-1160`) picks, in order:
+
+| `moveBy` | Event fired |
+|:---|:---|
+| `> 0` (cursor moved down) | `activateNext` on the incoming game's container, `deactivateNext` on the outgoing one |
+| `< 0` (cursor moved up) | `activatePrev` / `deactivatePrev` |
+| `!= 0`, no direction variant declared | falls back to plain `activate` / `deactivate` |
+| `== 0` (view entry) | `open`, then the unnamed default — neither is declared here, so entry stays a hard cut |
+
+Only the four direction variants are declared — plain `activate`/
+`deactivate` are deliberately omitted, since a direction-blind version
+of a travel animation is wrong half the time.
+
+**b. `cardPeekScale` — the landing size, and why it needs three copies.**
+The card shrinks to `cardPeekScale` on arrival at (or departure into) a
+peek slot. The correct value is a pure ratio of that icon-size subset's
+own `peekIconW/H` and `cardBoxartW/H`, bounded between:
+
+- `peekIconW / cardBoxartW` — both slots width-limited, or
+- `(peekIconH × glListH/3) / cardBoxartH` — both slots height-limited.
+
+Both bounds are ratios of theme variables only, so they don't depend on
+screen aspect ratio; no `aspect-*.xml` override is needed. Measured
+midpoints: **`0.42`** for Boxart (bounds 0.4000 landscape / 0.404
+square / 0.4397 portrait) and **`0.495`** for Compact (0.4710 / 0.477 /
+0.5183) — confirmed by rendering the same 450×600 art as a card and as
+a peek under each subset (167×223 vs 73×98 = 0.439 under Boxart;
+118×157 vs 61×82 = 0.522 under Compact). This is why the variable is
+declared **per icon-size subset** rather than once: a single constant
+cannot land correctly for both.
+
+It is *also* declared in `common.xml`, at the Boxart value (`0.42`).
+On device, no icon-size include applies until the user opens that
+subset's menu at least once; until then `common.xml`'s copy is the one
+that resolves. Without it, `${cardPeekScale}` resolves to the empty
+string, `toFloat("")` is `0`, and `scale` would animate the box art to
+nothing on every cursor move on a fresh install — invisible in the
+harness, where a subset's own include always wins (see §6.7's
+`card*` font-size note for the same include-order asymmetry).
+
+**c. Declaring the storyboard changes which object owns the element.**
+`ThemeData::makeExtras` partitions extras on exactly "has an activation
+storyboard": `DetailedGameListView` requests
+`WITHOUT_ACTIVATESTORYBOARD` (`DetailedGameListView.cpp:14`), so
+`cardBoxart`/`cardFallback` leave the gamelist view's own extras — and
+stop being rebound by `ISimpleGameListView::updateThemeExtrasBindings()`
+— the moment they carry one, joining `DetailedContainer`'s own extras
+(`WITH_ACTIVATESTORYBOARD | PERGAMEEXTRAS`, `DetailedContainer.cpp:523`,
+rebound at `:1025`). Because any activation storyboard on any
+container element triggers this, `DetailedContainerHost::updateControls`
+(`DetailedContainer.cpp:1358-1395`) now builds a **whole new
+`DetailedContainer`** — which includes `md_video` — on every cursor
+move, keeping the outgoing one alive just long enough to run its
+`deactivate*` storyboard. Rebuilding `md_video` this often is an
+unmeasured cost on device; it is the design's flagged high-severity
+risk, not a harness-visible one (harness renders desktop GL21, the
+device GLES2).
+
+**d. The opacity ramps are asymmetric on purpose.** The outgoing card
+travels toward the slot where *its own* peek icon is simultaneously
+fading back in (the existing `deactivate` storyboard on `tplPeekIcon`)
+— same image, same place, same size, so the cross-dissolve is between
+near-identical pixels and can afford to hold fully opaque for the
+first 30ms before it starts to fade (`opacity` `begin=30 duration=120`
+— `begin` is honoured, not merely parsed: `StoryboardAnimator.cpp:136`
+gates the interpolation on `mCurrentTime >= anim->begin`), which is
+longer than the incoming card gets. The incoming card starts at the
+far slot, which is currently showing a *different* game's peek icon —
+that overlap is the visible one, so it ramps from `0` immediately
+(`begin=0 duration=110`) and is solid well before it lands. Without
+either ramp, the card visibly collides with and stacks on top of the
+peek icon it is passing over — the opacity animation isn't polish.
+
+**e. The peek icons themselves still cannot travel.**
+`TextListComponent::updateCameraOffset()` sets `mCameraOffset` with no
+lerp — rows snap to their new slot instantly. Nothing above changes
+that: the peek textlist's own `activate`/`deactivate` opacity
+storyboards, on `tplPeekIcon`/`tplPeekFallback`/`tplPeekTitle`, are
+untouched, and the peek list is not part of `DetailedContainer` so
+double-buffering never reaches it. The travelling motion is the card
+alone.
+
+**Other facts of note:** `mScaleOrigin` defaults to `(0.5, 0.5)`
+(`GuiComponent.cpp:21`), so `scale` shrinks toward the element's own
+centre and no `scaleOrigin` override is needed. `offsetY` writes
+`mScreenOffset`, a screen-space translate applied at
+`GuiComponent.cpp:434` — *before* the scale block at `:437` — so it
+does not disturb `<pos>`. Travel is one peek slot,
+`cardPeekShift = 0.25 = glListH/3` (measured slot centres at 1024×768:
+`0.3340 / 0.5846 / 0.8340`, and the card's own centre is `0.5846`, the
+same as the middle slot).
 
 ---
 

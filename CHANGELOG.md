@@ -27,6 +27,12 @@ the public-release gate; closing it is the go/no-go.
   (#40, #21).
 - README showcase: real screenshots, style comparisons and a navigation GIF
   (#45).
+- PSP Card gamelist (Style A): the selected box art now animates between the
+  card position and its peek slot on cursor move, direction-aware and scaled
+  to the peek icon's own size, instead of a hard cut. 150ms, `easeOut`,
+  matching the peek icons' existing fade. Harness-verified only; device
+  verification (specifically `md_video` rebuild cost under a held d-pad) is
+  still owed — see `docs/psp-xmb-style-guidelines.md` §7.7.
 
 ### Changed
 - Box Art Grid: selection zoom no longer clips against the grid's own render

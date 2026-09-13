@@ -175,12 +175,34 @@
          while it was hidden, so it was a no-op. -->
     <videoAudioEnabled>false</videoAudioEnabled>
 
-    <!-- Selected boxart: 240px square at 4:3 = 0.234 (W of 1024) x 0.3125
-         (H of 768). maxSize preserves aspect, so for a square boxart the
-         binding dimension is whichever yields 240px (both do). Overridden
-         smaller by the Compact subset. -->
+    <!-- Fresh-device default (before either Icon Size subset applies): 240px
+         square at 4:3 = 0.234 (W of 1024) x 0.3125 (H of 768). maxSize
+         preserves aspect, so for a square boxart the binding dimension is
+         whichever yields 240px (both do). Overridden by BOTH icon-size
+         subsets once one is selected: Boxart drops to 225x223px (0.22 x
+         0.29), Compact to 159x157px (0.155 x 0.205). -->
     <cardBoxartW>0.234</cardBoxartW>
     <cardBoxartH>0.3125</cardBoxartH>
+
+    <!-- Scroll-transition travel: one peek slot, = glListH / 3 = 0.25. The
+         card's centre and the middle peek slot's centre are the same point
+         (both measured at 0.5846 of screen height at 4:3), so an offsetY of
+         exactly this lands the travelling card on the adjacent peek icon.
+         NOT overridden per icon size or per aspect ratio: glListH is declared
+         only here, and the slot pitch is a fraction of the same screen
+         dimension at every ratio. -->
+    <cardPeekShift>0.25</cardPeekShift>
+
+    <!-- Fresh-device default for the transition's target scale. Both icon-size
+         subsets override this, so in the harness it never renders - but on the
+         device no include applies unless the user has opened the Icon Size
+         setting, and then common.xml wins (see test-body-legibility.sh:150).
+         Without a value here ${cardPeekScale} resolves to the empty string,
+         toFloat("") is 0, and the box art animates to nothing on every cursor
+         move. MUST equal icon-size-boxart.xml's value: Boxart is the default a
+         user is meant to see, and test-body-legibility.sh fails if any shared
+         card* variable disagrees between the two files. -->
+    <cardPeekScale>0.42</cardPeekScale>
 
     <!-- Big-card text column begins just right of the boxart (boxart right
          edge = crossX + cardBoxartW/2 = 0.24 + 0.117 = 0.357; + gap). -->
@@ -209,10 +231,11 @@
     <cardMeta2FontSize>0.026</cardMeta2FontSize>
     <cardDescFontSize>0.025</cardDescFontSize>
 
-    <!-- Peek icons (prev/next rows): v7 bumped 65px -> 90px square at 4:3.
-         peekIconW = 90/1024 = 0.088 (screen width cap); peekIconH = 90/176.6 =
-         0.51 (slot height; slot ~176.6px tall at 4:3 = glListH*768/3 with
-         glListH=0.69). Overridden smaller by the Compact subset. -->
+    <!-- Peek icons (prev/next rows): v7 bumped from 65px wide. peekIconW =
+         90/1024 = 0.088 (screen width cap); peekIconH = 98/192 = 0.51 (slot
+         height; slot 192px tall at 4:3 = glListH*768/3 with glListH=0.75) ->
+         actual 90x98px, not square. Overridden smaller by the Compact
+         subset. -->
     <peekIconW>0.088</peekIconW>
     <peekIconH>0.51</peekIconH>
     <peekTitleFontSize>0.030</peekTitleFontSize>
