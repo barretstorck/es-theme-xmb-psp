@@ -1887,8 +1887,11 @@ device GLES2).
 travels toward the slot where *its own* peek icon is simultaneously
 fading back in (the existing `deactivate` storyboard on `tplPeekIcon`)
 — same image, same place, same size, so the cross-dissolve is between
-near-identical pixels and can stay solid for most of the 150ms
-(`opacity` `begin=30 duration=120`). The incoming card starts at the
+near-identical pixels and can afford to hold fully opaque for the
+first 30ms before it starts to fade (`opacity` `begin=30 duration=120`
+— `begin` is honoured, not merely parsed: `StoryboardAnimator.cpp:136`
+gates the interpolation on `mCurrentTime >= anim->begin`), which is
+longer than the incoming card gets. The incoming card starts at the
 far slot, which is currently showing a *different* game's peek icon —
 that overlap is the visible one, so it ramps from `0` immediately
 (`begin=0 duration=110`) and is solid well before it lands. Without

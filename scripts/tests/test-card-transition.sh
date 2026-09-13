@@ -128,6 +128,30 @@ declare -A WANT_OFFSETY=(
   [activatePrev]='from="-${cardPeekShift}"'
 )
 
+# scale and opacity get the same per-element/per-event treatment as offsetY,
+# for the same reason: a total across the element hides a value moved between
+# events. Demonstrated escapes that the presence-only check above (property=
+# "scale"/"opacity" appears SOMEWHERE in the block) let through clean:
+#   - a scale animation's `to` flattened to "0"
+#   - the incoming (activateNext/activatePrev) opacity ramp inverted to
+#     from="1" to="0", fading the selected box art to invisible on every
+#     cursor move
+# Both left the suite at a clean pass count. An event block missing the
+# animation entirely must FAIL here too, never silently skip -- same
+# `[[ -n ... ]] &&` guard as offsetY.
+declare -A WANT_SCALE=(
+  [deactivateNext]='from="1" to="${cardPeekScale}"'
+  [deactivatePrev]='from="1" to="${cardPeekScale}"'
+  [activateNext]='from="${cardPeekScale}" to="1"'
+  [activatePrev]='from="${cardPeekScale}" to="1"'
+)
+declare -A WANT_OPACITY=(
+  [deactivateNext]='from="1" to="0"'
+  [deactivatePrev]='from="1" to="0"'
+  [activateNext]='from="0" to="1"'
+  [activatePrev]='from="0" to="1"'
+)
+
 for el in "${ANIMATED[@]}"; do
   tmp="$(mktemp)"
   image_block "${CARD}" "${el}" > "${tmp}"
@@ -135,12 +159,70 @@ for el in "${ANIMATED[@]}"; do
   rm -f "${tmp}"
 
   for ev in deactivateNext deactivatePrev activateNext activatePrev; do
-    want="${WANT_OFFSETY[${ev}]}"
     ev_block="$(event_block "${ev}" <<<"${body}")"
+
+    want="${WANT_OFFSETY[${ev}]}"
     offsety_line="$(grep 'property="offsetY"' <<<"${ev_block}")"
     [[ -n "${offsety_line}" ]] && [[ "${offsety_line}" == *"${want}"* ]]
     rc=$?
     check "${el} ${ev} offsetY carries ${want}" "${rc}"
+
+    scale_want="${WANT_SCALE[${ev}]}"
+    scale_line="$(grep 'property="scale"' <<<"${ev_block}")"
+    [[ -n "${scale_line}" ]] && [[ "${scale_line}" == *"${scale_want}"* ]]
+    rc=$?
+    check "${el} ${ev} scale carries ${scale_want}" "${rc}"
+
+    opacity_want="${WANT_OPACITY[${ev}]}"
+    opacity_line="$(grep 'property="opacity"' <<<"${ev_block}")"
+    [[ -n "${opacity_line}" ]] && [[ "${opacity_line}" == *"${opacity_want}"* ]]
+    rc=$?
+    check "${el} ${ev} opacity carries ${opacity_want}" "${rc}"
+  done
+done
+
+echo
+echo "duration and easing survive a slow-motion capture-and-restore round trip:"
+
+# The style guide's device-verification workflow tells an engineer to
+# multiply every duration by 10x for slow-motion capture, then restore the
+# originals by hand afterward. Nothing above catches a failure to restore:
+# duration="1500" mode="linear" on any animation passed every guard above
+# clean, because none of them look past from/to. Ship that and the
+# transition is a 1.5-second crawl instead of 150ms.
+declare -A WANT_OPACITY_TIMING=(
+  [deactivateNext]='begin="30" duration="120"'
+  [deactivatePrev]='begin="30" duration="120"'
+  [activateNext]='begin="0" duration="110"'
+  [activatePrev]='begin="0" duration="110"'
+)
+
+for el in "${ANIMATED[@]}"; do
+  tmp="$(mktemp)"
+  image_block "${CARD}" "${el}" > "${tmp}"
+  body="$(uncommented "${tmp}")"
+  rm -f "${tmp}"
+
+  for ev in deactivateNext deactivatePrev activateNext activatePrev; do
+    ev_block="$(event_block "${ev}" <<<"${body}")"
+
+    offsety_line="$(grep 'property="offsetY"' <<<"${ev_block}")"
+    [[ -n "${offsety_line}" ]] && [[ "${offsety_line}" == *'duration="150"'* ]] \
+      && [[ "${offsety_line}" == *'mode="easeOut"'* ]]
+    rc=$?
+    check "${el} ${ev} offsetY carries duration=150 mode=easeOut" "${rc}"
+
+    scale_line="$(grep 'property="scale"' <<<"${ev_block}")"
+    [[ -n "${scale_line}" ]] && [[ "${scale_line}" == *'duration="150"'* ]] \
+      && [[ "${scale_line}" == *'mode="easeOut"'* ]]
+    rc=$?
+    check "${el} ${ev} scale carries duration=150 mode=easeOut" "${rc}"
+
+    opacity_want="${WANT_OPACITY_TIMING[${ev}]}"
+    opacity_line="$(grep 'property="opacity"' <<<"${ev_block}")"
+    [[ -n "${opacity_line}" ]] && [[ "${opacity_line}" == *"${opacity_want}"* ]]
+    rc=$?
+    check "${el} ${ev} opacity carries ${opacity_want}" "${rc}"
   done
 done
 
